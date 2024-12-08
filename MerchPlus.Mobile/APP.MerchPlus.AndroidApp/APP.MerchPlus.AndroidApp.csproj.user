@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <SelectedDevice>pixel_5_-_api_28</SelectedDevice>
+    <SelectedPlatformGroup>PhysicalDevice</SelectedPlatformGroup>
+    <ActiveDebugProfile>pixel_5_-_api_34</ActiveDebugProfile>
+    <DefaultDevice>pixel_5_-_api_28</DefaultDevice>
+    <AndroidDesignerPreferredDevice>7.3in Foldable</AndroidDesignerPreferredDevice>
+    <_LastSelectedProfileId>C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\MerchPlus.Mobile\APP.MerchPlus.AndroidApp\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>

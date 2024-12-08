@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Müşteri Seçimi</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="Scripts/jquery.min.kendo.js"></script>
+
+    <!-- Plugins -->
+    <link href="Plugins/Pace/bounce.css" rel="stylesheet" />
+    <script src="Plugins/Pace/pace.min.js"></script>
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/jquery-ui/jquery-ui.min.js"></script>
+
+    <!-- Controllers -->
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/CustomerSelectController.js?v=1"></script>
+
+    <!-- Styles -->
+    <link href="css/CustomerSelectStyle.css" rel="stylesheet" />
+</head>
+<body class="skin skin-1">
+    <div class="backgroundPicture"></div>
+    <div id="pnlMainContainer" class="container" style="position:absolute; top:38vh; left: 2vw; height:50vh; z-index:99; display:none;">
+        <div class="col-md-6">
+            <div class="profile-image">
+                <img id="pctProfilePhoto" src="Images/ProfilePhotos/noProfile.png" class="img-thumbnail" alt="profile">
+            </div>
+            <div>
+                <div>
+                    <div>
+                        <h2 id="lblNameSurname" class="no-margins" style="color:#D90069; font-size: 20pt; font-weight: bold; padding-top:20px;">
+                            -
+                        </h2>
+                        <h4 id="lblTitle" style="font-weight:normal; font-size:12pt; color:black">-</h4>
+                        <h1 id="lblSlogan" style="font-size: 16pt;">Hoşgeldiniz</h1>
+                    </div>
+                    <div class="hr-line-dashed" style="border-color:#CCC;"></div>
+                    <table class="table table-hover">
+                        <tbody id="pnlModuleContainer"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

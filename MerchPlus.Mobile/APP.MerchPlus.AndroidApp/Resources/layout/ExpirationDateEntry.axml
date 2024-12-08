@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true"
+    android:layout_height="fill_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:descendantFocusability="beforeDescendants"
+        android:focusableInTouchMode="true"
+        android:layout_height="wrap_content">
+        <TextView
+            android:text="Ürün Ekle"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
+        <Spinner
+            android:id="@+id/ExpirationDateEntry_wleCustomerProductId"
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:layout_gravity="left"
+            android:padding="10dp" />
+    </LinearLayout>
+  <LinearLayout
+        android:orientation="horizontal"
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    <TextView
+          android:text="Tarih"
+          android:layout_width="0dp"
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:layout_weight="2"
+          android:layout_height="wrap_content"
+          android:gravity="left"
+          android:paddingTop="10dp"
+          android:paddingBottom="10dp" />
+    <EditText
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="0dp"
+        android:layout_gravity="right"
+        android:layout_height="wrap_content"
+        android:id="@+id/ExpirationDateEntry_txtDay"
+        android:layout_weight="2"
+        android:padding="10dp"
+        android:gravity="center"
+        android:inputType="number" />
+    <EditText
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="0dp"
+        android:layout_gravity="right"
+        android:layout_height="wrap_content"
+        android:id="@+id/ExpirationDateEntry_txtMonth"
+        android:layout_weight="2"
+        android:padding="10dp"
+        android:gravity="center"
+        android:inputType="number" />
+    <EditText
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="0dp"
+        android:layout_gravity="right"
+        android:layout_height="wrap_content"
+        android:id="@+id/ExpirationDateEntry_txtYear"
+        android:layout_weight="3"
+        android:padding="10dp"
+        android:gravity="center"
+        android:inputType="number" />
+  </LinearLayout>
+  <LinearLayout
+        android:orientation="horizontal"
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    <TextView
+          android:text="Adet"
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:layout_width="0dp"
+          android:layout_weight="2"
+          android:layout_height="wrap_content"
+          android:gravity="left"
+          android:paddingTop="10dp"
+          android:paddingBottom="10dp" />
+    <EditText
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="0dp"
+        android:layout_gravity="right"
+        android:layout_height="wrap_content"
+        android:id="@+id/ExpirationDateEntry_txtQuantity"
+        android:layout_weight="2"
+        android:padding="10dp"
+        android:gravity="center"
+        android:inputType="number" />
+    <TextView
+          android:text=" "
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:layout_width="0dp"
+          android:layout_weight="5"
+          android:layout_height="wrap_content"
+          android:gravity="left"
+          android:paddingTop="10dp"
+          android:paddingBottom="10dp" />
+  </LinearLayout>
+  <LinearLayout
+      android:orientation="horizontal"
+      android:minWidth="25px"
+      android:minHeight="25px"
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content">
+    <TextView
+          android:text=" "
+          android:textAppearance="?android:attr/textAppearanceLarge"
+          android:layout_width="0dp"
+          android:layout_weight="2"
+          android:layout_height="wrap_content"
+          android:gravity="left"
+          android:paddingTop="10dp"
+          android:paddingBottom="10dp" />
+    <Button
+        android:text="EKLE"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/ExpirationDateEntry_btnAdd" />
+  </LinearLayout>
+    <ListView
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/ExpirationDateEntry_lstItems" />
+</LinearLayout>

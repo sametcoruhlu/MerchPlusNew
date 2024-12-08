@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple Polylines</title>
+    <style>
+         /* Always set the map height explicitly to define the size of the div
+        * element that contains the map. */
+         #map {
+             height: 100%;
+         }
+         /* Optional: Makes the sample page fill the window. */
+         html, body {
+             height: 100%;
+             margin: 0;
+             padding: 0;
+         }
+    </style>
+    <script src="Scripts/jquery.min.kendo.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+
+      // This example creates a 2-pixel-wide red polyline showing the path of William
+      // Kingsford Smith's first trans-Pacific flight between Oakland, CA, and
+      // Brisbane, Australia.
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 3,
+          center: {lat: 0, lng: -180},
+          mapTypeId: 'terrain'
+        });
+
+
+        var token = JSON.parse(sessionStorage.getItem('token'));
+        var member = JSON.parse(sessionStorage.getItem('entMember'));
+        var eventInstance = event;
+        var url = InfrastructureVariables.WebServicePath + "api/MemberCoordinateController/SelectMemberCoordinateByMemberIdToday";
+        var data = {};
+        data.MemberId = '17e029d9-7b8f-41f4-8459-1186f7180453';
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: data,
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token.access_token);
+            },
+            success: function (resultObject) {
+                console.log(JSON.stringify(resultObject, null, 3));
+
+                var flightPlanCoordinates = resultObject.Content;
+                var flightPath = new google.maps.Polyline({
+                    path: flightPlanCoordinates,
+                    geodesic: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.3,
+                    strokeWeight: 10
+                });
+
+                flightPath.setMap(map);
+
+                var bounds = new google.maps.LatLngBounds();
+                for (var i = 0; i < flightPlanCoordinates.length; i++) {
+                    bounds.extend(flightPlanCoordinates[i]);
+                }
+
+                bounds.getCenter();
+                map.fitBounds(bounds);
+
+            },
+            error: function (err) {
+                console.log('An error occured in api/MemberCoordinateController/SelectMemberCoordinateByMemberIdToday: ' + JSON.stringify(err, null, 3));
+                swal('Hoppa...', 'İşleminiz sırasında bir hata oluştu.', 'error').then(function () {
+                    //sessionStorage.clear();
+                    //window.location.href = 'index.html';
+                });
+            }
+        });
+      }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbKBk2v5A6rGuFMfdMuSxepOlKNjZ-PYU&callback=initMap"></script>
+</body>
+</html>

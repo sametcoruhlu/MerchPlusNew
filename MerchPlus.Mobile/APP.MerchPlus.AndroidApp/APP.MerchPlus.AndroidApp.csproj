@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-android</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<SupportedOSPlatformVersion>28.0</SupportedOSPlatformVersion>
+
+		<RootNamespace>APP.MerchPlus</RootNamespace>
+		<AssemblyName>MerchPlus</AssemblyName>
+		<AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <AndroidPackageFormat>apk</AndroidPackageFormat>
+	  <AndroidUseAapt2>True</AndroidUseAapt2>
+	  <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+	</PropertyGroup>
+	<PropertyGroup>
+		<AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86;x86_64</AndroidSupportedAbis>
+	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="SQLite.cs" />
+	  <Compile Remove="SQLiteAsync.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Resources\drawable\displayicon.png" />
+	  <None Remove="Resources\layout\CustomSpinnerDropdownItem.axml" />
+	  <None Remove="Resources\layout\CustomSpinnerItem.axml" />
+	  <None Remove="Resources\layout\DisplayVitrineCamera.axml" />
+	  <None Remove="Resources\layout\PhotoListItem.axml" />
+	  <None Remove="Resources\layout\PromotionTypeListItem.axml" />
+	  <None Remove="Resources\layout\ShopCamera.axml" />
+	  <None Remove="Resources\xml\file_paths.xml" />
+	  <None Remove="Resources\xml\spinner_background.xml" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<AndroidResource Include="Resources\layout\AboutMeActivity.axml" />
+		<AndroidResource Include="Resources\layout\CustomerProductList.axml" />
+		<AndroidResource Include="Resources\layout\CustomerProductListItem.axml" />
+		<AndroidResource Include="Resources\layout\ExitShop.axml" />
+		<AndroidResource Include="Resources\layout\ExpirationDateEntry.axml" />
+		<AndroidResource Include="Resources\layout\Main.axml" />
+		<AndroidResource Include="Resources\layout\MerchDataEntry.axml" />
+		<AndroidResource Include="Resources\layout\ProductExpirationPreviewRow.axml" />
+		<AndroidResource Include="Resources\layout\RetailShopProductListRow.axml" />
+		<AndroidResource Include="Resources\layout\SalesOrderEntry.axml" />
+		<AndroidResource Include="Resources\layout\SalesOrderPreviewRow.axml" />
+		<AndroidResource Include="Resources\layout\ShopEntryCamera.axml" />
+		<AndroidResource Include="Resources\layout\ShopVitrineCamera.axml" />
+		<AndroidResource Include="Resources\layout\SplashScreen.axml" />
+		<AndroidResource Include="Resources\layout\TodaysRoute.axml" />
+		<AndroidResource Include="Resources\layout\TodaysRouteRow.axml" />
+
+		<AndroidResource Include="Resources\values\Strings.xml" />
+		<AndroidResource Include="Resources\values\styles.xml" />
+		<AndroidResource Include="Resources\xml\network_security_config.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Resource.designer.cs dosyasını projeye dahil et -->
+		<Compile Update="Resources\Resource.designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resource</DependentUpon>
+		</Compile>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.9" />
+		<PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.ConstraintLayout" Version="2.1.4.14" />
+		<PackageReference Include="Xamarin.AndroidX.Core" Version="1.13.1.3" />
+		<PackageReference Include="Xamarin.Google.Android.Material" Version="1.4.0.2" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\entMerchPlus\entMerchPlus.csproj" />
+	</ItemGroup>
+
+
+</Project>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="Hello">Hello World, Click Me!</string>
+    <string name="ApplicationName">APP.MerchPlus.Android</string>
+    <string name="promotiontypename_prompt">Seçiniz</string>
+    <string name="salesorderpackagetypename_prompt">Seçiniz</string>
+	<string name="customerproduct_prompt">Seçiniz</string>
+    <string name="activitytypename_prompt">Seçiniz</string>
+    <string-array name="promotiontypearray_array">
+      <item>YOK</item>
+      <item>Alecentral</item>
+      <item>Asalak Stand</item>
+      <item>Gondol Başı</item>
+      <item>Havuz</item>
+      <item>Kasa önü</item>
+      <item>Palet</item>  
+      <item>Sepet</item>
+      <item>Diğer</item>
+      <item>Devam Eden Teşhir</item>
+      <item>Çapraz Teşhir</item>
+    </string-array>
+  <string-array name="salesorderpackagetypearray_array">
+    <item>Koli</item>
+  </string-array>
+  <string-array name="activitytypearray_array">
+    <item>YOK</item>
+    <item>INSERT</item>
+    <item>IKINCISI %50 INDIRIMLI</item>
+    <item>UC AL IKI ODE</item>
+    <item>FIYAT INDIRIMI</item>
+    <item>DIGER</item>
+  </string-array>
+</resources>

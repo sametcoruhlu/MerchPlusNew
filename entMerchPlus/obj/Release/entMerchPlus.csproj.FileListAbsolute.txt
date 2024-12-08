@@ -1,0 +1,9 @@
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\bin\Release\entMerchPlus.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\bin\Release\entMerchPlus.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\bin\Release\Newtonsoft.Json.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\bin\Release\Newtonsoft.Json.xml
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\obj\Release\entMerchPlus.csproj.AssemblyReference.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\obj\Release\entMerchPlus.csproj.CoreCompileInputs.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\obj\Release\entMerch.681CAC8B.Up2Date
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\obj\Release\entMerchPlus.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\entMerchPlus\obj\Release\entMerchPlus.pdb

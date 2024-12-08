@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MerchPlus</name>
+    </assembly>
+    <members>
+        <member name="T:APP.MerchPlus.DistanceType">
+            <summary>
+            The distance type to return the results in.
+            </summary>
+        </member>
+        <member name="T:APP.MerchPlus.Position">
+            <summary>
+            Specifies a Latitude / Longitude point.
+            </summary>
+        </member>
+        <member name="M:APP.MerchPlus.HaversineUtility.Distance(APP.MerchPlus.Position,APP.MerchPlus.Position,APP.MerchPlus.DistanceType)">
+            <summary>
+            Returns the distance in miles or kilometers of any two
+            latitude / longitude points.
+            </summary>
+            <param name="pos1"></param>
+            <param name="pos2"></param>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:APP.MerchPlus.HaversineUtility.toRadian(System.Double)">
+            <summary>
+            Convert to Radians.
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

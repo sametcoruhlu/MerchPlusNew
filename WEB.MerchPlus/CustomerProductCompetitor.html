@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Ürünler</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/DashboardStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <script src="Scripts/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/CustomerProductCompetitorController.js"></script>
+    
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.tr.js"></script>
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <script src="Plugins/Numeral/numeral-with-locales.min.js"></script>
+    
+    <link href="Plugins/Easyui/themes/default/easyui.css" rel="stylesheet" />
+    <script src="Plugins/Easyui/jquery.easyui.min.js"></script>
+
+    <link href="Plugins/Select2v4/select2.min.css" rel="stylesheet" />
+    <link href="Plugins/Select2v4/select2.bootstrap.css" rel="stylesheet" />
+    <script src="Plugins/Select2v4/select2.min.js"></script>
+
+
+    <style>
+        .fh-breadcrumb {
+          height: calc(100% - 180px) !important;
+          margin: 0 -15px !important;
+          position: relative !important;
+        }
+
+        .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+            border-top: none;
+            line-height: 1.42857;
+            padding: 8px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>Rakip Ürünler</h2>
+                    <h3>Tanımlı rakip ürün eşleştirmesi aşağıda gösterilmektedir. Varolan eşleştirmeyi kaldırmak için Sil butonunu kullanabilirsiniz. Yeni bir eşleştirme eklemek için Yeni butonuna tıklayın.</h3>
+                </div>
+                <div class="col-lg-2" style="margin-top: 35px;">
+                    <button class="btn btn-danger" type="button" id="btnAddNew"><i class="fa fa-plus"></i> Yeni Eşleştirme</button>
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left">
+                        <div class="element-detail-box">
+                            <div id="gridContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="modal inmodal fade" id="winEdit" tabindex="-1" role="dialog" aria-hidden="true">
+        <input type="hidden" id="lblId" />
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Kapat</span></button>
+                    <h4 class="modal-title" id="lblCaption">Rakip Ürün Eşleştir</h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width: 100%;" class="table table-condensed">
+                        <tr>
+                            <td style="width: 100px; text-align: right; font-weight: bold; vertical-align:middle;">
+                                Ürün
+                            </td>
+                            <td>
+                                <select id="winEdit_wleCustomerProductId"></select>
+                            </td>
+                            <td style="width: 100px; text-align: right; font-weight: bold; vertical-align:middle;">
+                                Rakip Ürün
+                            </td>
+                            <td>
+                                <select id="winEdit_wleCustomerProductCompetitorId"></select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnSave" class="btn btn-success">Kaydet</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Vazgeç</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

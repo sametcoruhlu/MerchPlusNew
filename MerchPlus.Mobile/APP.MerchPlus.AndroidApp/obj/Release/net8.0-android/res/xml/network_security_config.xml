@@ -1,0 +1,1 @@
+<network-security-config><base-config cleartextTrafficPermitted="true" /><domain-config cleartextTrafficPermitted="true"><domain includeSubdomains="true">https://merchplus.net/</domain></domain-config></network-security-config>

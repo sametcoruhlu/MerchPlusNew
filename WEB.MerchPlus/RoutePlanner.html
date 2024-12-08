@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Ziyaret Planlayıcısı</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/DashboardStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="Plugins/Lightbox/lightbox.min.css" rel="stylesheet">
+
+    <script src="Scripts/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+   
+    
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.tr.js"></script>
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <script src="Plugins/Numeral/numeral-with-locales.min.js"></script>
+    <script src="Plugins/Moment/moment.js"></script>
+
+    <link href="Plugins/Select2v4/select2.min.css" rel="stylesheet" />
+    <link href="Plugins/Select2v4/select2.bootstrap.css" rel="stylesheet" />
+    <script src="Plugins/Select2v4/select2.min.js"></script>
+
+    <link href="Plugins/toastr/toastr.css" rel="stylesheet" />
+    <script src="Plugins/toastr/toastr.min.js"></script>
+
+
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.min.css' />
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.6.1/fullcalendar.min.js'></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/RoutePlannerController.js"></script>
+  
+    <style>
+        .fh-breadcrumb {
+          /*height: calc(100% - 240px) !important;*/
+          margin: 0 -15px !important;
+          position: relative !important;
+        }
+
+        .select2-container--bootstrap .select2-results__group {
+            color: #336699;
+            display: block;
+            padding: 6px 12px;
+            padding-top: 10px;
+            font-size: 12px;
+            line-height: 1.42857143;
+            white-space: nowrap;
+            font-size: 12pt;
+            border-bottom: solid 1px #CCC;
+        }
+        .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
+            background-color: #e3e8f1 !important;
+            color: #000;
+        }
+        .select2-container--bootstrap .select2-results__option[aria-selected=true] {
+            background-color: #e3e8f1 !important;
+        }
+
+        .vertical-text {
+	        transform: rotate(90deg);
+	        transform-origin: left top 0;
+        }
+
+        .modal-dialog {
+            width: 1200px;
+            height: 600px;
+            margin: 30px auto;
+        }
+
+        .alignMiddle {
+            vertical-align: middle !important;
+        }
+
+        .select2-dropdown {
+          z-index: 9001;
+        }
+
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-8">
+                    <h2>Ziyaret Planlayıcısı</h2>
+                    <h3>Saha ekibinin ziyaret planını bu ekranı kullanarak düzenleyebilirsiniz.</h3>
+                    <button type="button" class="btn btn-primary" onclick="window.print();">Yazdır</button>
+                </div>
+                <div class="col-lg-4" style="padding-top:35px; z-index:1;">
+                    <select id="wleMemberId" style="width:100% !important;"></select>
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left">
+                        <div class="element-detail-box">
+                            <div id="gridContainer" style="font-family: 'Trebuchet MS';"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="winAddVisit" role="dialog">
+        <input type="hidden" id="winAddVisit_hdnDate" />
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Ziyaret Ekle</h4>
+                </div>
+                <div class="modal-body" id="lstPhoto">
+                    <table class="table table-condensed" style="width: 100%;">
+                        <tr>
+                            <td style="width: 200px;"></td>
+                            <td><h2 id="winAddVisit_lblNameSurname"></h2></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 200px;">Mağaza</td>
+                            <td><select id="winAddVisit_wleRetailShopId" style="width:100%;"></select></td>
+                        </tr>
+                        <tr>
+                            <td style="width: 200px;">Tekrar Aralığı</td>
+                            <td>
+                                <select id="winAddVisit_wleFrequencyId" style="width: 100%;">
+                                    <option value="1">Her hafta</option>
+                                    <option value="2">İki Haftada Bir</option>
+                                    <option value="3">Üç Haftada Bir</option>
+                                    <option value="4">Dört Haftada Bir</option>
+                                    <option value="0">Bir kez</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 200px;">Sıra</td>
+                            <td>
+                                <select id="winAddVisit_wleOrderIndex" style="width: 100%;">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 200px;">Bitiş Tarihi</td>
+                            <td>
+                                Bu tanımlama <span id="winAddVisit_lblEndDate" style="font-family:'Trebuchet MS'; font-weight: bold;"></span> tarihine kadar devam edecektir.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="winAddVisit_btnAddVisit"><i class="fa fa-save"></i> Kaydet</button>
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="winDeleteVisit" role="dialog" style="margin-top: 150px;">
+        <input type="hidden" id="winDeleteVisit_hdnId" />
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Route Sil</h4>
+                </div>
+                <div class="modal-body" id="lstPhoto">
+                    Seçtiğiniz ziyareti silmek üzeresiniz. Bu mağazaya yapılan tüm ziyaretleri silmek için "Tümünü Sil", sedece bu ziyareti silmek için "Sil" butonuna tıklayın.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger pull-left" data-dismiss="modal" id="winDeleteVisit_btnDeleteVisitAll"><i class="fa fa-trash"></i> Bu Mağazaya Yapılacak Tüm Ziyaretleri Sil</button>
+                    <button type="button" class="btn btn-primary pull-left" data-dismiss="modal" id="winDeleteVisit_btnDeleteVisit"><i class="fa fa-trash"></i> Sadece bu Ziyareti Sil</button>
+                    <button type="button" class="btn btn-white pull-right" data-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2299E9CC-7975-45D7-9215-A5365F8DFD89}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>entMerchPlus</RootNamespace>
+    <AssemblyName>entMerchPlus</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\MerchPlus.Mobile\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="entArea.cs" />
+    <Compile Include="entCity.cs" />
+    <Compile Include="entCustomer.cs" />
+    <Compile Include="entCustomerBrand.cs" />
+    <Compile Include="entCustomerBrandCategory.cs" />
+    <Compile Include="entCustomerBrandPool.cs" />
+    <Compile Include="entCustomerProduct.cs" />
+    <Compile Include="entCustomerProductCompetitor.cs" />
+    <Compile Include="entCustomerProductRetailShop.cs" />
+    <Compile Include="entDeviceModel.cs" />
+    <Compile Include="entDistrict.cs" />
+    <Compile Include="entMember.cs" />
+    <Compile Include="entMemberCoordinate.cs" />
+    <Compile Include="entMemberCustomer.cs" />
+    <Compile Include="entMemberDisplayPhotos.cs" />
+    <Compile Include="entMemberDistrict.cs" />
+    <Compile Include="entMemberRoute.cs" />
+    <Compile Include="entMemberRouteDetail.cs" />
+    <Compile Include="entMemberRoutePhoto.cs" />
+    <Compile Include="entMemberTimeOff.cs" />
+    <Compile Include="entMemberTitle.cs" />
+    <Compile Include="entPackagingType.cs" />
+    <Compile Include="entProductExpiration.cs" />
+    <Compile Include="entPromotionType.cs" />
+    <Compile Include="entRetail.cs" />
+    <Compile Include="entRetailCategory.cs" />
+    <Compile Include="entRetailShop.cs" />
+    <Compile Include="entRetailShopCategory.cs" />
+    <Compile Include="entSalesOrder.cs" />
+    <Compile Include="entSalesOrderDetail.cs" />
+    <Compile Include="entSalesOrderPackageType.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

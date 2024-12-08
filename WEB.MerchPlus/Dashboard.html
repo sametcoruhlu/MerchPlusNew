@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/DashboardStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+
+    <!--<script src="Scripts/jquery.min.kendo.js"></script>-->
+    <script src="Scripts/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/DashboardController.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/Numeral/numeral-with-locales.min.js"></script>
+    <script src="Plugins/Moment/moment.js"></script>
+
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="Plugins/Harita/jquery.qtip.min.css">
+    <script src="Plugins/Harita/paths.js"></script>
+    <script src="Plugins/Harita/raphael-min.js"></script>
+    <script src="Plugins/Harita/jquery.qtip.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbKBk2v5A6rGuFMfdMuSxepOlKNjZ-PYU&callback=initMap"></script>
+
+    <style>
+        .fh-breadcrumb {
+          height: calc(100% - 180px) !important;
+          margin: 0 -15px !important;
+          position: relative !important;
+        }
+
+        #map{width:1050px;height:620px;position:relative;margin:auto;}
+        svg > a {cursor: pointer;display:block;}
+	    #sehir{font-size:30px;text-align:center;margin-top:25px;color:#666;}
+
+        .modal {
+            overflow: auto !important;
+        }
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>Güncel Durum Panosu</h2>
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left">
+                        <div class="element-detail-box">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <div class="widget style1 gray-bg" style="background-color:#2f4050 !important; color: #FFF;">
+                                        <div class="row">
+                                            <div class="col-xs-4">
+                                                <i class="fa fa-user fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-4 text-right">
+                                                <span> Ekip</span>
+                                                <h2 class="font-bold" id="lblAllMembers">--</h2>
+                                            </div>
+                                            <div class="col-xs-4 text-right">
+                                                <span> Online</span>
+                                                <h2 class="font-bold" id="lblMemberCount">--</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="widget style1 gray-bg" style="background-color: #ca1422 !important; color: #FFF;">
+                                        <div class="row">
+                                            <div class="col-xs-4">
+                                                <i class="fa fa-map-marker fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-8 text-right">
+                                                <span> Planlı Ziyaret </span>
+                                                <h2 class="font-bold" id="lblVisitCountPlanned">--</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="widget style1 lazur-bg">
+                                        <div class="row">
+                                            <div class="col-xs-4">
+                                                <i class="fa fa-map-marker fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-8 text-right">
+                                                <span> Gerçekleşen Ziyaret</span>
+                                                <h2 class="font-bold" id="lblActualVisitCount">--</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="widget style1 blue-bg">
+                                        <div class="row">
+                                            <div class="col-xs-4">
+                                                <i class="fa fa-line-chart fa-5x"></i>
+                                            </div>
+                                            <div class="col-xs-8 text-right">
+                                                <span> Başarı </span>
+                                                <h2 class="font-bold" id="lblActualPercent">--</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div id="pnlPlannedVersusActualGraph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div id="pnlSalesOrderGraph"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <h2 style="text-align:center;">Bugün Ziyaret Edilecek Şehirler</h2>
+                                <div id="sehir" style="position:absolute; left: -500px; top: -500px;"></div>
+                                <div id="map" style="margin-top: -140px !important;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="modal inmodal fade" id="pnlDailyRoute" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Gün Planı</h4>
+                    <small class="font-bold">İlgili tarihte <b><span id="lblCurrentCity"></span></b> ilinde yapılması planlanan ziyaretlerin durumunu tüm ekip için listelemektedir.</small>
+                </div>
+                <div class="modal-body" id="lblContent">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="pnlHeatmap" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true"  id="btnHeatmapClosed2">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Dolaşım Raporu</h4>
+                    <small class="font-bold">Seçilen saha personelinin gün içerisindeki dolaşım izini görüntüler.</small>
+                </div>
+                <div class="modal-body">
+                    <div id="mapGoogle" style="width: 840px; height: 500px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal" id="btnHeatmapClosed">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>

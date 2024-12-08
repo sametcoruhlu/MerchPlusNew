@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/IndexStyle.css" rel="stylesheet" />
+    <script src="Scripts/jquery.min.kendo.js"></script>
+
+    <!-- Plugins -->
+    <link href="Plugins/Pace/bounce.css" rel="stylesheet" />
+    <script src="Plugins/Pace/pace.min.js"></script>
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+
+    <!-- Controllers -->
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/IndexController.js"></script>
+</head>
+<body>
+    <Spinner></Spinner>
+    <video autoplay loop muted id="background">
+        <source src="pozitif.mp4" type="video/mp4">
+    </video>
+    <div class="overlayLayer"></div>
+
+    <div class="container">
+        <div class="row">
+            <div class="middle-box text-center loginscreen animated fadeInDownBig">
+                <div>
+                    <div style="padding-bottom: 30px;">
+                        <h2 class="logo-name">
+                            <center> <img src="Images/logo-white.png" class="img-responsive" width="200px" /></center>
+                        </h2>
+                    </div>
+                    <h1 style="color: #002239; font-size: 40pt;">MerchPlus</h1>
+                    <p style="color: #002239;">
+                        Hoşgeldiniz. Giriş yapmanız gerekmektedir.
+                    </p>
+                    <form id="frmLogin" class="m-t" role="form">
+                        <div class="form-group form-group-transparent">
+                            <input type="text" id="txtUsername" class="form-control text-center danger" placeholder="Kullanıcı Adı" autocomplete="off" required autofocus>
+                        </div>
+                        <div class="form-group form-group-transparent">
+                            <input type="password" id="txtPassword" class="form-control text-center" placeholder="Şifre" autocomplete="off" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger block full-width m-b">Giriş</button>
+                        <a href="ForgotPassword.html">
+                            <small style="color: #002239; font-size: 8pt;">
+                                <br />
+                                <i class="fa fa-lock fa-2x" style="opacity:0.4;"></i><br />
+                                Şifrenizi mi unuttunuz ?<br />Tıklayın
+                            </small>
+                        </a>
+                    </form>
+                    <br />
+                    <p class="m-t"> <small style="color: #002239; font-size: 10pt; opacity: 0.8;">Yazılım ve altyapı <br /><strong><a href="http://www.bsmyazilim.com" target="_blank">BSM Consultancy</a></strong> tarafından sağlanmaktadır.</small></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

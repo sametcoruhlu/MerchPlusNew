@@ -1,0 +1,15 @@
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\datMerchPlus.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\datMerchPlus.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\entMerchPlus.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\Infrastructure.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\SqlHelper.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\Newtonsoft.Json.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\entMerchPlus.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\Infrastructure.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\SqlHelper.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\bin\Debug\Newtonsoft.Json.xml
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\obj\Debug\datMerchPlus.csproj.AssemblyReference.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\obj\Debug\datMerchPlus.csproj.CoreCompileInputs.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\obj\Debug\datMerch.23DC1E06.Up2Date
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\obj\Debug\datMerchPlus.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\datMerchPlus\obj\Debug\datMerchPlus.pdb

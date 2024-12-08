@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Raf Penetrasyon Raporu (Var/Yok)</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/DashboardStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="Plugins/Lightbox/lightbox.min.css" rel="stylesheet">
+
+    <script src="Scripts/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+   
+    
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+    <script src="Plugins/Moment/moment.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.tr.js"></script>
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <script src="Plugins/Numeral/numeral-with-locales.min.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/Reporting_VarYokController.js"></script>
+  
+    <style>
+        .fh-breadcrumb {
+          height: calc(100% - 180px) !important;
+          margin: 0 -15px !important;
+          position: relative !important;
+        }
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>Raf Penetrasyon Raporu (Var/Yok)</h2>
+                    <h3>Seçilen tarih aralığında ziyareti yapılan mağazalardaki ürünlerinizin bulunabilirliğini gösterir. Sütun başlıklarından filtreleme yapabilirsiniz. Tarih aralığını seçerek Görüntüle butonuna tıklayın.</h3>
+                </div>
+                <div class="col-lg-2">
+
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left">
+                        <div class="element-detail-box">
+                            <table>
+                                <tr>
+                                    <td style="padding: 10px;">Başlangıç Tarihi</td>
+                                    <td style="padding: 10px;"><input class="datepicker" id="wleStartDate"></td>
+                                    <td style="padding: 10px;">Bitiş Tarihi</td>
+                                    <td style="padding: 10px;"><input class="datepicker" id="wleEndDate"></td>
+                                    <td style="padding: 10px;"><button type="button" id="btnGenerate" class="btn btn-success">Görüntüle</button> </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="element-detail-box">
+                            <div id="gridContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="pnlPhoto" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Mağaza Görselleri</h4>
+                </div>
+                <div class="modal-body" id="lstPhoto" style="height: 160px;">
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-white" data-dismiss="modal" id="btnHeatmapClosed">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="Plugins/Lightbox/lightbox-plus-jquery.js"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\app.merchplus.androidapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\app.merchplus.androidapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\todaysroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\todaysroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\backgroundservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\backgroundservices.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\permissionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\permissionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\permissionshelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\permissionshelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\aboutmeactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\aboutmeactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\customerproductlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\customerproductlist.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\exitshopactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\exitshopactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\app.merchplus.android.csproj.bak||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\app.merchplus.android.csproj.bak||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|c:\\users\\samet\\downloads\\merch\\merch\\merchplus_new\\merchplus.mobile\\app.merchplus.androidapp\\globalvariables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1CC30261-B4DB-4FCA-B0F9-AB49CE87F96C}|APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj|solutionrelative:app.merchplus.androidapp\\globalvariables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 10,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PermissionManager.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\PermissionManager.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\PermissionManager.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\PermissionManager.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\PermissionManager.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAzwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-14T12:24:21.302Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PermissionsHelper.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\PermissionsHelper.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\PermissionsHelper.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\PermissionsHelper.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\PermissionsHelper.cs",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-14T12:23:37.918Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "CustomerProductList.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\CustomerProductList.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\CustomerProductList.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\CustomerProductList.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\CustomerProductList.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-14T08:59:24.074Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "TodaysRoute.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\TodaysRoute.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\TodaysRoute.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\TodaysRoute.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\TodaysRoute.cs",
+              "ViewState": "AQIAAFwAAAAAAAAAAAAgwGAAAAAtAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-14T08:54:14.806Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ExitShopActivity.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\ExitShopActivity.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\ExitShopActivity.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\ExitShopActivity.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\ExitShopActivity.cs",
+              "ViewState": "AQIAAEwAAAAAAAAAAAAEwFEAAAAbAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-13T14:32:10.46Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "APP.MerchPlus.Android.csproj.bak",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.Android.csproj.bak",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\APP.MerchPlus.Android.csproj.bak",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.Android.csproj.bak",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\APP.MerchPlus.Android.csproj.bak",
+              "ViewState": "AQIAAGEAAAAAAAAAAADgv2sAAAAWAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-08-13T14:31:55.291Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "AboutMeActivity.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\AboutMeActivity.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\AboutMeActivity.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\AboutMeActivity.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\AboutMeActivity.cs",
+              "ViewState": "AQIAAOYAAAAAAAAAAAAiwO8AAABaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-13T12:09:46.319Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "BackgroundServices.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\BackgroundServices.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\BackgroundServices.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\BackgroundServices.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\BackgroundServices.cs",
+              "ViewState": "AQIAABAAAAAAAAAAAAAcwBoAAAA3AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-12T21:00:10.43Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "APP.MerchPlus.AndroidApp.csproj",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-08-08T22:04:51.633Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "GlobalVariables.cs",
+              "DocumentMoniker": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\GlobalVariables.cs",
+              "RelativeDocumentMoniker": "APP.MerchPlus.AndroidApp\\GlobalVariables.cs",
+              "ToolTip": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\GlobalVariables.cs",
+              "RelativeToolTip": "APP.MerchPlus.AndroidApp\\GlobalVariables.cs",
+              "ViewState": "AQIAABsAAAAAAAAAAAAhwCUAAAAhAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-08-08T10:48:11.332Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

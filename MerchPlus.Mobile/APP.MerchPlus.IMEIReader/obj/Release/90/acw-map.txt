@@ -1,0 +1,3 @@
+APP.MerchPlus.IMEIReader.MainActivity, APP.MerchPlus.IMEIReader;crc64bd5a6fc218a1429e.MainActivity
+APP.MerchPlus.IMEIReader.MainActivity;crc64bd5a6fc218a1429e.MainActivity
+app.merchplus.imeireader.MainActivity;crc64bd5a6fc218a1429e.MainActivity

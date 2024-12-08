@@ -1,0 +1,164 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj": {
+      "restore": {
+        "projectUniqueName": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj",
+        "projectName": "entMerchPlus",
+        "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj",
+        "packagesPath": "C:\\Users\\samet\\.nuget\\packages\\",
+        "projectStyle": "PackagesConfig",
+        "configFilePaths": [
+          "C:\\Users\\samet\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.org/api/v2": {}
+        },
+        "frameworks": {
+          "net48": {
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low"
+        },
+        "packagesConfigPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\packages.config"
+      },
+      "frameworks": {
+        "net48": {}
+      }
+    },
+    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+        "projectName": "MerchPlus",
+        "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+        "packagesPath": "C:\\Users\\samet\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\samet\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0-android"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.org/api/v2": {}
+        },
+        "frameworks": {
+          "net8.0-android34.0": {
+            "targetAlias": "net8.0-android",
+            "projectReferences": {
+              "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj": {
+                "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net8.0-android34.0": {
+          "targetAlias": "net8.0-android",
+          "dependencies": {
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.7, )",
+              "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "SQLitePCLRaw.bundle_green": {
+              "target": "Package",
+              "version": "[2.1.9, )"
+            },
+            "Xamarin.AndroidX.AppCompat": {
+              "target": "Package",
+              "version": "[1.7.0.1, )"
+            },
+            "Xamarin.AndroidX.ConstraintLayout": {
+              "target": "Package",
+              "version": "[2.1.4.14, )"
+            },
+            "Xamarin.AndroidX.Core": {
+              "target": "Package",
+              "version": "[1.13.1.3, )"
+            },
+            "Xamarin.Google.Android.Material": {
+              "target": "Package",
+              "version": "[1.4.0.2, )"
+            },
+            "sqlite-net-pcl": {
+              "target": "Package",
+              "version": "[1.9.172, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.Android": {
+              "privateAssets": "all"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "android-arm": {
+          "#import": []
+        },
+        "android-arm64": {
+          "#import": []
+        },
+        "android-x64": {
+          "#import": []
+        },
+        "android-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

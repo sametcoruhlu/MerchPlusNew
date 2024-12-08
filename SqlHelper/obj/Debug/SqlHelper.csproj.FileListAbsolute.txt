@@ -1,0 +1,9 @@
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\bin\Debug\SqlHelper.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\bin\Debug\SqlHelper.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\bin\Debug\Infrastructure.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\bin\Debug\Infrastructure.pdb
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Debug\SqlHelper.csproj.AssemblyReference.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Debug\SqlHelper.csproj.CoreCompileInputs.cache
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Debug\SqlHelper.csproj.Up2Date
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Debug\SqlHelper.dll
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Debug\SqlHelper.pdb

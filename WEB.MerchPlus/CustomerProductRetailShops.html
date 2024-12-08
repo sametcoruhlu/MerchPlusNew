@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Mağaza Ürün Eşleştirme</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/DashboardStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="Plugins/Lightbox/lightbox.min.css" rel="stylesheet">
+
+    <script src="Scripts/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+   
+    
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.tr.js"></script>
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <script src="Plugins/Numeral/numeral-with-locales.min.js"></script>
+
+    <link href="Plugins/Select2v4/select2.min.css" rel="stylesheet" />
+    <link href="Plugins/Select2v4/select2.bootstrap.css" rel="stylesheet" />
+    <script src="Plugins/Select2v4/select2.min.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/CustomerProductRetailShopsController.js"></script>
+  
+    <style>
+        .fh-breadcrumb {
+          height: calc(100% - 240px) !important;
+          margin: 0 -15px !important;
+          position: relative !important;
+        }
+        input[type='checkbox'] {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 5px;
+            border: 2px solid #555;
+        }
+
+        input[type='checkbox']:checked {
+                background: #00ff21;
+        }
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom">
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-8">
+                    <h2>Mağaza Ürün Eşleştirme</h2>
+                    <h3>Kanal, Müşteri, Format ve Şube bazında ürün eşleştirmelerini bu ekrandan yapabilirsiniz. Ürün eşleştirmeleri toplu olarak yapılabilir ancak eşleştirmelerin silinmesi şube bazında yapılabilmektedir.</h3>
+                </div>
+                <div class="col-lg-4 right" style="padding-top: 35px;">
+                    <button type="button" id="btnNew_AssignProductByChannel" class="btn btn-danger"><i class="fa fa-plus-circle"> </i>  Kanal</button>
+                    <button type="button" id="btnNew_AssignProductByRetail" class="btn btn-success"><i class="fa fa-plus-circle"> </i>  Müşteri</button>
+                    <button type="button" id="btnNew_AssignProductByRetailShopCategory" class="btn btn-primary"><i class="fa fa-plus-circle"> </i>  Format</button>
+                    <button type="button" id="btnNew_AssignProductByRetailShop" class="btn btn-warning"><i class="fa fa-plus-circle"> </i>  Mağaza</button>
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left">
+                        <div class="element-detail-box">
+                            <div id="gridContainer">Lütfen bekleyin... Rapor oluşturuluyor</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="winRetailCategory" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Kanal bazında Ürün Eşleştirme</h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width: 100% !important;">
+                        <tr>
+                            <td style="width: 20%;"><div class="form-control">Kanal</div></td>
+                            <td style="width: 80%;"><select id="winRetailCategory_wleRetailCategoryId"></select></td>
+                        </tr>
+                    </table>
+                    <h2>Ürün Listesi</h2>
+                    <div style="width: 100%; height: 300px; overflow-y:auto; overflow-x:hidden;">
+                        <table class="table table-condensed table-hover table-bordered" style="background-color: #FFF;">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td>Ürün Kodu</td>
+                                    <td>Adı</td>
+                                    <td>Ürün Barkodu</td>
+                                </tr>
+                            </thead>
+                            <tbody id="winRetailCategory_tblProductList">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="winRetailCategory_btnAdd" class="btn btn-success"><i class="fa fa-save"> </i> Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal inmodal fade" id="winRetail" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Müşteri bazında Ürün Eşleştirme</h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width: 100% !important;">
+                        <tr>
+                            <td style="width: 20%;"><div class="form-control">Müşteri</div></td>
+                            <td style="width: 80%;"><select id="winRetail_wleRetailId"></select></td>
+                        </tr>
+                    </table>
+                    <h2>Ürün Listesi</h2>
+                    <div style="width: 100%; height: 300px; overflow-y:auto; overflow-x:hidden;">
+                        <table class="table table-condensed table-hover table-bordered" style="background-color: #FFF;">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td>Ürün Kodu</td>
+                                    <td>Adı</td>
+                                    <td>Ürün Barkodu</td>
+                                </tr>
+                            </thead>
+                            <tbody id="winRetail_tblProductList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="winRetail_btnAdd" class="btn btn-success"><i class="fa fa-save"> </i> Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal inmodal fade" id="winRetailShopCategory" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Format bazında Ürün Eşleştirme</h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width: 100% !important;">
+                        <tr>
+                            <td style="width: 20%;"><div class="form-control">Format</div></td>
+                            <td style="width: 80%;"><select id="winRetailShopCategory_wleRetailShopCategoryId"></select></td>
+                        </tr>
+                    </table>
+                    <h2>Ürün Listesi</h2>
+                    <div style="width: 100%; height: 300px; overflow-y:auto; overflow-x:hidden;">
+                        <table class="table table-condensed table-hover table-bordered" style="background-color: #FFF;">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td>Ürün Kodu</td>
+                                    <td>Adı</td>
+                                    <td>Ürün Barkodu</td>
+                                </tr>
+                            </thead>
+                            <tbody id="winRetailShopCategory_tblProductList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="winRetailShopCategory_btnAdd" class="btn btn-success"><i class="fa fa-save"> </i> Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal inmodal fade" id="winRetailShop" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Mağaza Şubesi bazında Ürün Eşleştirme</h4>
+                </div>
+                <div class="modal-body">
+                    <table style="width: 100% !important;">
+                        <tr>
+                            <td style="width: 20%;"><div class="form-control">Mağaza Şubesi</div></td>
+                            <td style="width: 80%;"><select id="winRetailShop_wleRetailShopId"></select></td>
+                        </tr>
+                    </table>
+                    <h2>Ürün Listesi</h2>
+                    <div style="width: 100%; height: 300px; overflow-y:auto; overflow-x:hidden;">
+                        <table class="table table-condensed table-hover table-bordered" style="background-color: #FFF;">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td>Ürün Kodu</td>
+                                    <td>Adı</td>
+                                    <td>Ürün Barkodu</td>
+                                </tr>
+                            </thead>
+                            <tbody id="winRetailShop_tblProductList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="winRetailShop_btnAdd" class="btn btn-success"><i class="fa fa-save"> </i> Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

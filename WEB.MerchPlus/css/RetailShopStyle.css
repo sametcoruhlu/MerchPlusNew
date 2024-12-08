@@ -1,0 +1,34 @@
+﻿body {
+    font-family: 'Raleway', sans-serif;
+}
+
+.hr-line-dashed {
+    border-top: 1px dashed #CCC;
+    color: #727272;
+    background-color: transparent !important;
+    height: 1px;
+    margin: 20px 0;
+}
+
+.tab-content {
+    height: 91%;
+}
+
+.tab-pane {
+    height: 100%;
+}
+
+.row {
+    margin-right: 0px;
+    margin-left: 0px; 
+}
+
+.panel-body {
+    padding:0 !important;
+}
+
+#page-wrapper {
+    min-height: 950px;
+    padding-left: 0px;
+    padding-right: 0px;
+}

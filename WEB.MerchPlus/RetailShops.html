@@ -1,0 +1,267 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Mağaza Listesi</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <link href="css/bootstrap.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/RetailShopStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <link href="Plugins/switchery/switchery.css" rel="stylesheet" />
+    <link href="Plugins/jsTree/themes/default/style.min.css" rel="stylesheet" />
+    <link href="Plugins/Select2v4/select2.min.css" rel="stylesheet" />
+    <link href="Plugins/Select2v4/select2.bootstrap.css" rel="stylesheet" />
+
+    <script src="Plugins/jQuery/jQuery.1.11.1.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/switchery/switchery.js"></script>
+    <script src="Plugins/jsTree/jstree.js"></script>
+
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/RetailShopsController.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <script src="Plugins/Select2v4/select2.min.js"></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbKBk2v5A6rGuFMfdMuSxepOlKNjZ-PYU&callback=initMap"></script>
+    <style>
+        .lightBlue {
+            background-color: #a8d7e5;
+            color: #000;
+        }
+
+        .darkBlue {
+            background-color: #336699;
+            color: #FFF;
+        }
+
+        /*.select2-container--bootstrap {
+            display: block;
+            z-index: 10 !important;
+        }*/
+
+        .select2-container--bootstrap .select2-results__group {
+            color: #336699;
+            display: block;
+            padding: 6px 12px;
+            padding-top: 10px;
+            font-size: 12px;
+            line-height: 1.42857143;
+            white-space: nowrap;
+            font-size: 12pt;
+            border-bottom: solid 1px #CCC;
+        }
+
+        .select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
+            background-color: #e3e8f1 !important;
+            color: #000;
+        }
+
+        .select2-container--bootstrap .select2-results__option[aria-selected=true] {
+            background-color: #e3e8f1 !important;
+        }
+
+    </style>
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+    <div style="position: absolute; top: -500px; top: -500px;">
+        <input type="file" />
+    </div>
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom"> 
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>Mağaza Listesi</h2>
+                    <table class="bsm_InputTable" style="width:0% !important; margin-top: -7px;">
+                        <tr class="bsm_InputTable_TR">
+                            <td>Tüm Mağazalar</td>
+                            <td class="bsm_InputTable_TD_ControlContainer">
+                                <input type="checkbox" class="js-switch" id="winNew_chkIsActiveAll" tabindex="10" checked />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-lg-2" style="padding-top: 40px;">
+                    <button type="button" id="btnNew" class="btn btn-danger pull-right"><i class="fa fa-plus"></i>&nbsp;&nbsp;Yeni</button>
+                </div>
+            </div>
+
+            <div style="height: calc(100% - 170px); padding:0;">
+                <div class="tabs-container" style="height: 100%;">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#tab-1"><i class="fa fa-map-marker"></i> Harita</a></li>
+                        <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-list"></i> Liste</a></li>
+                    </ul>
+                    <div class="tab-content">
+                        <div id="tab-1" class="tab-pane active">
+                            <div class="panel-body" style="min-height: 100%; height: 100% !important; overflow:hidden;">
+                                <div id="map" style="width:100%; height:100%;"></div>
+                            </div>
+                        </div>
+                        <div id="tab-2" class="tab-pane">
+                            <div class="panel-body" style="min-height: 100%; height: 100% !important;">
+                                <div id="gridContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="winNew" tabindex="-1" role="dialog" aria-hidden="true">
+        <input type="hidden" id="hdn_Id" />
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="lblCaption">Mağaza Şube Bilgileri</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <h4 style="color: #336699;text-align: center;">Tanımlı mağazanın bilgilerini güncelleyerek Kaydet butonuna tıklayınız. Yeni bir mağaza girişi yapıyorsanız formu eksiksiz doldurarak Kaydet butonuna tıklayınız.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Kanal</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <select id="winNew_wleRetailCategoryId" placeholder="Seçiniz..."></select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Müşteri</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <select id="winNew_wleRetailId" placeholder="Seçiniz..."></select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="vertical-align: top; padding-top: 18px !important;">Mağaza Adı</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" class="form-control" style="width: 100%;" id="winNew_txtRetailShopName" />
+                                                <small style="font-size:8pt; color: #CCC;">MerchPlus uygulamasında buraya yazıldığı şekilde gözükecektir!</small>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Format</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <select id="winNew_wleRetailShopCategoryId" placeholder="Seçiniz..."></select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:100%; vertical-align:top;" colspan="2">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="width: 12.5%;">Adres</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" class="form-control" style="width: 100%;" id="winNew_txtRetailShopAddress" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Şehir</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <select id="winNew_wleCityId" placeholder="Seçiniz..."></select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">İlçe</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <select id="winNew_wleDistrictId" placeholder="Seçiniz..."></select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="vertical-align: top; padding-top: 18px !important;">X Koordinatı</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_CoordinateX" class="form-control" style="width:100%;" />
+                                                <small style="font-size: 8pt; color:#ce8181;">Girişlerinizde ayraç olarak nokta kullanınız!</small>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="vertical-align: top; padding-top: 18px !important;">Y Koordinatı</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_CoordinateY" style="width: 100%;" class="form-control" />
+                                                <small style="font-size: 8pt; color:#ce8181;">Girişlerinizde ayraç olarak nokta kullanınız!</small>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+                    <div class="panel panel-danger" style="display: none;" id="pnlErrors">
+                        <div class="panel-heading panel-danger" id="pnlErrorsContent"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="btnShowOnMap" class="btn btn-default pull-left"><i class="fa fa-map-marker"> </i> Haritada Göster</button>
+                    <button type="button" id="btnSave" class="btn btn-success">Kaydet</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Vazgeç</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+﻿body {
+    font-family: 'Raleway', sans-serif;
+}
+
+.hr-line-dashed {
+    border-top: 1px dashed #CCC;
+    color: #727272;
+    background-color: transparent !important;
+    height: 1px;
+    margin: 20px 0;
+}
+
+address {
+    margin-bottom: 20px;
+    font-style: normal;
+    line-height: 1.42857143;
+    height: 60px;
+    overflow: hidden;
+}

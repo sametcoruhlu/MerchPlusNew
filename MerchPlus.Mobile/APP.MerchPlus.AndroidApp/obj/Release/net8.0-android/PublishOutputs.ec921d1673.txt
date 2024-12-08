@@ -1,0 +1,4 @@
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\MerchPlus.Mobile\APP.MerchPlus.AndroidApp\publish\APP.MerchPlus-Signed.aab
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\MerchPlus.Mobile\APP.MerchPlus.AndroidApp\publish\APP.MerchPlus.aab
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\MerchPlus.Mobile\APP.MerchPlus.AndroidApp\publish\APP.MerchPlus-Signed.apk
+C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\MerchPlus.Mobile\APP.MerchPlus.AndroidApp\publish\_Microsoft.Android.Resource.Designer.dll
