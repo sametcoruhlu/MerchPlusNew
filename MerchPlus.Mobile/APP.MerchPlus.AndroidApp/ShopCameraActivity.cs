@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace APP.MerchPlus
 {
-    [Activity(Label = "Raf ve Teşhir Fotoğrafı")]
+    [Activity(Label = "Teşhir Fotoğrafı")]
     public class ShopCameraActivity : Activity
     {
         private TaskCompletionSource<string> _cameraTaskCompletionSource;
@@ -48,6 +48,8 @@ namespace APP.MerchPlus
 
             // ListView yükleme
             photoListView = FindViewById<ListView>(Resource.Id.photo_list_view);
+
+            Utility.SetListViewHeightBasedOnChildren(photoListView);
 
             promotionTextView = FindViewById<TextView>(Resource.Id.promotion_label);
 
@@ -99,7 +101,7 @@ namespace APP.MerchPlus
             {
                 // Yeni seçilen öğeyi güncelliyoruz
                 entPromotionTypeSelected = listPromotionType[args.Which];
-                
+
             });
 
             builder.SetPositiveButton("Tamam", (sender, args) =>
@@ -237,8 +239,45 @@ namespace APP.MerchPlus
         private void ProcessCapturedPhoto()
         {
             Android.Net.Uri currentImageUri = Android.Net.Uri.Parse(_imageUri);
-            Bitmap bitmap = BitmapFactory.DecodeStream(ContentResolver.OpenInputStream(currentImageUri));
 
+            // Önce çekilen fotoğrafı bitmap olarak okuyalım.
+            // Fotoğrafın yön bilgisine EXIF üzerinden ulaşacağız.
+            Bitmap bitmap;
+            using (var inputStream = ContentResolver.OpenInputStream(currentImageUri))
+            {
+                bitmap = BitmapFactory.DecodeStream(inputStream);
+            }
+
+            // Şimdi EXIF bilgilerini okuyarak oryantasyon bilgisini alalım.
+            using (var inputStream2 = ContentResolver.OpenInputStream(currentImageUri))
+            {
+                var exif = new ExifInterface(inputStream2);
+                int orientation = exif.GetAttributeInt(ExifInterface.TagOrientation, (int)Android.Media.Orientation.Normal);
+
+                Matrix matrix = new Matrix();
+                switch ((Android.Media.Orientation)orientation)
+                {
+                    case Android.Media.Orientation.Rotate90:
+                        matrix.PostRotate(90);
+                        break;
+                    case Android.Media.Orientation.Rotate180:
+                        matrix.PostRotate(180);
+                        break;
+                    case Android.Media.Orientation.Rotate270:
+                        matrix.PostRotate(270);
+                        break;
+                }
+
+                // Eğer rotasyon gerekirse yeni döndürülmüş bitmap'i yaratıyoruz
+                if (orientation != (int)Android.Media.Orientation.Normal)
+                {
+                    Bitmap rotatedBitmap = Bitmap.CreateBitmap(bitmap, 0, 0, bitmap.Width, bitmap.Height, matrix, true);
+                    bitmap.Recycle();
+                    bitmap = rotatedBitmap;
+                }
+            }
+
+            // Seçilen ürünlerin her biri için fotoğraf ekliyoruz
             foreach (var product in selectedProducts)
             {
                 DisplayPhotoItem newItem = new DisplayPhotoItem
@@ -252,7 +291,9 @@ namespace APP.MerchPlus
 
                 displayPhotoList.Add(newItem);
             }
-
+            //vşsşble
+            productSelector.Enabled = false;
+            promotionSelector.Enabled = false;
             UpdatePhotoListView();
         }
 

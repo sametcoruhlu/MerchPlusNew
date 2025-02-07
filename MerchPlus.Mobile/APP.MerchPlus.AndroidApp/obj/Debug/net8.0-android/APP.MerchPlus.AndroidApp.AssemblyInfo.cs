@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MerchPlus")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+70a35b85f59409759be723348d8e80bb3b5dd510")]
 [assembly: System.Reflection.AssemblyProductAttribute("MerchPlus")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MerchPlus")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

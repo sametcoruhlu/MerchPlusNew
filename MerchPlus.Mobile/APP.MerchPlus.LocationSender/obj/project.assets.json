@@ -4730,24 +4730,25 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\samet\\.nuget\\packages\\": {},
+    "C:\\Users\\the_t\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\APP.MerchPlus.LocationSender.csproj",
+      "projectUniqueName": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\APP.MerchPlus.LocationSender.csproj",
       "projectName": "APP.MerchPlus.LocationSender",
-      "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\APP.MerchPlus.LocationSender.csproj",
-      "packagesPath": "C:\\Users\\samet\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\obj\\",
+      "projectPath": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\APP.MerchPlus.LocationSender.csproj",
+      "packagesPath": "C:\\Users\\the_t\\.nuget\\packages\\",
+      "outputPath": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.LocationSender\\obj\\",
       "projectStyle": "PackageReference",
       "skipContentFileWrite": true,
+      "UsingMicrosoftNETSdk": false,
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\samet\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\the_t\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -4756,8 +4757,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "https://api.nuget.org/v3/index.json": {},
-        "https://nuget.org/api/v2": {}
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "monoandroid90": {

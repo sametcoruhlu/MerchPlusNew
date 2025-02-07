@@ -6,6 +6,7 @@ Button;obj\Debug\net8.0-android\res\layout\productexpirationpreviewrow.xml
 Button;obj\Debug\net8.0-android\res\layout\salesorderentry.xml
 Button;obj\Debug\net8.0-android\res\layout\salesorderpreviewrow.xml
 Button;obj\Debug\net8.0-android\res\layout\shopcamera.xml
+Button;obj\Debug\net8.0-android\res\layout\shopvitrinecamera.xml
 corners;obj\Debug\net8.0-android\res\xml\spinner_background.xml
 domain;obj\Debug\net8.0-android\res\xml\network_security_config.xml
 domain-config;obj\Debug\net8.0-android\res\xml\network_security_config.xml
@@ -19,7 +20,6 @@ ImageButton;obj\Debug\net8.0-android\res\layout\displayvitrinecamera.xml
 ImageButton;obj\Debug\net8.0-android\res\layout\exitshop.xml
 ImageButton;obj\Debug\net8.0-android\res\layout\shopcamera.xml
 ImageButton;obj\Debug\net8.0-android\res\layout\shopentrycamera.xml
-ImageButton;obj\Debug\net8.0-android\res\layout\shopvitrinecamera.xml
 ImageView;obj\Debug\net8.0-android\res\layout\merchdataentry.xml
 ImageView;obj\Debug\net8.0-android\res\layout\photolistitem.xml
 ImageView;obj\Debug\net8.0-android\res\layout\retailshopproductlistrow.xml
@@ -62,14 +62,12 @@ resources;obj\Debug\net8.0-android\res\values\strings.xml
 resources;obj\Debug\net8.0-android\res\values\styles.xml
 ScrollView;obj\Debug\net8.0-android\res\layout\aboutmeactivity.xml
 ScrollView;obj\Debug\net8.0-android\res\layout\merchdataentry.xml
-ScrollView;obj\Debug\net8.0-android\res\layout\shopcamera.xml
 shape;obj\Debug\net8.0-android\res\xml\spinner_background.xml
 solid;obj\Debug\net8.0-android\res\xml\spinner_background.xml
 Space;obj\Debug\net8.0-android\res\layout\todaysrouterow.xml
 Spinner;obj\Debug\net8.0-android\res\layout\expirationdateentry.xml
 Spinner;obj\Debug\net8.0-android\res\layout\merchdataentry.xml
 Spinner;obj\Debug\net8.0-android\res\layout\salesorderentry.xml
-Spinner;obj\Debug\net8.0-android\res\layout\shopcamera.xml
 string;obj\Debug\net8.0-android\res\values\strings.xml
 string-array;obj\Debug\net8.0-android\res\values\strings.xml
 stroke;obj\Debug\net8.0-android\res\xml\spinner_background.xml

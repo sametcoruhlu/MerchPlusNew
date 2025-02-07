@@ -1,56 +1,39 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {}
+    "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj": {
+    "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMerchPlus.csproj": {
       "restore": {
-        "projectUniqueName": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj",
+        "projectUniqueName": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMerchPlus.csproj",
         "projectName": "entMerchPlus",
-        "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj",
-        "packagesPath": "C:\\Users\\samet\\.nuget\\packages\\",
-        "projectStyle": "PackagesConfig",
-        "configFilePaths": [
-          "C:\\Users\\samet\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-        ],
-        "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.org/api/v2": {}
-        },
+        "projectPath": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMerchPlus.csproj",
+        "UsingMicrosoftNETSdk": false,
         "frameworks": {
           "net48": {
             "projectReferences": {}
           }
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low"
-        },
-        "packagesConfigPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\packages.config"
+        }
       },
       "frameworks": {
         "net48": {}
       }
     },
-    "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {
+    "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+        "projectUniqueName": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
         "projectName": "MerchPlus",
-        "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
-        "packagesPath": "C:\\Users\\samet\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\obj\\",
+        "projectPath": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\APP.MerchPlus.AndroidApp.csproj",
+        "packagesPath": "C:\\Users\\the_t\\.nuget\\packages\\",
+        "outputPath": "D:\\GIT\\MerchPlusNew\\MerchPlus.Mobile\\APP.MerchPlus.AndroidApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\samet\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\the_t\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -60,15 +43,14 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nuget.org/api/v2": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0-android34.0": {
             "targetAlias": "net8.0-android",
             "projectReferences": {
-              "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj": {
-                "projectPath": "C:\\Users\\samet\\Downloads\\MERCH\\MERCH\\MerchPlus_New\\entMerchPlus\\entMerchPlus.csproj"
+              "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMerchPlus.csproj": {
+                "projectPath": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMerchPlus.csproj"
               }
             }
           }
@@ -82,7 +64,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0-android34.0": {
@@ -91,7 +74,7 @@
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[8.0.7, )",
+              "version": "[8.0.11, )",
               "autoReferenced": true
             },
             "Newtonsoft.Json": {
@@ -134,6 +117,28 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.Android.Ref.34",
+              "version": "[34.0.145, 34.0.145]"
+            },
+            {
+              "name": "Microsoft.Android.Runtime.34.android-arm",
+              "version": "[34.0.145, 34.0.145]"
+            },
+            {
+              "name": "Microsoft.Android.Runtime.34.android-arm64",
+              "version": "[34.0.145, 34.0.145]"
+            },
+            {
+              "name": "Microsoft.Android.Runtime.34.android-x64",
+              "version": "[34.0.145, 34.0.145]"
+            },
+            {
+              "name": "Microsoft.Android.Runtime.34.android-x86",
+              "version": "[34.0.145, 34.0.145]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.Android": {
               "privateAssets": "all"
@@ -142,7 +147,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {

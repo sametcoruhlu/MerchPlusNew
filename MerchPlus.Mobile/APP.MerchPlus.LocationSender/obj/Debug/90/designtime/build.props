@@ -14,7 +14,7 @@ androidlinkskip=
 androidsdkbuildtoolsversion=32.0.0
 androidsdkpath=c:\program files (x86)\android\android-sdk\
 androidndkpath=
-javasdkpath=c:\program files (x86)\android\openjdk\jdk-17.0.8.101-hotspot\
+javasdkpath=c:\program files (x86)\android\openjdk\jdk-17.0.12\
 androidsequencepointsmode=none
 xamarinandroidversion=13.2.2-0
 monosymbolarchive=false
@@ -25,10 +25,10 @@ androidgeneratejnimarshalmethods=false
 os=windows_nt
 androidincludedebugsymbols=true
 androidpackagenamingpolicy=lowercasecrc64
-_nugetassetstimestamp=638574370716526567
+_nugetassetstimestamp=638693773807286875
 typemapkind=strings-asm
 androidsupportedabis=armeabi-v7a
 x86
 x86_64
 androidmanifestplaceholders=
-projectfullpath=c:\users\samet\downloads\merch\merch\merchplus_new\merchplus.mobile\app.merchplus.locationsender\app.merchplus.locationsender.csproj
+projectfullpath=d:\git\merchplusnew\merchplus.mobile\app.merchplus.locationsender\app.merchplus.locationsender.csproj

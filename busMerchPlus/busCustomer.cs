@@ -593,6 +593,21 @@ namespace busMerchPlus
             }
         }
 
+        public DataTable TeshirYeniRaporu(DateTime startDate, DateTime endDate, int customerId)
+        {
+            DbConnector insDbConnector = new DbConnector();
+            datCustomer insDatCustomer = new datCustomer();
+            try
+            {
+                return insDatCustomer.TeshirYeniRaporu(startDate, endDate, customerId, insDbConnector);
+            }
+            catch (Exception ex)
+            {
+                this.ErrorMessage = ex.ToString();
+                return null;
+            }
+        }
+
         public DataTable TeshirUrunRaporu(DateTime startDate, DateTime endDate, int customerId)
         {
             DbConnector insDbConnector = new DbConnector();

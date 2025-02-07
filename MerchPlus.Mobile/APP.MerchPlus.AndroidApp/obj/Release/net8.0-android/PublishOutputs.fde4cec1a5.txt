@@ -1,0 +1,4 @@
+D:\GIT\MerchPlusNew\MerchPlus.Mobile\publish\APP.MerchPlus-Signed.apk
+D:\GIT\MerchPlusNew\MerchPlus.Mobile\publish\APP.MerchPlus.apk
+D:\GIT\MerchPlusNew\MerchPlus.Mobile\publish\APP.MerchPlus-Signed.aab
+D:\GIT\MerchPlusNew\MerchPlus.Mobile\publish\_Microsoft.Android.Resource.Designer.dll

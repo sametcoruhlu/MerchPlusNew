@@ -1,0 +1,41 @@
+﻿body {
+    background-color: #FFF !important;
+    font-family: 'Raleway', sans-serif;
+}
+.backgroundPicture {
+    position:absolute;
+    top: 0px;
+    left: 0px;
+    width:100vw;
+    height: 100vh;
+    background-image: url('../Images/CustomerSelect/background.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: 0.3;
+}
+
+.overlayLayer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('../Plugins/BackgroundSlider/overlays/04.png');
+    background-repeat: repeat;
+    z-index:2;
+    opacity: 0.1;
+}
+
+.table>thead>tr>th {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+    border-top: none;
+}
+
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    border-top: none;
+    line-height: 1.42857;
+    padding: 8px;
+    vertical-align: top;
+}

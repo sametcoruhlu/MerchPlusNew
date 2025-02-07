@@ -26,19 +26,20 @@
             android:id="@+id/photo_list_item_promotion_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Promosyon Türü"
+            android:text="Teşhir Türü"
             android:textStyle="bold"
             android:textSize="16sp"
             android:layout_marginBottom="4dp" />
 
-        <!-- Promosyon ID -->
+        <!-- Promosyon ID (Ekranda görünmez) -->
         <TextView
             android:id="@+id/photo_list_item_promotion_type_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Promosyon ID"
             android:textSize="14sp"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="4dp"
+            android:visibility="gone" />
 
         <!-- Ürün Adı -->
         <TextView
@@ -49,12 +50,13 @@
             android:textSize="14sp"
             android:layout_marginBottom="4dp" />
 
-        <!-- Ürün ID -->
+        <!-- Ürün ID (Ekranda görünmez) -->
         <TextView
             android:id="@+id/photo_list_item_product_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Ürün ID"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

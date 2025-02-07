@@ -40,7 +40,7 @@ namespace APP.MerchPlus.Adapters
             var item = _items[position];
 
             // Verileri ata
-            promotionTypeTextView.Text = $"Promosyon: {item.PromotionType}";
+            promotionTypeTextView.Text = $"Teşhir: {item.PromotionType}";
             promotionTypeIdTextView.Text = $"Promosyon ID: {item.PromotionTypeId}";
             productNameTextView.Text = $"Ürün: {item.ProductName}";
             productIdTextView.Text = $"Ürün ID: {item.ProductId}";

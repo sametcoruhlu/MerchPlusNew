@@ -154,7 +154,7 @@
             android:gravity="left"
             android:inputType="number" />
       </LinearLayout>
-      <LinearLayout
+<!--      <LinearLayout
           android:orientation="horizontal"
           android:minWidth="25px"
           android:minHeight="25px"
@@ -176,7 +176,7 @@
             android:layout_width="0dp"
             android:padding="10dp"
             android:prompt="@string/promotiontypename_prompt" />
-      </LinearLayout>
+      </LinearLayout>-->
       <LinearLayout
           android:orientation="horizontal"
           android:minWidth="25px"

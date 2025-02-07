@@ -6,6 +6,7 @@ Button;obj\Release\net8.0-android\res\layout\productexpirationpreviewrow.xml
 Button;obj\Release\net8.0-android\res\layout\salesorderentry.xml
 Button;obj\Release\net8.0-android\res\layout\salesorderpreviewrow.xml
 Button;obj\Release\net8.0-android\res\layout\shopcamera.xml
+Button;obj\Release\net8.0-android\res\layout\shopvitrinecamera.xml
 corners;obj\Release\net8.0-android\res\xml\spinner_background.xml
 domain;obj\Release\net8.0-android\res\xml\network_security_config.xml
 domain-config;obj\Release\net8.0-android\res\xml\network_security_config.xml
@@ -69,7 +70,6 @@ Space;obj\Release\net8.0-android\res\layout\todaysrouterow.xml
 Spinner;obj\Release\net8.0-android\res\layout\expirationdateentry.xml
 Spinner;obj\Release\net8.0-android\res\layout\merchdataentry.xml
 Spinner;obj\Release\net8.0-android\res\layout\salesorderentry.xml
-Spinner;obj\Release\net8.0-android\res\layout\shopcamera.xml
 string;obj\Release\net8.0-android\res\values\strings.xml
 string-array;obj\Release\net8.0-android\res\values\strings.xml
 stroke;obj\Release\net8.0-android\res\xml\spinner_background.xml

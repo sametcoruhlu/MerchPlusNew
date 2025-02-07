@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Yeni Profil",
+    "Projects": [
+      {
+        "Path": "API.MerchPlus\\API.MerchPlus.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "WEB.MerchPlus\\WEB.MerchPlus.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

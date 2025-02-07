@@ -25,11 +25,11 @@ namespace APP.MerchPlus
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.MerchDataEntry);
 
-            Spinner spinner = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wlePromotionTypeName);
-            var adapter = ArrayAdapter.CreateFromResource(
-                    this, Resource.Array.promotiontypearray_array, Android.Resource.Layout.SimpleSpinnerItem);
-            adapter.SetDropDownViewResource(Android.Resource.Layout.SimpleSpinnerDropDownItem);
-            spinner.Adapter = adapter;
+            //Spinner spinner = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wlePromotionTypeName);
+            //var adapter = ArrayAdapter.CreateFromResource(
+            //        this, Resource.Array.promotiontypearray_array, Android.Resource.Layout.SimpleSpinnerItem);
+            //adapter.SetDropDownViewResource(Android.Resource.Layout.SimpleSpinnerDropDownItem);
+            //spinner.Adapter = adapter;
 
             Spinner spinner2 = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wleActivityTypeName);
             var adapter2 = ArrayAdapter.CreateFromResource(
@@ -104,7 +104,7 @@ namespace APP.MerchPlus
             EditText txtShelfStock = FindViewById<EditText>(Resource.Id.MerchDataEntry_txtShelfStok);
             EditText txtShelfPrice1 = FindViewById<EditText>(Resource.Id.MerchDataEntry_txtShelfPrice1);
             EditText txtShelfPrice2 = FindViewById<EditText>(Resource.Id.MerchDataEntry_txtShelfPrice2);
-            Spinner wlePromotionTypeName = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wlePromotionTypeName);
+            //Spinner wlePromotionTypeName = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wlePromotionTypeName);
             Spinner wleActivityTypeName = FindViewById<Spinner>(Resource.Id.MerchDataEntry_wleActivityTypeName);
             EditText txtNotes = FindViewById<EditText>(Resource.Id.MerchDataEntry_txtNotes);
             EditText txtWarehouseStock = FindViewById<EditText>(Resource.Id.MerchDataEntry_txtWarehouseStock);
@@ -170,7 +170,7 @@ namespace APP.MerchPlus
             }
             #endregion
             #region Calculate Promotion Type Id
-            int promotionTypeId = wlePromotionTypeName.SelectedItemPosition + 1;
+            //int promotionTypeId = wlePromotionTypeName.SelectedItemPosition + 1;
             #endregion
 
             using (var db = new SQLiteConnection(GlobalVariables.DatabasePath))
@@ -188,7 +188,7 @@ namespace APP.MerchPlus
                 insEntMemberRouteDetail.IsSentToServer = false;
                 insEntMemberRouteDetail.MemberRouteId = route[0].Id;
                 insEntMemberRouteDetail.Notes = Convert.ToString(txtNotes.Text);
-                insEntMemberRouteDetail.PromotionTypeId = promotionTypeId;
+                //insEntMemberRouteDetail.PromotionTypeId = promotionTypeId;
                 insEntMemberRouteDetail.ShelfIndex = Convert.ToInt32(txtShelfIndex.Text);
                 insEntMemberRouteDetail.ShelfPrice = priceConcat;
                 insEntMemberRouteDetail.ShelfStock = Convert.ToInt32(txtShelfStock.Text);

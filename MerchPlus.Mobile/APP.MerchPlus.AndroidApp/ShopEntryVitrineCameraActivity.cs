@@ -27,7 +27,7 @@ using Java.Nio;
 
 namespace APP.MerchPlus
 {
-    [Activity(Label = "Raf Fotoðrafý")]
+    [Activity(Label = "Raf ve Teþhir Fotoðrafý")]
     public class ShopEntryVitrineCameraActivity : Activity
     {
 
@@ -38,10 +38,10 @@ namespace APP.MerchPlus
         {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.ShopVitrineCamera);
-            ImageButton btn = FindViewById<ImageButton>(Resource.Id.ShopVitrineCamera_btnTakePhoto);
+            Button btn = FindViewById<Button>(Resource.Id.ShopVitrineCamera_btnTakePhoto);
             btn.Click += Btn_Click;
 
-            ImageButton btn_displey = FindViewById<ImageButton>(Resource.Id.DisplayCamera_btnTakePhoto);
+            Button btn_displey = FindViewById<Button>(Resource.Id.DisplayCamera_btnTakePhoto);
             btn_displey.Click += Btn_Click_Display;
         }
 

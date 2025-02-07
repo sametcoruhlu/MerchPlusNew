@@ -7,3 +7,12 @@ C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Release\SqlHelp
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Release\SqlHelper.csproj.Up2Date
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Release\SqlHelper.dll
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\SqlHelper\obj\Release\SqlHelper.pdb
+D:\GIT\MerchPlusNew\SqlHelper\bin\Release\SqlHelper.dll
+D:\GIT\MerchPlusNew\SqlHelper\bin\Release\SqlHelper.pdb
+D:\GIT\MerchPlusNew\SqlHelper\bin\Release\Infrastructure.dll
+D:\GIT\MerchPlusNew\SqlHelper\bin\Release\Infrastructure.pdb
+D:\GIT\MerchPlusNew\SqlHelper\obj\Release\SqlHelper.csproj.AssemblyReference.cache
+D:\GIT\MerchPlusNew\SqlHelper\obj\Release\SqlHelper.csproj.CoreCompileInputs.cache
+D:\GIT\MerchPlusNew\SqlHelper\obj\Release\SqlHelper.csproj.Up2Date
+D:\GIT\MerchPlusNew\SqlHelper\obj\Release\SqlHelper.dll
+D:\GIT\MerchPlusNew\SqlHelper\obj\Release\SqlHelper.pdb

@@ -4,3 +4,9 @@ C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\Infrastructure\obj\Debug\Infr
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\Infrastructure\obj\Debug\Infrastructure.csproj.CoreCompileInputs.cache
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\Infrastructure\obj\Debug\Infrastructure.dll
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\Infrastructure\obj\Debug\Infrastructure.pdb
+D:\GIT\MerchPlusNew\Infrastructure\bin\Debug\Infrastructure.dll
+D:\GIT\MerchPlusNew\Infrastructure\bin\Debug\Infrastructure.pdb
+D:\GIT\MerchPlusNew\Infrastructure\obj\Debug\Infrastructure.csproj.AssemblyReference.cache
+D:\GIT\MerchPlusNew\Infrastructure\obj\Debug\Infrastructure.csproj.CoreCompileInputs.cache
+D:\GIT\MerchPlusNew\Infrastructure\obj\Debug\Infrastructure.dll
+D:\GIT\MerchPlusNew\Infrastructure\obj\Debug\Infrastructure.pdb

@@ -75,6 +75,7 @@
     <Content Include="Controllers\DataEditController.js" />
     <Content Include="Controllers\Reporting_SKTController.js" />
     <Content Include="Controllers\Reporting_RouteAnalizController.js" />
+    <Content Include="Controllers\Reporting_TeshirYeniController.js" />
     <Content Include="Controllers\Reporting_TeshirUrunController.js" />
     <Content Include="Controllers\RetailController.js" />
     <Content Include="Controllers\RetailShopsController.js" />
@@ -580,6 +581,7 @@
     <Content Include="Plugins\toastr\toastr.min.js" />
     <Content Include="DataEdit.html" />
     <Content Include="Reporting_RouteAnaliz.html" />
+    <Content Include="Reporting_TeshirYeni.html" />
     <Content Include="Reporting_TeshirUrun.html" />
     <Content Include="Retails.html" />
     <Content Include="Plugins\FullCalendar\fullcalendar.min.css" />

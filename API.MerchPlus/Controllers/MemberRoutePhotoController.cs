@@ -24,6 +24,8 @@ using System.Data;
 using System.Configuration;
 using System.IO;
 using System.Drawing;
+using System.IO.Compression;
+using System.Drawing.Imaging;
 
 namespace API.MerchPlus.Controllers
 {
@@ -93,7 +95,7 @@ namespace API.MerchPlus.Controllers
                 #region Loop each Image and Prepare Images with Info Bar
                 foreach (DataRow insDr in insDt_Photos.Rows)
                 {
-                    tryAgain:
+                tryAgain:
                     try
                     {
                         pictureCounter += 1;
@@ -214,7 +216,7 @@ namespace API.MerchPlus.Controllers
                 #region Loop each Image and Prepare Images with Info Bar
                 foreach (DataRow insDr in insDt_Photos.Rows)
                 {
-                    tryAgain:
+                tryAgain:
                     try
                     {
                         pictureCounter += 1;
@@ -262,6 +264,201 @@ namespace API.MerchPlus.Controllers
                                         new JProperty("ErrorMessages", JArray.FromObject(errorMessages))
                                         );
             return returnJson;
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("DownloadMemberRouteDisplayPhotoByMemberRouteList")]
+        public JObject DownloadMemberRouteDisplayPhotoByMemberRouteList([FromBody] MemberRouteRequest request)
+        {
+            string logFile = Path.Combine(ConfigurationManager.AppSettings["LogPath"], "Logs", "DownloadLog.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(logFile)); // Log klasörü oluştur
+
+            void WriteLog(string message)
+            {
+                File.AppendAllText(logFile, $"[{DateTime.Now}] {message}\n");
+            }
+
+            WriteLog("✅ İşlem başlatıldı.");
+
+            JObject returnJson;
+
+            try
+            {
+                if (request == null || request.MemberRouteList == null || request.MemberRouteList.Count == 0)
+                {
+                    WriteLog("❌ Hata: İstek boş veya geçersiz.");
+                    return new JObject(
+                        new JProperty("Result", "notOK"),
+                        new JProperty("Content", ""),
+                        new JProperty("ErrorMessages", "Geçersiz istek, liste boş olamaz.")
+                    );
+                }
+                //string basePath = ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"];
+                if (string.IsNullOrEmpty(ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"]))
+                {
+                    return new JObject(
+                        new JProperty("Result", "notOK"),
+                        new JProperty("Content", ""),
+                        new JProperty("ErrorMessages", "DisplayPhotosPhysicalPath ayarı bulunamadı veya boş!")
+                    );
+                }
+
+                string downloadFileName = $"FotografAlbumu_{DateTime.Now:yyyyMMddHHmmss}.zip";
+                string tempDirectory = Path.Combine(ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"], "TempExport", Guid.NewGuid().ToString());
+
+                try
+                {
+                    Directory.CreateDirectory(tempDirectory);
+                    WriteLog($"📂 Temp dizini oluşturuldu: {tempDirectory}");
+                }
+                catch (Exception ex)
+                {
+                    WriteLog($"⛔ Temp dizini oluşturulurken hata oluştu: {ex.Message}");
+                    return new JObject(
+                        new JProperty("Result", "notOK"),
+                        new JProperty("Content", ""),
+                        new JProperty("ErrorMessages", "Temp dizini oluşturulurken hata oluştu")
+                    );
+                }
+
+                List<string> filesToIncludeInZip = new List<string>();
+                List<string> errorMessages = new List<string>();
+
+                foreach (var memberRoute in request.MemberRouteList)
+                {
+                    try
+                    {
+                        if (string.IsNullOrWhiteSpace(memberRoute.DisplayPicturePath))
+                        {
+                            WriteLog($"⚠️ Hata: DisplayPicturePath boş. ID: {memberRoute.MemberRouteId}");
+                            errorMessages.Add($"DisplayPicturePath boş: {memberRoute.MemberRouteId}");
+                            return new JObject(
+                                    new JProperty("Result", "notOK"),
+                                    new JProperty("Content", ""),
+                                    new JProperty("ErrorMessages", "DisplayPicturePath boş olamaz.")
+                                );
+                        }
+
+                        string fileName = $"{memberRoute.MerchNameSurname}_{memberRoute.RetailShopName}_{Guid.NewGuid():N}.jpg";
+
+                        string basePath = ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"].TrimEnd('\\', '/');
+                        string relativePath = memberRoute.DisplayPicturePath.Replace("Images/DisplayPhotos/", "").TrimStart('\\', '/');
+                        string imageFilePath = Path.Combine(basePath, relativePath).Replace(" ", "");
+
+                        if (!File.Exists(imageFilePath))
+                        {
+                            WriteLog($"❌ Dosya bulunamadı: {imageFilePath}");
+                            errorMessages.Add($"Dosya bulunamadı: {imageFilePath}");
+                            return new JObject(
+                                    new JProperty("Result", "notOK"),
+                                    new JProperty("Content", ""),
+                                    new JProperty("ErrorMessages", $"Dosya bulunamadı: {imageFilePath}")
+                                );
+                        }
+
+                        using (Image insOriginalImage = Image.FromFile(imageFilePath))
+                        using (Bitmap bitmap = new Bitmap(insOriginalImage))
+                        using (Graphics graphics = Graphics.FromImage(bitmap))
+                        {
+                            int labelTop = Convert.ToInt32(bitmap.Height * 0.96F);
+                            using (Font arialFont = new Font("Arial", 20))
+                            {
+                                Brush backgroundBrush = new SolidBrush(Color.FromArgb(100, 0, 0, 0));
+                                graphics.FillRectangle(backgroundBrush, new Rectangle(0, labelTop - 20, bitmap.Width, 30));
+                                graphics.DrawString($"{memberRoute.RetailShopName} | {memberRoute.MerchNameSurname}", arialFont, Brushes.White, new PointF(20, labelTop));
+                            }
+
+                            string outputFilePath = Path.Combine(tempDirectory, fileName);
+                            bitmap.Save(outputFilePath, ImageFormat.Jpeg);
+                            filesToIncludeInZip.Add(outputFilePath);
+                            WriteLog($"✅ Resim işlendi ve kaydedildi: {outputFilePath}");
+                        }
+                    }
+                    catch (OutOfMemoryException ex)
+                    {
+                        WriteLog($"🚨 Bellek hatası: {ex.Message}");
+                        errorMessages.Add("Bellek yetersiz. Lütfen daha az resim seçin.");
+                        return new JObject(
+                                    new JProperty("Result", "notOK"),
+                                    new JProperty("Content", ""),
+                                    new JProperty("ErrorMessages", "Bellek yetersiz.Lütfen daha az resim seçin.")
+                                );
+                    }
+                    catch (Exception ex)
+                    {
+                        WriteLog($"⚠️ Genel hata: {ex.Message}");
+                        errorMessages.Add($"Hata oluştu: {ex.Message}");
+                        return new JObject(
+                                    new JProperty("Result", "notOK"),
+                                    new JProperty("Content", ""),
+                                    new JProperty("ErrorMessages", $"Hata oluştu: {ex.Message}")
+                                );
+                    }
+                }
+
+                if (filesToIncludeInZip.Count == 0)
+                {
+                    WriteLog("❌ ZIP oluşturulamadı, dahil edilecek dosya yok.");
+                    return new JObject(
+                        new JProperty("Result", "notOK"),
+                        new JProperty("Content", ""),
+                        new JProperty("ErrorMessages", "ZIP dosyasına eklenecek resim bulunamadı.")
+                    );
+                }
+
+                string zipFilePath = Path.Combine(tempDirectory, downloadFileName);
+                using (ZipArchive zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                {
+                    foreach (string file in filesToIncludeInZip)
+                    {
+                        zip.CreateEntryFromFile(file, Path.GetFileName(file));
+                    }
+                }
+
+                WriteLog($"✅ ZIP dosyası başarıyla oluşturuldu: {zipFilePath}");
+
+                returnJson = new JObject(
+                    new JProperty("Result", "OK"),
+                    new JProperty("Content", $"{Path.GetFileName(tempDirectory)}/{downloadFileName}"),
+                    new JProperty("ErrorMessages", JArray.FromObject(errorMessages))
+                );
+
+                return returnJson;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                WriteLog($"🚨 Yetki hatası: {ex.Message}");
+                return new JObject(
+                    new JProperty("Result", "notOK"),
+                    new JProperty("Content", ""),
+                    new JProperty("ErrorMessages", "Yetkisiz erişim hatası. Lütfen izinleri kontrol edin.")
+                );
+            }
+            catch (IOException ex)
+            {
+                WriteLog($"📂 Dosya sistemi hatası: {ex.Message}");
+                return new JObject(
+                    new JProperty("Result", "notOK"),
+                    new JProperty("Content", ""),
+                    new JProperty("ErrorMessages", "Dosya sistemi hatası oluştu. Lütfen klasör ve disk kullanımını kontrol edin.")
+                );
+            }
+            catch (Exception ex)
+            {
+                WriteLog($"🚨 Genel hata: {ex}");
+                return new JObject(
+                    new JProperty("Result", "notOK"),
+                    new JProperty("Content", ""),
+                    new JProperty("ErrorMessages", $"Beklenmeyen bir hata oluştu: {ex.Message}")
+                );
+            }
+        }
+
+        // Dosya adlarında yasaklı karakterleri temizleyen fonksiyon
+        private string SanitizeFileName(string fileName)
+        {
+            return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars())).Replace(" ", "_");
         }
     }
 }

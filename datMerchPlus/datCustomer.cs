@@ -161,6 +161,58 @@ namespace datMerchPlus
             return insDt;
         }
 
+        public DataTable TeshirYeniRaporu(DateTime startDate, DateTime endDate, int customerId, DbConnector insDbConnector)
+        {
+            DataTable insDt = new DataTable();
+            insDt = insDbConnector.ExecuteSqlDataTable("SELECT  		DISTINCT   		" +
+                                                        "Member.NameSurname as [MerchNameSurname], " +
+                                                        "MemberRoute.Id as [MemberRouteId],  		" +
+                                                        "MemberRoute.EffectiveDate as [DateOfVisit],  	" +
+                                                        "CASE(DATENAME(weekday,MemberRoute.EffectiveDate))" +
+                                                        "WHEN 'Monday' THEN 'Pazartesi'" +
+                                                        "WHEN 'Tuesday' THEN 'Salı'" +
+                                                        "WHEN 'Wednesday' THEN 'Çarşamba'" +
+                                                        "WHEN 'Thursday' THEN 'Perşembe'" +
+                                                        "WHEN 'Friday' THEN 'Cuma'" +
+                                                        "WHEN 'Saturday' THEN 'Cumartesi'" +
+                                                        "WHEN 'Sunday' THEN 'Pazar'" +
+                                                        "ELSE '' " +
+                                                        "END as [Day],  " +
+                                                        "Retail.Name as [RetailName],  	" +
+                                                        "RetailShop.Name as [RetailShopName]," +
+                                                        "MemberDisplayPhotos.PromotionTypeId, " +
+                                                        "CASE MemberDisplayPhotos.PromotionTypeId WHEN 1 THEN 'YOK' " +
+                                                                                                "WHEN 2 THEN 'Alecentral' " +
+                                                                                                "WHEN 3 THEN 'Asalak Stand' " +
+                                                                                                "WHEN 4 THEN 'Gondol Başı' " +
+                                                                                                "WHEN 5 THEN 'Havuz' " +
+                                                                                                "WHEN 6 THEN 'Kasa Önü' " +
+                                                                                                "WHEN 7 THEN 'Palet' " +
+                                                                                                "WHEN 8 THEN 'Sepet' " +
+                                                                                                "WHEN 9 THEN 'Diğer' " +
+                                                                                                "WHEN 10 THEN 'Devam Eden Teşhir' " +
+                                                                                                "WHEN 11 THEN 'Çapraz Teşhir' " +
+                                                                                                "ELSE 'Belirtilmemiş' " +
+                                                                                                "END AS [PromotionTypeName], " +
+                                                        "(Select count (DISTINCT PromotionTypeId) from MemberDisplayPhotos where MemberRouteId = MemberRoute.Id) as [PromotionCount] ," +
+                                                        "MemberDisplayPhotos.CustomerProductId," +
+                                                        "CustomerProduct.Name as CustomerProductName," +
+                                                        "MemberDisplayPhotos.DisplayPicturePath," +
+                                                        "(Select count (DISTINCT CustomerProductId) from MemberDisplayPhotos MDP where MDP.MemberRouteId = MemberRoute.Id and MDP.PromotionTypeId = MemberDisplayPhotos.PromotionTypeId group by PromotionTypeId) as [CustomerProductCount] " +
+                                                        "FROM  		MemberRoute WITH (NOLOCK)  	" +
+                                                        "INNER JOIN Member WITH (NOLOCK) ON Member.Id = MemberRoute.MemberId  	" +
+                                                        "INNER JOIN MemberCustomer WITH (NOLOCK) ON Member.Id = MemberCustomer.MemberId  	" +
+                                                        "INNER JOIN MemberRouteDetail WITH (NOLOCK) ON MemberRoute.Id = MemberRouteDetail.MemberRouteId  	" +
+                                                        "INNER JOIN RetailShop WITH (NOLOCK) ON MemberRoute.RetailShopId = RetailShop.Id  		" +
+                                                        "INNER JOIN Retail WITH (NOLOCK) ON RetailShop.RetailId = Retail.Id  	" +
+                                                        "INNER JOIN MemberDisplayPhotos WITH (NOLOCK) ON MemberDisplayPhotos.MemberRouteId = MemberRoute.Id   " +
+                                                        "INNER JOIN CustomerProduct WITH (NOLOCK) ON CustomerProduct.Id = MemberDisplayPhotos.CustomerProductId  " +
+                                                        "WHERE  		MemberRoute.EffectiveDate BETWEEN '" + startDate.ToString("yyyy-MM-dd") + " 00:00:00' AND '" + endDate.ToString("yyyy-MM-dd") + " 23:59:59' AND  		MemberCustomer.CustomerId = " + Convert.ToString(customerId) + " AND  		Member.MemberTitleId IN (5)  AND MemberRoute.EntryOn IS NOT NULL " +
+                                                        "GROUP BY Member.NameSurname,CustomerProduct.Name, MemberRoute.Id,MemberDisplayPhotos.CustomerProductId, MemberDisplayPhotos.PromotionTypeId, MemberRoute.EffectiveDate, CASE(DATENAME(weekday,MemberRoute.EffectiveDate))  			WHEN 'Monday' THEN 'Pazartesi'  			WHEN 'Tuesday' THEN 'Salı'  			WHEN 'Wednesday' THEN 'Çarşamba'  			WHEN 'Thursday' THEN 'Perşembe'  			WHEN 'Friday' THEN 'Cuma'  			WHEN 'Saturday' THEN 'Cumartesi'  			WHEN 'Sunday' THEN 'Pazar'  			ELSE ''  		END, Retail.Name,  		RetailShop.Name, MemberDisplayPhotos.DisplayPicturePath " +
+                                                                                                               "ORDER BY  		Member.NameSurname,  		MemberRoute.EffectiveDate");
+            return insDt;
+        }
+
         public DataTable TeshirUrunRaporu(DateTime startDate, DateTime endDate, int customerId, DbConnector insDbConnector)
         {
             DataTable insDt = new DataTable();

@@ -195,6 +195,32 @@ namespace API.MerchPlus.Controllers
         }
 
         [HttpPost]
+        [Route("TeshirYeniRaporu")]
+        public JObject TeshirYeniRaporu(JObject data)
+        {
+            JObject returnJson;
+            dynamic json = data;
+
+            busCustomer insBusCustomer = new busCustomer();
+            DataTable insDt = new DataTable();
+            insDt = insBusCustomer.TeshirYeniRaporu(Convert.ToDateTime(json.StartDate), Convert.ToDateTime(json.EndDate), Convert.ToInt32(json.CustomerId));
+            if (insBusCustomer.HasErrors)
+            {
+                returnJson = new JObject(new JProperty("Result", "NOK"),
+                                            new JProperty("Reason", "ERROR OCCURED DURING PROCESS"),
+                                            new JProperty("Details", insBusCustomer.ErrorMessage)
+                                            );
+                return returnJson;
+            }
+            returnJson = new JObject(
+                                        new JProperty("Result", "OK"),
+                                        new JProperty("Content", JArray.Parse(JsonConvert.SerializeObject(insDt)))
+                                        );
+            return returnJson;
+
+        }
+
+        [HttpPost]
         [Route("TeshirUrunRaporu")]
         public JObject TeshirUrunRaporu(JObject data)
         {

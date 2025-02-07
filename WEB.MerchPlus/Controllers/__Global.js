@@ -23,9 +23,11 @@ localizationobj.groupremovestring = "Guruplardan kaldır";
 localizationobj.groupsheaderstring = "Guruplamak istediğiniz sütunu bu alana sürükleyiniz...";
 
 var InfrastructureVariables = {};
-InfrastructureVariables.WebServicePath = 'http://localhost/API.MerchPlus/';
+//InfrastructureVariables.WebServicePath = 'http://localhost:54166/API.MerchPlus/';
+//InfrastructureVariables.WebServicePath = 'http://merchplus.net/api/';
 //InfrastructureVariables.WebServicePath = "https://merchplusapi.azurewebsites.net/";
-//InfrastructureVariables.WebServicePath = "http://localhost:54166/";
+InfrastructureVariables.WebServicePath = 'http://localhost:54166/';
+InfrastructureVariables.WebServicePath2 = 'http://77.245.158.32:8080/api/';
 function GetCurrentDate() {
     var today = new Date();
     var dd = today.getDate();

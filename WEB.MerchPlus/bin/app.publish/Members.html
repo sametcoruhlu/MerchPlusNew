@@ -1,0 +1,433 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>MerchPlus | Kullanıcı Listesi</title>
+    <meta charset="utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway:300,300i,400&subset=latin-ext" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <link href="css/MemberStyle.css" rel="stylesheet" />
+    <link href="css/animate.css" rel="stylesheet" />
+    <link href="Plugins/SweetAlert2/sweetalert2.css" rel="stylesheet" />
+    <link href="font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="Plugins/KendoUI/kendo.common.min.css" rel="stylesheet" />
+    <link href="Plugins/KendoUI/kendo.bootstrap.min.css" rel="stylesheet" />
+    <link href="Plugins/DatePicker3/datepicker3.css" rel="stylesheet" />
+    <link href="Plugins/switchery/switchery.css" rel="stylesheet" />
+    <link href="Plugins/jsTree/themes/default/style.min.css" rel="stylesheet" />
+
+    <!--<script src="Scripts/jquery-3.1.0.js"></script>-->
+    <script src="Scripts/jquery.min.kendo.js"></script>
+    <script src="Scripts/bootstrap.min.js"></script>
+    <script src="Plugins/pace/pace.min.js"></script>
+    <script src="Plugins/KendoUI/kendo.all.min.js"></script>
+    <script src="Plugins/KendoUI/kendo.culture.tr-TR.min.js"></script>
+    <script src="Plugins/KendoUI/kendo.messages.tr-TR.min.js"></script>
+    <script src="Plugins/DatePicker3/bootstrap-datepicker.js"></script>
+    <script src="Plugins/switchery/switchery.js"></script>
+    <script src="Plugins/jsTree/jstree.js"></script>
+
+    <script src="Controllers/__Global.js"></script>
+    <script src="Controllers/MembersController.js"></script>
+
+    <link href="Plugins/Devexpress162/dx.common.css" rel="stylesheet" />
+    <link rel="dx-theme" data-theme="generic.light.compact" href="Plugins/Devexpress162/dx.light.compact.css" />
+    <script src="Plugins/Devexpress162/jszip.min.js"></script>
+    <script src="Plugins/Devexpress162/dx.all.js"></script>
+
+    <script src="Plugins/SweetAlert2/sweetalert2.js"></script>
+    <script src="Plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="Plugins/slimscroll/jquery.slimscroll.js"></script>
+    <!--<script src="Plugins/DatePicker3/datepicker.tr.js"></script>-->
+
+
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbKBk2v5A6rGuFMfdMuSxepOlKNjZ-PYU&callback=initMap"></script>
+
+</head>
+<body class="skin skin-1 fixed-sidebar full-height-layout">
+    <div style="position: absolute; top: -500px; top: -500px;">
+        <input type="file" />
+    </div>
+    <div id="wrapper">
+
+        <SideMenu></SideMenu>
+
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row border-bottom"> 
+                <TopMenu></TopMenu>
+            </div>
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>Kullanıcı Listesi</h2>
+                    <ol class="breadcrumb">
+                        <li>
+                            MerchPlus kullanıcıları aşağıda listelenmektedir. Yeni bir kullanıcı eklemek için YENİ butonuna tıklayınız.
+                        </li>
+                    </ol>
+                </div>
+                <div class="col-lg-2" style="padding-top: 40px;">
+                    <button type="button" id="btnNew" class="btn btn-danger pull-right"><i class="fa fa-plus"></i>&nbsp;&nbsp;Yeni</button>
+                    <table class="bsm_InputTable" style="width: initial !important;">
+                        <tr class="bsm_InputTable_TR">
+                            <td>Şef ve Ekip</td>
+                            <td class="bsm_InputTable_TD_ControlContainer" style="width: 40% !important; padding: 2px !important;">
+                                <input type="checkbox" class="js-switch1" id="chkMerch" tabindex="10" checked />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="fh-breadcrumb">
+                <div class="full-height">
+                    <div class="full-height-scroll white-bg border-left" style="padding-top: 10px;" id="pnlMemberList">
+                        <div id="gridContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="pull-right">
+                    Powered by <strong>BSM Consultancy Limited</strong>
+                </div>
+                <div>
+                    <strong>Copyright</strong> Pozitif Tanıtım &copy; 2016
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal inmodal fade" id="myModal5" tabindex="-1" role="dialog" aria-hidden="true">
+        <input type="hidden" id="hdn_Id" />
+        <input type="hidden" id="winNew_lblBase64Encoded" />
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="lblCaption">Yeni Kullanıcı</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <h1 style="color: #336699;">Özlük Bilgileri</h1>
+                        <h4 style="color: #336699;">Kullanıcının özlük bilgileri MerchPlus ekosisteminin her modülünde kullanılmaktadır. Tüm bilgiler eksiksiz olarak girilmelidir. Aynı e-posta adresi birden fazla kullanıcıya atanmamalıdır.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                           <tr class="bsm_InputTable_TR">
+                               <td style="width:50%; vertical-align:top;">
+                                   <table class="bsm_InputTable">
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Adı Soyadı</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_txtNameSurname" class="form-control" tabindex="1" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Kullanıcı Adı</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_txtUserName" class="form-control" tabindex="3" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Giriş Tarihi</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_txtHiringDate" class="form-control" tabindex="5" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Ünvan</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_wleMemberTitle" class="form-control" tabindex="7" style="width: 100%;" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel" style="vertical-align: top;">Profil Resmi</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <div style="float:left;">
+                                                   <img id="winNew_pctProfilePicture" src="Images/ProfilePhotos/noProfile.png" class="img-responsive img-circle" style="width:100px;" />
+                                               </div>
+                                               <div style="float: left; padding-left: 10px; padding-top: 37px;">
+                                                   <button type="button" id="winNew_btnAddPhoto" class="btn btn-default"><i class="fa fa-camera"></i>&nbsp;&nbsp;Değiştir</button>
+                                               </div>
+                                           </td>
+                                       </tr>
+                                   </table>
+                               </td>
+                               <td style="width: 50%; vertical-align:top;">
+                                   <table class="bsm_InputTable">
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">TCKN</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_txtSocialSecurityNumber" class="form-control" tabindex="2" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">E-Posta</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="email" id="winNew_txtEmail" class="form-control" tabindex="4" placeholder="Giriniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Ayrılma Tarihi</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_txtLeavingDate" class="form-control" tabindex="6" placeholder="İşten ayrıldığı durumda girilecektir"/>
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Yöneticisi</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="text" id="winNew_wleDirectReport" class="form-control" tabindex="8" style="width: 100%;" placeholder="Seçiniz" />
+                                           </td>
+                                       </tr>
+                                       <tr class="bsm_InputTable_TR">
+                                           <td class="bsm_InputTable_TD_ControlLabel">Aktif mi?</td>
+                                           <td class="bsm_InputTable_TD_ControlContainer">
+                                               <input type="checkbox" class="js-switch" id="winNew_chkIsActive" tabindex="10" checked />
+                                           </td>
+                                       </tr>
+                                   </table>
+                               </td>
+                           </tr>
+                       </table>
+                    </p>
+
+                    <p style="padding-top: 25px;">
+                        <h1 style="color: #336699;">İletişim & Adres Bilgileri</h1>
+                        <h4 style="color: #336699;">MerchPlus route planlama modülü buraya girilen adres bilgilerini kullanmaktadır. Sisteme tanımlı her kullanıcının adres bilgisinin girilmesi zorunludur.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">GSM</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_txtPhoneNumber" style="width: 100%;" class="form-control" tabindex="12" placeholder="Giriniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Data</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_txtDataNumber" style="width: 100%;" class="form-control" tabindex="13" placeholder="Giriniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td colspan="2">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="width:13.6%">Adres</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_txtAddress" class="form-control" tabindex="14" placeholder="Google araması için Sokak/Cadde ismi ve İl giriniz. Noktalama işareti kullanmayınız." />
+                                            </td>
+                                            <td style="width:5%;">
+                                                <button type="button" id="winNew_btnSearchAddress" tabindex="15" class="btn btn-default"><i class="fa fa-search"></i></button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td colspan="2">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="width:12.4%">&nbsp;</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <div id="map" style="width:100%; height: 400px; border:solid 1px #CCC; border-radius:5px;"></div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td colspan="2">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="width:12.4%">İl</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_wleAddressCity" class="form-control" tabindex="16" style="width: 25%;" placeholder="Seçiniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td colspan="2">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="width:12.4%">Koordinatlar</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <table>
+                                                    <tr>
+                                                        <td><input type="text" id="winNew_txtAddressCoordinateX" class="form-control" tabindex="17" placeholder="Enlem" /></td>
+                                                        <td><input type="text" id="winNew_txtAddressCoordinateY" class="form-control" tabindex="18" placeholder="Boylam" /></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+
+                    <p style="padding-top: 25px;">
+                        <h1 style="color: #336699;">Cihaz Bilgileri</h1>
+                        <h4 style="color: #336699;">MerchPlus Android uygulaması cihaz ayarlarını baz almaktadır. Tüm alanların doldurulması zorunludur.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Cihaz Modeli</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_wleDeviceModel" style="width: 100%;" class="form-control" tabindex="19" placeholder="Seçiniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">IMEI</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winNew_txtIMEINumber" style="width: 100%;" class="form-control" tabindex="20" placeholder="Giriniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+
+                    <p style="padding-top: 25px;">
+                        <h1 style="color: #336699;">Müşteri İzinleri</h1>
+                        <h4 style="color: #336699;">Kullanıcının yetkileri çerçevesinde erişebileceği müşteri verileri buradan ayarlanmaktadır.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:100%; vertical-align:top;">
+                                    <table>
+                                        <tr id="pnlCustomerList">                                            
+                                        </tr>
+                                    </table>
+                                    
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+
+                    <p style="padding-top: 25px;">
+                        <h1 style="color: #336699;">Route Planlama Parametreleri</h1>
+                        <h4 style="color: #336699;">Planlama sırasında kullanılmak üzere, kullanıcının hangi illerde ziyaret yapabileceği buradan belirlenir.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:100%; vertical-align:top;">
+                                    <div id="pnlTowns"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="btnSave" class="btn btn-success">Kaydet</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Vazgeç</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal inmodal fade" id="myModal6" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="lblCaption">Off Günler</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <h1 style="color: #336699;">Tarihçe</h1>
+                        <h4 style="color: #336699;">Son 20 kayıt gösterilmektedir.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:100%; vertical-align:top;">
+                                    <div id="pnlTimeOffList"></div>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>
+                    <p>
+                        <h1 style="color: #336699;">Yeni Off Gün Tanımla</h1>
+                        <h4 style="color: #336699;">Çalışılmayacak veya Off-Route çalışılacak günleri buradan belirleyiniz. Açıklama alanında girilen bilgi Gün Planı ekranında görüntülenecektir.</h4>
+                        <hr class="hr-line-dashed" style="border-color:#CCC;" />
+                        <table style="width: 100%;">
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Başlangıç</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winTimeOff_wleStartDate" class="form-control" tabindex="1" placeholder="Giriniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Bitiş</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="text" id="winTimeOff_wleEndDate" class="form-control" tabindex="2" placeholder="Giriniz" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr class="bsm_InputTable_TR">
+                                <td style="width:50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel" style="vertical-align:top;">Açıklama</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <textarea type="text" id="winTimeOff_txtDescription" rows="5" class="form-control" tabindex="3" placeholder="Çalışmama sebebini detaylıca açıklayınız. Unutmayın, buraya yazılan açıklama raporlarda görüntülenecektir."></textarea>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td style="width: 50%; vertical-align:top;">
+                                    <table class="bsm_InputTable">
+                                        <tr class="bsm_InputTable_TR">
+                                            <td class="bsm_InputTable_TD_ControlLabel">Off-Route ?</td>
+                                            <td class="bsm_InputTable_TD_ControlContainer">
+                                                <input type="checkbox" class="js-switch" id="winTimeOff_chkIsOffRoute" tabindex="4" checked />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </p>                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnSaveTimeOff" class="btn btn-success">Kaydet</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Vazgeç</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
