@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MerchPlusMAUI.Views.HomePage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             BackgroundColor="White"
+             Shell.NavBarIsVisible="False"
+             ios:Page.UseSafeArea="False"
+             Padding="0">
+    
+    <Grid Padding="0" Margin="0" RowSpacing="0">
+        <!-- Ana İçerik -->
+        <StackLayout x:Name="MainContent" 
+                     VerticalOptions="Center" 
+                     HorizontalOptions="Center"
+                     Spacing="30"
+                     Padding="40"
+                     Margin="0">
+            
+            <!-- Logo -->
+            <Image Source="mplus_logo.png" 
+                   HeightRequest="120" 
+                   WidthRequest="120"
+                   HorizontalOptions="Center" />
+            
+            <!-- Alt Başlık -->
+            <Label x:Name="SubtitleLabel"
+                   Text="Uygulama Başlatılıyor..." 
+                   FontSize="18" 
+                   TextColor="#666"
+                   HorizontalOptions="Center" />
+            
+            <!-- Progress Bar -->
+            <StackLayout x:Name="ProgressContainer" 
+                         Spacing="10"
+                         WidthRequest="280"
+                         HorizontalOptions="Center">
+                <ProgressBar x:Name="InitProgressBar" 
+                             Progress="0" 
+                             ProgressColor="#2196F3"
+                             BackgroundColor="#E0E0E0"
+                             HeightRequest="8"
+                             WidthRequest="280"
+                             HorizontalOptions="Center" />
+                
+                <!-- Progress Yüzdesi -->
+                <Label x:Name="ProgressPercentLabel" 
+                       Text="0%" 
+                       FontSize="14"
+                       TextColor="#2196F3"
+                       HorizontalOptions="Center" />
+                
+                <!-- Durum Mesajı -->
+                <Label x:Name="StatusLabel" 
+                       Text="Başlatılıyor..." 
+                       FontSize="16"
+                       TextColor="#333"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       WidthRequest="300" />
+            </StackLayout>
+            
+            <!-- Hata Mesajı Konteynırı -->
+            <StackLayout x:Name="ErrorContainer" 
+                         IsVisible="False"
+                         Spacing="15"
+                         Padding="20"
+                         BackgroundColor="#FFEBEE">
+                
+                <Label Text="❌ Hata Oluştu" 
+                       FontSize="18" 
+                       FontAttributes="Bold"
+                       TextColor="#D32F2F"
+                       HorizontalOptions="Center" />
+                
+                <Label x:Name="ErrorMessageLabel" 
+                       FontSize="14"
+                       TextColor="#D32F2F"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center" />
+                
+                <Button x:Name="RetryButton"
+                        Text="Tekrar Dene"
+                        BackgroundColor="#2196F3"
+                        TextColor="White"
+                        CornerRadius="8"
+                        Padding="20,10"
+                        HorizontalOptions="Center"
+                        Clicked="OnRetryClicked" />
+            </StackLayout>
+            
+        </StackLayout>
+    </Grid>
+</ContentPage> 

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MerchPlusMAUI.Controls.CommonHeader"
+             HeightRequest="70"
+             MinimumHeightRequest="70"
+             VerticalOptions="Start"
+             IsVisible="True"
+             BackgroundColor="#336699">
+    <Grid ColumnDefinitions="Auto,*,Auto"
+          RowDefinitions="Auto"
+          Padding="15,10"
+          Margin="0"
+          HeightRequest="70"
+          MinimumHeightRequest="70"
+          VerticalOptions="Start"
+          HorizontalOptions="Fill"
+          BackgroundColor="#336699">
+        
+        <!-- Profil Fotoğrafı -->
+        <Frame Grid.Column="0"
+               BackgroundColor="White"
+               CornerRadius="25"
+               Padding="2"
+               WidthRequest="50"
+               HeightRequest="50"
+               VerticalOptions="Center"
+               HorizontalOptions="Start"
+               Margin="5,0,15,0"
+               HasShadow="True">
+            
+            <!-- Default Person Icon (Background) -->
+            <Label x:Name="DefaultPersonIcon"
+                   Text="👤"
+                   FontSize="28"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   TextColor="#336699"
+                   IsVisible="True"/>
+            
+            <!-- Profile Image (Foreground) -->
+            <Image x:Name="ProfileImage"
+                   Source="defaultprofilphoto.png"
+                   Aspect="AspectFill"
+                   WidthRequest="46"
+                   HeightRequest="46"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Center"
+                   IsVisible="False">
+                <Image.Clip>
+                    <EllipseGeometry Center="23,23" RadiusX="23" RadiusY="23"/>
+                </Image.Clip>
+            </Image>
+        </Frame>
+        
+        <!-- Kullanıcı Adı -->
+        <Label Grid.Column="1"
+               x:Name="UserNameLabel"
+               Text="Kullanıcı"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="White"
+               VerticalOptions="Center"
+               HorizontalOptions="Start"/>
+        
+        <!-- Bildirim Badge Container -->
+        <Grid Grid.Column="2"
+              WidthRequest="50"
+              HeightRequest="50"
+              VerticalOptions="Center"
+              HorizontalOptions="End">
+            
+            <!-- Bildirim Butonu - Modern Bell Icon -->
+            <Button x:Name="NotificationButton"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    FontSize="22"
+                    WidthRequest="50"
+                    HeightRequest="50"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Center"
+                    Clicked="OnNotificationClicked"
+                    CornerRadius="25"
+                    BorderWidth="0"
+                    Padding="0">
+                <Button.Text>
+                    <OnPlatform x:TypeArguments="x:String">
+                        <On Platform="Android">&#xE7F4;</On>
+                        <On Platform="iOS">&#xE7F4;</On>
+                        <On Platform="WinUI">&#xE7E7;</On>
+                    </OnPlatform>
+                </Button.Text>
+                <Button.FontFamily>
+                    <OnPlatform x:TypeArguments="x:String">
+                        <On Platform="Android">MaterialIcons</On>
+                        <On Platform="iOS">MaterialIcons</On>
+                        <On Platform="WinUI">Segoe MDL2 Assets</On>
+                    </OnPlatform>
+                </Button.FontFamily>
+            </Button>
+            
+            <!-- Bildirim Badge (kırmızı nokta) -->
+            <Frame x:Name="NotificationBadge"
+                   BackgroundColor="#FF4444"
+                   CornerRadius="10"
+                   Padding="0"
+                   WidthRequest="20"
+                   HeightRequest="20"
+                   VerticalOptions="Start"
+                   HorizontalOptions="End"
+                   Margin="3,3,3,0"
+                   HasShadow="True"
+                   IsVisible="False">
+                <Label x:Name="NotificationCountLabel"
+                       Text="0"
+                       FontSize="10"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"/>
+            </Frame>
+        </Grid>
+    </Grid>
+</ContentView> 

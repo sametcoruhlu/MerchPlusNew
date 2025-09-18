@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             x:Class="MerchPlusMAUI.Views.VisitPage"
+             Title="Görevler">
+    <Grid RowDefinitions="70,*,75">
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0" />
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1" Padding="15" BackgroundColor="#F8F9FA">
+            <StackLayout Spacing="20" VerticalOptions="Center">
+                
+                <!-- Welcome Card -->
+                <Frame BackgroundColor="White" 
+                       Padding="25" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15" HorizontalOptions="Center">
+                        <Frame BackgroundColor="#007BFF" 
+                               WidthRequest="80" 
+                               HeightRequest="80" 
+                               CornerRadius="40" 
+                               Padding="0" 
+                               HasShadow="False">
+                            <Label Text="📋" 
+                                   FontSize="40" 
+                                   HorizontalOptions="Center" 
+                                   VerticalOptions="Center" 
+                                   TextColor="White"/>
+                        </Frame>
+                        <Label Text="Görevler" 
+                               FontSize="24" 
+                               FontAttributes="Bold" 
+                               TextColor="#212529"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Görev yönetimi ve takip sistemi" 
+                               FontSize="16" 
+                               TextColor="#6C757D"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Info Card -->
+                <Frame BackgroundColor="White" 
+                       Padding="20" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <Label Text="🚧 Geliştirme Aşamasında" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#FFC107"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Bu sayfa şu anda geliştirilmektedir. Çok yakında görev listesi, ziyaret planları ve durum takibi özelliklerini burada bulabileceksiniz." 
+                               FontSize="14" 
+                               TextColor="#495057"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Features Preview Card -->
+                <Frame BackgroundColor="White" 
+                       Padding="20" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <Label Text="Yakında Gelecek Özellikler" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#007BFF"
+                               HorizontalOptions="Center"/>
+                        
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="15" RowSpacing="12">
+                            <Label Grid.Row="0" Grid.Column="0" Text="✅" FontSize="16"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="Günlük görev listesi" FontSize="14" TextColor="#495057" VerticalOptions="Center"/>
+                            
+                            <Label Grid.Row="1" Grid.Column="0" Text="📍" FontSize="16"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="Ziyaret planlaması" FontSize="14" TextColor="#495057" VerticalOptions="Center"/>
+                            
+                            <Label Grid.Row="2" Grid.Column="0" Text="⏰" FontSize="16"/>
+                            <Label Grid.Row="2" Grid.Column="1" Text="Zaman takibi" FontSize="14" TextColor="#495057" VerticalOptions="Center"/>
+                            
+                            <Label Grid.Row="3" Grid.Column="0" Text="📊" FontSize="16"/>
+                            <Label Grid.Row="3" Grid.Column="1" Text="İlerleme raporları" FontSize="14" TextColor="#495057" VerticalOptions="Center"/>
+                        </Grid>
+                    </StackLayout>
+                </Frame>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Footer -->
+        <controls:CommonFooter Grid.Row="2" />
+        
+        <!-- Floating Back Button -->
+        <controls:FloatingBackButton Grid.Row="0" Grid.RowSpan="3" />
+    </Grid>
+</ContentPage> 

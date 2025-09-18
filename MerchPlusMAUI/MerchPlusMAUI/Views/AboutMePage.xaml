@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="MerchPlusMAUI.Views.AboutMePage"
+             Title=""
+             ios:Page.UseSafeArea="False"
+             Padding="0">
+
+    <Grid RowDefinitions="70,*,60" Margin="0" Padding="0" RowSpacing="0">
+        
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0"/>
+        
+        <!-- Content -->
+        <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Never" Padding="0" Margin="0">
+            <VerticalStackLayout Spacing="10" Padding="15,15,15,70" Margin="0">
+                
+                <!-- 1. MAĞAZALAR KUTUSU -->
+                <Frame Padding="10" 
+                       CornerRadius="10" 
+                       BorderColor="#e0e0e0" 
+                       HasShadow="True"
+                       Margin="0,0,0,5"
+                       HeightRequest="200">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Başlık ve Info butonu -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
+                            <Label Text="Mağazalar"
+                                   Grid.Column="0"
+                                   FontSize="18"
+                                   FontAttributes="Bold"
+                                   HorizontalOptions="Start"
+                                   VerticalOptions="Center"/>
+                            
+                            <!-- Info button - Circular with background -->
+                            <Button Grid.Column="1"
+                                    Text="&#xe88e;"
+                                    FontFamily="MaterialIcons"
+                                    FontSize="18"
+                                    WidthRequest="36"
+                                    HeightRequest="36"
+                                    Padding="0"
+                                    Margin="8,0,0,0"
+                                    CornerRadius="18"
+                                    BackgroundColor="Transparent"
+                                    TextColor="#1976D2"
+                                    Clicked="OnInfoButtonClicked"
+                                    HorizontalOptions="End"
+                                    VerticalOptions="Center"/>
+                        </Grid>
+                        
+                        <!-- İçerik Alanı -->
+                        <Grid Grid.Row="1" 
+                              ColumnSpacing="8" 
+                              RowSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Headers - Tıklanabilir -->
+                            <Frame Grid.Column="0" 
+                                   BackgroundColor="#f0f0f0"
+                                   CornerRadius="8"
+                                   Padding="5,5" 
+                                   HasShadow="False"
+                                   BorderColor="LightGray">
+                                <Label Text="Planlanan"
+                                       FontSize="13"
+                                       LineBreakMode="NoWrap"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPlannedTapped"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+                            
+                            <Frame Grid.Column="1"
+                                   BackgroundColor="#f0f0f0"
+                                   CornerRadius="8"
+                                   Padding="5,5"
+                                   HasShadow="False"
+                                   BorderColor="LightGray">
+                                <Label Text="Tamamlanan"
+                                       FontSize="13"
+                                       LineBreakMode="NoWrap"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCompletedTapped"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+                            
+                            <Frame Grid.Column="2"
+                                   BackgroundColor="#f0f0f0"
+                                   CornerRadius="8"
+                                   Padding="5,5"
+                                   HasShadow="False"
+                                   BorderColor="LightGray">
+                                <Label Text="Bekleyen"
+                                       FontSize="13"
+                                       LineBreakMode="NoWrap"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPendingTapped"/>
+                                </Frame.GestureRecognizers>
+                            </Frame>
+
+                            <!-- Values -->
+                            <Label x:Name="PlannedCountLabel"
+                                   Text="-"
+                                   Grid.Row="1"
+                                   Grid.Column="0"
+                                   FontSize="32"
+                                   HorizontalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPlannedTapped"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                            
+                            <Label x:Name="CompletedCountLabel"
+                                   Text="-"
+                                   Grid.Row="1"
+                                   Grid.Column="1"
+                                   FontSize="32"
+                                   HorizontalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCompletedTapped"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                            
+                            <Label x:Name="PendingCountLabel"
+                                   Text="-"
+                                   Grid.Row="1"
+                                   Grid.Column="2"
+                                   FontSize="32"
+                                   HorizontalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnPendingTapped"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </Grid>
+                </Frame>
+                
+                <!-- 2. RAPOR KUTUSU -->
+                <Frame Padding="10" 
+                       CornerRadius="10" 
+                       BorderColor="#e0e0e0" 
+                       HasShadow="True"
+                       Margin="0,5,0,5"
+                       HeightRequest="200">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Başlık -->
+                        <Label Grid.Row="0"
+                               Text="Rapor"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Start"
+                               VerticalOptions="Center"
+                               Margin="0,0,0,5"/>
+                        
+                        <!-- Rapor İçeriği -->
+                        <ScrollView Grid.Row="1">
+                            <VerticalStackLayout x:Name="ReportContainer" Spacing="8">
+                                <!-- Rapor öğeleri kod tarafında doldurulacak -->
+                            </VerticalStackLayout>
+                        </ScrollView>
+                    </Grid>
+                </Frame>
+                
+                <!-- 3. YARIŞMALAR KUTUSU -->
+                <Frame Padding="10" 
+                       CornerRadius="10" 
+                       BorderColor="#e0e0e0" 
+                       HasShadow="True"
+                       Margin="0,5,0,5"
+                       HeightRequest="180">
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Başlık -->
+                        <Label Grid.Row="0"
+                               Text="Yarışmalar"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Start"
+                               VerticalOptions="Center"
+                               Margin="0,0,0,5"/>
+                        
+                        <!-- Yarışmalar İçeriği -->
+                        <ScrollView Grid.Row="1">
+                            <!-- Yarışma İçeriği -->
+                            <Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+                                <Label Text="Aktif yarışma bulunmamaktadır."
+                                       Grid.Row="0"
+                                       FontSize="16"
+                                       TextColor="Gray"
+                                       HorizontalOptions="Center"
+                                       IsVisible="True"
+                                       x:Name="NoContestLabel"/>
+                                       
+                                <VerticalStackLayout x:Name="ContestsContainer" 
+                                                     Grid.Row="1"
+                                                     Spacing="8"
+                                                     IsVisible="False">
+                                    <!-- Yarışmalar kod tarafında doldurulacak -->
+                                </VerticalStackLayout>
+                            </Grid>
+                        </ScrollView>
+                    </Grid>
+                </Frame>
+            </VerticalStackLayout>
+        </ScrollView>
+        
+        <!-- Footer -->
+        <controls:CommonFooter Grid.Row="2"/>
+        
+        <!-- Floating Back Button Overlay (hidden on main pages) -->
+        <controls:FloatingBackButton Grid.Row="0" Grid.RowSpan="3" 
+                                     x:Name="FloatingBack"
+                                     HorizontalOptions="Start"
+                                     VerticalOptions="End"
+                                     Margin="20,0,0,80"
+                                     IsVisible="False"/>
+        
+    </Grid>
+</ContentPage> 

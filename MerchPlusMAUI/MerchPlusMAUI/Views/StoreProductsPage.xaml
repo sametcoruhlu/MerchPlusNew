@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MerchPlusMAUI.Views.StoreProductsPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             Title="{Binding PageTitle}"
+             BackgroundColor="#F5F5F5">
+
+    <Grid RowDefinitions="70,*,75">
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0" />
+
+        <!-- Main Content - Product List -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            <!-- Store Info Card -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="White" 
+                   Margin="15,10,15,5" 
+                   Padding="15" 
+                   CornerRadius="10" 
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Frame BackgroundColor="#336699" 
+                           WidthRequest="50" 
+                           HeightRequest="50" 
+                           CornerRadius="25" 
+                           Padding="0" 
+                           HasShadow="False">
+                        <Label Text="🏪" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center" 
+                               TextColor="White"/>
+                    </Frame>
+                    <StackLayout VerticalOptions="Center" Spacing="5">
+                        <Label x:Name="StoreNameLabel" 
+                               Text="{Binding StoreName}" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#333"/>
+                        <Label x:Name="ProductCountLabel" 
+                               Text="{Binding ProductCountText}" 
+                               FontSize="14" 
+                               TextColor="#666"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Search Bar -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="White" 
+                   Margin="15,5,15,10" 
+                   Padding="10" 
+                   CornerRadius="10" 
+                   HasShadow="True"
+                   IsVisible="{Binding HasProducts}">
+                <SearchBar x:Name="ProductSearchBar"
+                           Placeholder="Ürün ara..."
+                           PlaceholderColor="#999"
+                           TextColor="#333"
+                           BackgroundColor="Transparent"
+                           SearchCommand="{Binding SearchCommand}"
+                           SearchCommandParameter="{Binding Source={x:Reference ProductSearchBar}, Path=Text}"/>
+            </Frame>
+
+            <!-- Product List -->
+            <CollectionView x:Name="ProductsCollectionView" 
+                            Grid.Row="1"
+                            ItemsSource="{Binding FilteredProducts}"
+                            BackgroundColor="Transparent"
+                            Margin="15,0,15,10"
+                            SelectionMode="Single"
+                            SelectionChanged="OnProductSelectionChanged">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="0,5">
+                            <Frame BackgroundColor="White" 
+                                   Padding="15" 
+                                   CornerRadius="10" 
+                                   HasShadow="True">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnProductCardTapped"/>
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="60,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="15">
+                                    
+                                    <!-- Product Image -->
+                                    <Frame Grid.Column="0" 
+                                           Grid.RowSpan="3" 
+                                           BackgroundColor="#F0F0F0" 
+                                           WidthRequest="60" 
+                                           HeightRequest="60" 
+                                           CornerRadius="8" 
+                                           Padding="0" 
+                                           HasShadow="False">
+                                        <Image Source="{Binding ProductImage}" 
+                                               Aspect="AspectFill" 
+                                               BackgroundColor="Transparent"/>
+                                    </Frame>
+
+                                    <!-- Product Name -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="0" 
+                                           Text="{Binding ProductName}" 
+                                           FontSize="16" 
+                                           FontAttributes="Bold" 
+                                           TextColor="#333" 
+                                           LineBreakMode="TailTruncation"/>
+
+                                    <!-- Product Code -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="1" 
+                                           Text="{Binding ProductCode, StringFormat='Kod: {0}'}" 
+                                           FontSize="14" 
+                                           TextColor="#666"/>
+
+                                    <!-- Product Category -->
+                                    <Label Grid.Column="1" 
+                                           Grid.Row="2" 
+                                           Text="{Binding ProductCategory}" 
+                                           FontSize="12" 
+                                           TextColor="#999" 
+                                           />
+
+                                    <!-- Arrow Icon -->
+                                    <Label Grid.Column="2" 
+                                           Grid.RowSpan="3" 
+                                           Text="▶" 
+                                           FontSize="16" 
+                                           TextColor="#336699" 
+                                           VerticalOptions="Center"/>
+                                </Grid>
+                            </Frame>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="CenterAndExpand" 
+                                 HorizontalOptions="CenterAndExpand" 
+                                 Spacing="20"
+                                 Margin="20">
+                        <Label Text="📦" 
+                               FontSize="48" 
+                               HorizontalOptions="Center" 
+                               TextColor="#CCC"/>
+                        <Label Text="Bu mağaza için ürün bulunamadı" 
+                               FontSize="16" 
+                               HorizontalOptions="Center" 
+                               TextColor="#666" 
+                               HorizontalTextAlignment="Center"/>
+                        <Label x:Name="EmptyStateSubtitle" 
+                               Text="Arama kriterlerinizi değiştirmeyi deneyin" 
+                               FontSize="14" 
+                               HorizontalOptions="Center" 
+                               TextColor="#999" 
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding IsSearchActive}"/>
+                    </StackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </Grid>
+
+        <!-- Bottom Action Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,*,*,*,*" 
+              BackgroundColor="White" 
+              Padding="10,5">
+            
+            <!-- Take Photo Button -->
+            <Button Grid.Column="0" 
+                    x:Name="TakePhotoButton"
+                    Text="📷 Fotoğraf"
+                    BackgroundColor="#4CAF50" 
+                    TextColor="White" 
+                    FontSize="10" 
+                    CornerRadius="8" 
+                    Margin="2,0"
+                    Clicked="OnTakePhotoClicked"/>
+
+            <!-- Sales Order Button -->
+            <Button Grid.Column="1" 
+                    x:Name="SalesOrderButton"
+                    Text="🛒 Sipariş"
+                    BackgroundColor="#FF9800" 
+                    TextColor="White" 
+                    FontSize="10" 
+                    CornerRadius="8" 
+                    Margin="2,0"
+                    Clicked="OnSalesOrderClicked"/>
+
+            <!-- Expiration Date Button -->
+            <Button Grid.Column="2" 
+                    x:Name="ExpirationButton"
+                    Text="📅 SKT"
+                    BackgroundColor="#9C27B0" 
+                    TextColor="White" 
+                    FontSize="10" 
+                    CornerRadius="8" 
+                    Margin="2,0"
+                    Clicked="OnExpirationClicked"/>
+
+            <!-- Report Button -->
+            <Button Grid.Column="3" 
+                    x:Name="ReportButton"
+                    Text="📊 Rapor"
+                    BackgroundColor="#2196F3" 
+                    TextColor="White" 
+                    FontSize="10" 
+                    CornerRadius="8" 
+                    Margin="2,0"
+                    Clicked="OnReportClicked"/>
+
+            <!-- Exit Shop Button -->
+            <Button Grid.Column="4" 
+                    x:Name="ExitShopButton"
+                    Text="🚪 Çıkış"
+                    BackgroundColor="#F44336" 
+                    TextColor="White" 
+                    FontSize="10" 
+                    CornerRadius="8" 
+                    Margin="2,0"
+                    Clicked="OnExitShopClicked"/>
+        </Grid>
+
+        <!-- Loading Indicator with Background -->
+        <Grid Grid.RowSpan="3" 
+              IsVisible="{Binding IsLoading}" 
+              BackgroundColor="#80000000">
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="30" 
+                   HasShadow="True"
+                   HorizontalOptions="Center" 
+                   VerticalOptions="Center">
+                <StackLayout Spacing="15" Orientation="Vertical">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                       Color="#336699" 
+                                       WidthRequest="40" 
+                                       HeightRequest="40"/>
+                    <Label Text="Ürünler yükleniyor..." 
+                           FontSize="14" 
+                           TextColor="#666" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
+        </Grid>
+
+        <!-- Floating Back Button -->
+        <controls:FloatingBackButton Grid.RowSpan="3" />
+    </Grid>
+</ContentPage> 

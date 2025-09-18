@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="MerchPlusMAUI.Views.SettingsPage"
+             Title="Settings"
+             ios:Page.UseSafeArea="False"
+             Padding="0">
+    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center" Margin="0">
+        <Label 
+            Text="Settings Page"
+            FontSize="18"
+            HorizontalOptions="Center" />
+        <Label 
+            Text="This page is under construction."
+            FontSize="14"
+            HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentPage> 

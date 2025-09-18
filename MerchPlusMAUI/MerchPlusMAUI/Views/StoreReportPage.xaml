@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MerchPlusMAUI.Views.StoreReportPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             Title="{Binding PageTitle}"
+             BackgroundColor="#F5F5F5">
+
+    <Grid RowDefinitions="70,*,75">
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0" />
+
+        <!-- Main Content - Report List -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            <!-- Store Info Card -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="White" 
+                   Margin="15,10,15,5" 
+                   Padding="15" 
+                   CornerRadius="10" 
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Frame BackgroundColor="#336699" 
+                           WidthRequest="50" 
+                           HeightRequest="50" 
+                           CornerRadius="25" 
+                           Padding="0" 
+                           HasShadow="False">
+                        <Label Text="📊" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center" 
+                               TextColor="White"/>
+                    </Frame>
+                    <StackLayout VerticalOptions="Center" Spacing="5">
+                        <Label x:Name="StoreNameLabel" 
+                               Text="{Binding StoreName}" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#333"/>
+                        <Label x:Name="ReportSummaryLabel" 
+                               Text="{Binding ReportSummary}" 
+                               FontSize="14" 
+                               TextColor="#666"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Report List -->
+            <ScrollView Grid.Row="1" Margin="15,5,15,10">
+                <VerticalStackLayout x:Name="ReportItemsContainer" Spacing="10">
+                    <!-- Report items will be populated from code -->
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- Bottom Navigation with Entry/Exit Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,*,*,*" 
+              BackgroundColor="#F8F9FA" 
+              Padding="4,8,4,12"
+              RowSpacing="0"
+              ColumnSpacing="0">
+            
+            <!-- Entry Button (visible when not entered) -->
+            <Button x:Name="EntryButton"
+                    Grid.Column="0"
+                    Text="&#xE89C;"
+                    FontFamily="MaterialIcons"
+                    BackgroundColor="#1976D2"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="12"
+                    HeightRequest="44"
+                    Margin="2,0"
+                    Clicked="OnEntryButtonClicked"
+                    IsVisible="False">
+                <Button.Shadow>
+                    <Shadow Brush="#1976D2" 
+                            Opacity="0.2" 
+                            Radius="4" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+
+            <!-- Continue Button (visible when entered but not exited) -->
+            <Button x:Name="ContinueButton"
+                    Grid.Column="0"
+                    Text="&#xE037;"
+                    FontFamily="MaterialIcons"
+                    BackgroundColor="#FF6F00"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="12"
+                    HeightRequest="44"
+                    Margin="2,0"
+                    Clicked="OnContinueButtonClicked"
+                    IsVisible="False">
+                <Button.Shadow>
+                    <Shadow Brush="#FF6F00" 
+                            Opacity="0.2" 
+                            Radius="4" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+
+            <!-- Exit Button (visible when entered but not exited) -->
+            <Button x:Name="ExitButton"
+                    Grid.Column="1"
+                    Text="&#xE5CD;"
+                    FontFamily="MaterialIcons"
+                    BackgroundColor="#D32F2F"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="12"
+                    HeightRequest="44"
+                    Margin="2,0"
+                    Clicked="OnExitButtonClicked"
+                    IsVisible="False">
+                <Button.Shadow>
+                    <Shadow Brush="#D32F2F" 
+                            Opacity="0.2" 
+                            Radius="4" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+            
+            <!-- Back to Products Button -->
+            <Button x:Name="BackToProductsButton"
+                    Grid.Column="2"
+                    Text="&#xE8F6;"
+                    FontFamily="MaterialIcons"
+                    BackgroundColor="#7B1FA2"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="12"
+                    HeightRequest="44"
+                    Margin="2,0"
+                    Clicked="OnBackToProductsClicked">
+                <Button.Shadow>
+                    <Shadow Brush="#7B1FA2" 
+                            Opacity="0.2" 
+                            Radius="4" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+
+            <!-- Back to Store Button -->
+            <Button x:Name="BackToStoreButton"
+                    Grid.Column="3"
+                    Text="&#xE8CC;"
+                    FontFamily="MaterialIcons"
+                    BackgroundColor="#455A64"
+                    TextColor="White"
+                    FontSize="16"
+                    CornerRadius="12"
+                    HeightRequest="44"
+                    Margin="2,0"
+                    Clicked="OnBackToStoreClicked">
+                <Button.Shadow>
+                    <Shadow Brush="#455A64" 
+                            Opacity="0.2" 
+                            Radius="4" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+        </Grid>
+    </Grid>
+</ContentPage> 

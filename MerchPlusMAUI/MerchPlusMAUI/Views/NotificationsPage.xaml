@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             x:Class="MerchPlusMAUI.Views.NotificationsPage"
+             Title="Bildirimler"
+             ios:Page.UseSafeArea="False"
+             Padding="0">
+
+    <Grid RowDefinitions="70,Auto,*,60" Margin="0" Padding="0" RowSpacing="0">
+        
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0"/>
+        
+        <!-- Başlık Alanı -->
+        <Grid Grid.Row="1" 
+              BackgroundColor="#F8F9FA" 
+              Padding="20,15" 
+              ColumnDefinitions="*,Auto">
+            <Label Grid.Column="0"
+                   Text="Bildirimler"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="#333"
+                   VerticalOptions="Center"/>
+            
+            <!-- Tümünü Okundu İşaretle Butonu -->
+            <Button Grid.Column="1"
+                    x:Name="MarkAllReadButton"
+                    Text="Tümünü Okundu İşaretle"
+                    FontSize="12"
+                    TextColor="#336699"
+                    BackgroundColor="Transparent"
+                    Clicked="OnMarkAllReadClicked"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Bildirimler Listesi -->
+        <ScrollView Grid.Row="2" 
+                    VerticalScrollBarVisibility="Never" 
+                    Padding="0" 
+                    Margin="0">
+            <StackLayout x:Name="NotificationsContainer" 
+                         Spacing="0" 
+                         Padding="0,0,0,20" 
+                         Margin="0">
+                
+                <!-- Bildirimler buraya dinamik olarak eklenecek -->
+                
+            </StackLayout>
+        </ScrollView>
+        
+        <!-- Boş Durum Mesajı -->
+        <StackLayout x:Name="EmptyStateContainer"
+                     Grid.Row="2"
+                     IsVisible="False"
+                     VerticalOptions="Center"
+                     HorizontalOptions="Center"
+                     Spacing="20"
+                     Padding="40">
+            <Label Text="📭"
+                   FontSize="60"
+                   HorizontalOptions="Center"/>
+            <Label Text="Henüz bildiriminiz yok"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="#666"
+                   HorizontalOptions="Center"/>
+            <Label Text="Yeni bildirimler geldiğinde burada görüntülenecek"
+                   FontSize="14"
+                   TextColor="#999"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+        </StackLayout>
+        
+        <!-- Footer -->
+        <controls:CommonFooter Grid.Row="3"/>
+        
+        <!-- Floating Back Button Overlay -->
+        <controls:FloatingBackButton Grid.Row="0" Grid.RowSpan="4" 
+                                     x:Name="FloatingBack"
+                                     HorizontalOptions="Start"
+                                     VerticalOptions="End"
+                                     Margin="20,0,0,80"/>
+        
+    </Grid>
+</ContentPage> 

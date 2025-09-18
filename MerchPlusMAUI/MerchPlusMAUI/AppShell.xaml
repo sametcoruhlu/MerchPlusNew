@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MerchPlusMAUI.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MerchPlusMAUI"
+    xmlns:views="clr-namespace:MerchPlusMAUI.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    Shell.PresentationMode="ModalAnimated"
+    Title="MerchPlus">
+
+    <Shell.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Shell">
+                <Setter Property="Shell.BackgroundColor" Value="Transparent"/>
+                <Setter Property="Shell.FlyoutBackgroundColor" Value="Transparent"/>
+                <Setter Property="Shell.TitleColor" Value="Transparent"/>
+                <Setter Property="Shell.DisabledColor" Value="Transparent"/>
+                <Setter Property="Shell.UnselectedColor" Value="Transparent"/>
+                <Setter Property="Shell.TabBarBackgroundColor" Value="Transparent"/>
+                <Setter Property="Shell.TabBarForegroundColor" Value="Transparent"/>
+                <Setter Property="Shell.TabBarUnselectedColor" Value="Transparent"/>
+                <Setter Property="Shell.TabBarTitleColor" Value="Transparent"/>
+                <Setter Property="Shell.FlyoutHeaderBehavior" Value="CollapseOnScroll"/>
+                <Setter Property="Shell.FlyoutHeaderTemplate">
+                    <Setter.Value>
+                        <DataTemplate>
+                            <Grid HeightRequest="0"/>
+                        </DataTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Shell.Resources>
+
+    <!-- Ana Sayfa - Başlangıç Sayfası -->
+    <ShellContent
+        Title="Ana Sayfa"
+        ContentTemplate="{DataTemplate views:HomePage}"
+        Route="HomePage" />
+
+    <!-- Profil Sayfası -->
+    <ShellContent
+        Title="Profil"
+        ContentTemplate="{DataTemplate views:AboutMePage}"
+        Route="AboutMePage" />
+        
+    <!-- Bildirimler Sayfası -->
+    <ShellContent
+        Title="Bildirimler"
+        ContentTemplate="{DataTemplate views:NotificationsPage}"
+        Route="NotificationsPage" />
+        
+    <!-- Konum Sayfası -->
+    <ShellContent
+        Title="Harita"
+        ContentTemplate="{DataTemplate views:LocationsPage}"
+        Route="LocationsPage" />
+        
+    <!-- Görevler Sayfası -->
+    <ShellContent
+        Title="Görevler"
+        ContentTemplate="{DataTemplate views:VisitPage}"
+        Route="VisitPage" />
+
+    <!-- Mağazalar Sayfası -->
+    <ShellContent
+        Title="Mağazalar"
+        ContentTemplate="{DataTemplate views:StoresPage}"
+        Route="StoresPage" />
+
+    <!-- Mağaza Ürünleri Sayfası -->
+    <ShellContent
+        Title="Mağaza Ürünleri"
+        ContentTemplate="{DataTemplate views:StoreProductsPage}"
+        Route="StoreProductsPage" />
+
+    <!-- Mağaza Raporu Sayfası -->
+    <ShellContent
+        Title="Mağaza Raporu"
+        ContentTemplate="{DataTemplate views:StoreReportPage}"
+        Route="StoreReportPage" />
+
+    <!-- Ürün Veri Girişi Sayfası -->
+    <ShellContent
+        Title="Ürün Veri Girişi"
+        ContentTemplate="{DataTemplate views:MerchDataEntryPage}"
+        Route="MerchDataEntryPage" />
+
+    <!-- Hata Sayfası -->
+    <ShellContent
+        Title="Hata"
+        ContentTemplate="{DataTemplate views:ErrorPage}"
+        Route="ErrorPage" />
+
+</Shell>

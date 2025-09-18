@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage 
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             x:Class="MerchPlusMAUI.Views.StoresPage"
+             Title="{Binding PageTitle}">
+
+    <Grid RowDefinitions="70,Auto,*,60" Margin="0" Padding="0" RowSpacing="0">
+        
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0"/>
+        
+        <!-- Üst Bilgi Çubuğu (Sayfa Başlığı ve Liste Sayısı) -->
+        <Grid Grid.Row="1" 
+              ColumnDefinitions="*,Auto" 
+              Padding="15,10" 
+              BackgroundColor="#f8f8f8">
+            
+            <Label Grid.Column="0"
+                   Text="{Binding PageTitle}"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"
+                   HorizontalOptions="Start"/>
+            
+            <Label Grid.Column="1"
+                   Text="{Binding ItemCount, StringFormat='{0} Adet'}"
+                   FontSize="16"
+                   VerticalOptions="Center"
+                   HorizontalOptions="End"/>
+        </Grid>
+        
+        <!-- Mağaza Listesi -->
+        <RefreshView Grid.Row="2" 
+                    x:Name="StoresRefreshView"
+                    IsRefreshing="{Binding IsRefreshing}"
+                    Command="{Binding RefreshCommand}">
+            <CollectionView x:Name="StoresCollectionView"
+                            ItemsSource="{Binding Stores}"
+                            SelectionMode="None"
+                            SelectionChanged="OnStoreSelected">
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="20">
+                        <Label Text="📭"
+                               FontSize="50"
+                               HorizontalOptions="Center"
+                               Margin="0,0,0,10"/>
+                        <Label Text="Gösterilecek mağaza bulunamadı."
+                               FontSize="16" 
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center"/>
+                        <Label Text="Farklı bir kategori seçmeyi deneyin."
+                               FontSize="14" 
+                               TextColor="LightGray"
+                               HorizontalTextAlignment="Center"
+                               Margin="0,5,0,0"/>
+                    </StackLayout>
+                </CollectionView.EmptyView>
+                
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="15,5" 
+                               Padding="15" 
+                               BorderColor="#e0e0e0"
+                               CornerRadius="10"
+                               HasShadow="True"
+                               BackgroundColor="White">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnStoreTapped" />
+                            </Frame.GestureRecognizers>
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                
+                                <!-- Mağaza Adı -->
+                                <Label Grid.Column="0" Grid.Row="0"
+                                       Text="{Binding StoreName}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#333"
+                                       Margin="0,0,0,5"/>
+                                
+                                <!-- Adres -->
+                                <Label Grid.Column="0" Grid.Row="1"
+                                       Text="{Binding StoreAddress}"
+                                       FontSize="14"
+                                       TextColor="#666"
+                                       LineBreakMode="WordWrap"
+                                       Margin="0,0,0,5"/>
+                                
+                                <!-- Telefon -->
+                                <Label Grid.Column="0" Grid.Row="2"
+                                       Text="{Binding Phone}"
+                                       FontSize="14"
+                                       TextColor="#336699"
+                                       Margin="0,0,0,5"/>
+                                
+                                <!-- Durum -->
+                                <Frame Grid.Column="0" Grid.Row="3"
+                                       BackgroundColor="{Binding StatusColor}"
+                                       CornerRadius="12"
+                                       Padding="8,4"
+                                       HasShadow="False"
+                                       HorizontalOptions="Start"
+                                       Margin="0,5,0,5">
+                                    <Label Text="{Binding StoreType}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="White"/>
+                                </Frame>
+                                
+                                <!-- Son Ziyaret -->
+                                <Label Grid.Column="0" Grid.Row="4"
+                                       Text="{Binding LastVisit, StringFormat='Son Ziyaret: {0}'}"
+                                       FontSize="12"
+                                       TextColor="Gray"
+                                       IsVisible="{Binding HasLastVisit}"/>
+                                
+                                <!-- Ok İkonu -->
+                                <Label Grid.Column="1" Grid.Row="0" Grid.RowSpan="5"
+                                       Text="→"
+                                       FontSize="24"
+                                       TextColor="#336699"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Center"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+        
+        <!-- Footer -->
+        <controls:CommonFooter Grid.Row="3"/>
+        
+        <!-- Floating Back Button Overlay -->
+        <controls:FloatingBackButton Grid.Row="0" Grid.RowSpan="4" 
+                                     x:Name="FloatingBack"
+                                     HorizontalOptions="Start"
+                                     VerticalOptions="End"
+                                     Margin="20,0,0,80"/>
+        
+    </Grid>
+</ContentPage> 

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MerchPlusMAUI.Views.SplashScreen"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#ffffff">
+
+    <Grid RowDefinitions="3*,*,*,*">
+        <!-- Logo alanı -->
+        <Image Grid.Row="0"
+               Source="logo.png"
+               WidthRequest="200"
+               HeightRequest="200"
+               VerticalOptions="End"
+               HorizontalOptions="Center" />
+
+        <!-- İşlem durumu -->
+        <StackLayout Grid.Row="1" 
+                     VerticalOptions="Center" 
+                     HorizontalOptions="Center"
+                     Spacing="10">
+            <Label x:Name="StatusLabel"
+                   Text="Yükleniyor..."
+                   FontSize="16"
+                   TextColor="#666666"
+                   HorizontalOptions="Center" />
+            
+            <ProgressBar x:Name="LoadingProgressBar"
+                         Progress="0.1"
+                         ProgressColor="#336699"
+                         HeightRequest="10"
+                         HorizontalOptions="Fill"
+                         Margin="30,0" />
+        </StackLayout>
+
+        <!-- Versiyon bilgisi -->
+        <Label Grid.Row="2"
+               Text="v1.0.0"
+               FontSize="12"
+               TextColor="#999999"
+               VerticalOptions="End"
+               HorizontalOptions="Center"
+               Margin="0,0,0,20" />
+    </Grid>
+</ContentPage> 

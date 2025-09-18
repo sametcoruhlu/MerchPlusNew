@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             x:Class="MerchPlusMAUI.Views.MerchDataEntryPage"
+             Title="Ürün Veri Girişi">
+    
+    <Grid RowDefinitions="70,*,75">
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0" />
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <!-- Loading Overlay -->
+            <Grid x:Name="LoadingOverlay" 
+                  BackgroundColor="#80000000" 
+                  IsVisible="True">
+                <StackLayout HorizontalOptions="Center" 
+                             VerticalOptions="Center" 
+                             Spacing="20">
+                    <ActivityIndicator x:Name="LoadingSpinner" 
+                                       IsRunning="True" 
+                                       Color="White" 
+                                       WidthRequest="50" 
+                                       HeightRequest="50"/>
+                    <Label Text="Alanlar yükleniyor..." 
+                           TextColor="White" 
+                           FontSize="16" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Grid>
+            
+            <!-- Main Content -->
+            <ScrollView x:Name="MainContent" 
+                        Padding="15" 
+                        BackgroundColor="#F8F9FA"
+                        IsVisible="False">
+                <StackLayout Spacing="20">
+                
+                <!-- Product Info Card -->
+                <Frame BackgroundColor="White" 
+                       Padding="20" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <!-- Store Name -->
+                        <Label x:Name="RetailShopNameLabel"
+                               Text="Mağaza Adı"
+                               FontSize="16"
+                               TextColor="#666"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        
+                        <!-- Product Name -->
+                        <Label x:Name="CustomerProductNameLabel"
+                               Text="Ürün Adı"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="#333"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        
+                        <!-- Product Image -->
+                        <Frame BackgroundColor="#F0F0F0" 
+                               HeightRequest="200" 
+                               CornerRadius="8" 
+                               Padding="20"
+                               HasShadow="False">
+                            <Image x:Name="CustomerProductPhotoImage"
+                                   Source="dotnet_bot.png"
+                                   Aspect="AspectFit"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Data Entry Form -->
+                <Frame BackgroundColor="White" 
+                       Padding="20" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        
+                        <!-- Face Count -->
+                        <Grid x:Name="FaceCountGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Önyüz" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="FaceCountEntry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Center"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Shelf Index -->
+                        <Grid x:Name="ShelfIndexGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Raf Sırası" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="ShelfIndexEntry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Center"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Shelf Stock -->
+                        <Grid x:Name="ShelfStockGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Raf Stoğu" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="ShelfStockEntry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Center"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Price -->
+                        <Grid x:Name="PriceGrid" ColumnDefinitions="*,1.5*,0.1*,0.4*" ColumnSpacing="5">
+                            <Label Grid.Column="0" 
+                                   Text="Fiyat" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="ShelfPrice1Entry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="End"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                            <Label Grid.Column="2" 
+                                   Text="," 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="3" 
+                                   x:Name="ShelfPrice2Entry"
+                                   Placeholder="00"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Start"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Warehouse Stock -->
+                        <Grid x:Name="WarehouseStockGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Depo Stok" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="WarehouseStockEntry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Start"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Activity Type -->
+                        <Grid x:Name="ActivityTypeGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Aktivite" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Picker Grid.Column="1" 
+                                    x:Name="ActivityTypePicker"
+                                    Title="Aktivite Seçin"
+                                    BackgroundColor="#F8F9FA"
+                                    Margin="10"/>
+                        </Grid>
+
+                        <!-- Discount Price (Hidden by default) -->
+                        <Grid x:Name="DiscountPriceGrid"
+                              ColumnDefinitions="*,1.5*,0.1*,0.4*" 
+                              ColumnSpacing="5"
+                              IsVisible="False">
+                            <Label Grid.Column="0" 
+                                   Text="İndirimli Fiyat" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="1" 
+                                   x:Name="DiscountPrice1Entry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="End"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                            <Label Grid.Column="2" 
+                                   Text="," 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                            <Entry Grid.Column="3" 
+                                   x:Name="DiscountPrice2Entry"
+                                   Placeholder="00"
+                                   Keyboard="Numeric"
+                                   HorizontalTextAlignment="Start"
+                                   BackgroundColor="#F8F9FA"
+                                   Margin="10"/>
+                        </Grid>
+
+                        <!-- Notes -->
+                        <Grid x:Name="NotesGrid" ColumnDefinitions="*,2*" ColumnSpacing="15">
+                            <Label Grid.Column="0" 
+                                   Text="Notlar" 
+                                   FontSize="16" 
+                                   TextColor="#333"
+                                   VerticalOptions="Start"/>
+                            <Editor Grid.Column="1" 
+                                    x:Name="NotesEditor"
+                                    Placeholder="Notlarınızı buraya yazın..."
+                                    AutoSize="TextChanges"
+                                    BackgroundColor="#F8F9FA"
+                                    Margin="10"
+                                    MinimumHeightRequest="80"/>
+                        </Grid>
+
+                    </StackLayout>
+                </Frame>
+
+                </StackLayout>
+            </ScrollView>
+        </Grid>
+
+        <!-- Footer with Save and Exit Buttons -->
+        <Grid Grid.Row="2" 
+              BackgroundColor="#F8F9FA" 
+              Padding="15,10">
+            <Grid ColumnDefinitions="*,*" 
+                  ColumnSpacing="15">
+                
+                <!-- Exit Button -->
+                <Button Grid.Column="0"
+                        Text="ÇIKIŞ"
+                        BackgroundColor="#6C757D"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="25"
+                        Padding="20,15"
+                        Clicked="OnExitClicked"/>
+                
+                <!-- Save Button -->
+                <Button Grid.Column="1"
+                        Text="KAYDET"
+                        BackgroundColor="#007BFF"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="25"
+                        Padding="20,15"
+                        Clicked="OnSaveClicked"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage> 
