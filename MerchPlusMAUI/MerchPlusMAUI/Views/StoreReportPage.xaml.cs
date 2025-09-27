@@ -797,53 +797,50 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Event Handlers
-        private async void OnEntryButtonClicked(object sender, EventArgs e)
+        private async void OnEntryContinueButtonClicked(object sender, EventArgs e)
         {
             try
             {
-                _logger.LogInformation($"Entry button clicked for store: {StoreName}");
+                // Butonun mevcut durumunu kontrol et
+                var currentText = EntryContinueText.Text;
                 
-                // Mağazaya giriş yap (EntryOn alanını güncelle)
-                await UpdateStoreEntryStatus(true);
-                
-                // Buton durumlarını güncelle
-                UpdateButtonVisibility();
-                
-                // StoreProductsPage'e git
-                var parameters = new Dictionary<string, object>
+                if (currentText == "Giriş")
                 {
-                    ["entMemberRouteId"] = EntMemberRouteId,
-                    ["StoreName"] = StoreName
-                };
-                
-                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    _logger.LogInformation($"Entry button clicked for store: {StoreName}");
+                    
+                    // Mağazaya giriş yap (EntryOn alanını güncelle)
+                    await UpdateStoreEntryStatus(true);
+                    
+                    // Buton durumlarını güncelle
+                    UpdateButtonVisibility();
+                    
+                    // StoreProductsPage'e git
+                    var parameters = new Dictionary<string, object>
+                    {
+                        ["entMemberRouteId"] = EntMemberRouteId,
+                        ["StoreName"] = StoreName
+                    };
+                    
+                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                }
+                else if (currentText == "Devam")
+                {
+                    _logger.LogInformation($"Continue button clicked for store: {StoreName}");
+                    
+                    // Direkt StoreProductsPage'e git
+                    var parameters = new Dictionary<string, object>
+                    {
+                        ["entMemberRouteId"] = EntMemberRouteId,
+                        ["StoreName"] = StoreName
+                    };
+                    
+                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in entry button click");
-                await DisplayAlert("Hata", "Mağazaya giriş yapılırken hata oluştu.", "Tamam");
-            }
-        }
-
-        private async void OnContinueButtonClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                _logger.LogInformation($"Continue button clicked for store: {StoreName}");
-                
-                // Direkt StoreProductsPage'e git
-                var parameters = new Dictionary<string, object>
-                {
-                    ["entMemberRouteId"] = EntMemberRouteId,
-                    ["StoreName"] = StoreName
-                };
-                
-                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in continue button click");
-                await DisplayAlert("Hata", "Devam işlemi sırasında hata oluştu.", "Tamam");
+                _logger.LogError(ex, "Error in entry/continue button click");
+                await DisplayAlert("Hata", "İşlem sırasında hata oluştu.", "Tamam");
             }
         }
 
@@ -991,23 +988,23 @@ namespace MerchPlusMAUI.Views
                     {
                         if (hasExit)
                         {
-                            // Çıkış yapılmış - hiçbir buton gösterme
-                            EntryButton.IsVisible = false;
-                            ContinueButton.IsVisible = false;
+                            // Çıkış yapılmış - giriş butonu göster
+                            EntryContinueIcon.Text = "\ue89c";
+                            EntryContinueText.Text = "Giriş";
                             ExitButton.IsVisible = false;
                         }
                         else if (hasEntry)
                         {
-                            // Giriş yapılmış ama çıkış yapılmamış - devam et ve çıkış butonları
-                            EntryButton.IsVisible = false;
-                            ContinueButton.IsVisible = true;
+                            // Giriş yapılmış ama çıkış yapılmamış - devam butonu göster
+                            EntryContinueIcon.Text = "\ue037";
+                            EntryContinueText.Text = "Devam";
                             ExitButton.IsVisible = true;
                         }
                         else
                         {
-                            // Hiç giriş yapılmamış - giriş butonu
-                            EntryButton.IsVisible = true;
-                            ContinueButton.IsVisible = false;
+                            // Hiç giriş yapılmamış - giriş butonu göster
+                            EntryContinueIcon.Text = "\ue89c";
+                            EntryContinueText.Text = "Giriş";
                             ExitButton.IsVisible = false;
                         }
                     });
@@ -1022,6 +1019,41 @@ namespace MerchPlusMAUI.Views
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating button visibility");
+            }
+        }
+
+        private async void OnHomeButtonClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation("Home button clicked from StoreReportPage");
+                
+                // Ana sayfaya git
+                await Shell.Current.GoToAsync("///HomePage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error navigating to home page");
+                await DisplayAlert("Hata", "Ana sayfaya yönlendirilirken hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnRefreshButtonClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation("Refresh button clicked from StoreReportPage");
+                
+                // Sayfayı yenile
+                await RefreshReportDataAsync();
+                
+                // Başarı mesajı göster
+                await DisplayAlert("Başarılı", "Rapor verileri güncellendi.", "Tamam");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing report data");
+                await DisplayAlert("Hata", "Rapor verileri güncellenirken hata oluştu.", "Tamam");
             }
         }
         #endregion
