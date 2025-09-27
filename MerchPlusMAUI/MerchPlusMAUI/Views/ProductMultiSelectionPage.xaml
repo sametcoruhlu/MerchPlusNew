@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MerchPlusMAUI.Views.ProductMultiSelectionPage"
+             Title="Ürün Seçimi"
+             BackgroundColor="#F8F9FA">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0"
+               BackgroundColor="#343A40"
+               Padding="20,15"
+               CornerRadius="0"
+               HasShadow="True"
+               Margin="0">
+            <Label Text="Ürün Seçimi"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+        </Frame>
+
+        <!-- Product List -->
+        <Grid Grid.Row="1" Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <Label Grid.Row="0"
+                   Text="Çoklu seçim yapabilirsiniz"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="#343A40"
+                   HorizontalOptions="Center"
+                   Margin="0,0,0,15"/>
+            
+            <CollectionView Grid.Row="1"
+                            x:Name="ProductsCollectionView"
+                            BackgroundColor="Transparent"
+                            ItemsLayout="VerticalList">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="Auto,*" 
+                              Padding="15"
+                              BackgroundColor="White"
+                              Margin="0,2"
+                              HeightRequest="60">
+                            
+                            <!-- Checkbox -->
+                            <CheckBox Grid.Column="0"
+                                      x:Name="ProductCheckBox"
+                                      IsChecked="{Binding IsSelected}"
+                                      VerticalOptions="Center"
+                                      Margin="0,0,15,0"/>
+                            
+                            <!-- Product Info -->
+                            <StackLayout Grid.Column="1" 
+                                         VerticalOptions="Center">
+                                <Label Text="{Binding Product.Name}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#343A40"
+                                       LineBreakMode="WordWrap"/>
+                                <Label Text="{Binding Product.Code}"
+                                       FontSize="14"
+                                       TextColor="#6C757D"/>
+                            </StackLayout>
+                            
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <!-- Bottom Buttons -->
+        <Frame Grid.Row="2"
+               BackgroundColor="#343A40"
+               Padding="20,15"
+               CornerRadius="0"
+               HasShadow="True">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                
+                <!-- İptal Butonu -->
+                <Button Grid.Column="0"
+                        Text="İptal"
+                        BackgroundColor="#6C757D"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnCancelClicked"/>
+                
+                <!-- Tamam Butonu -->
+                <Button Grid.Column="1"
+                        Text="Tamam"
+                        BackgroundColor="#28A745"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnOkClicked"/>
+                        
+            </Grid>
+        </Frame>
+
+    </Grid>
+</ContentPage>

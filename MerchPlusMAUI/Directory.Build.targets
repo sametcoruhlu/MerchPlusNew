@@ -1,0 +1,9 @@
+<Project>
+  <!-- Bu targets dosyası bütün çözüm için dağıtım ayarlarını tanımlar -->
+  <Target Name="EnsureAllProjectsHaveDeployEnabled" BeforeTargets="Build">
+    <PropertyGroup>
+      <DeployOnBuild>true</DeployOnBuild>
+      <PublishProfile>FolderProfile</PublishProfile>
+    </PropertyGroup>
+  </Target>
+</Project> 

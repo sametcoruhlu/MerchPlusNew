@@ -56,6 +56,10 @@ namespace MerchPlusMAUI
             builder.Services.AddTransient<StoreReportPage>();
             builder.Services.AddTransient<ErrorPage>();
             builder.Services.AddTransient<MerchDataEntryPage>();
+            builder.Services.AddTransient<StoreEntryPhotoPage>();
+            builder.Services.AddTransient<StoreVitrinePhotoPage>();
+            builder.Services.AddTransient<StoreDisplayPhotoPage>();
+            builder.Services.AddTransient<ProductMultiSelectionPage>();
             
             // Kontroller (Controls)
             builder.Services.AddTransient<CommonHeader>();

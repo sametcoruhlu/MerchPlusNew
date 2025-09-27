@@ -3,12 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MerchPlusMAUI.Views.SplashScreen"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="#ffffff">
+             BackgroundColor="#F8F9FA">
 
     <Grid RowDefinitions="3*,*,*,*">
         <!-- Logo alanı -->
         <Image Grid.Row="0"
-               Source="logo.png"
+               Source="merchpluslogo.png"
                WidthRequest="200"
                HeightRequest="200"
                VerticalOptions="End"
@@ -22,12 +22,12 @@
             <Label x:Name="StatusLabel"
                    Text="Yükleniyor..."
                    FontSize="16"
-                   TextColor="#666666"
+                   TextColor="#343A40"
                    HorizontalOptions="Center" />
             
             <ProgressBar x:Name="LoadingProgressBar"
                          Progress="0.1"
-                         ProgressColor="#336699"
+                         ProgressColor="#DC3545"
                          HeightRequest="10"
                          HorizontalOptions="Fill"
                          Margin="30,0" />
@@ -37,7 +37,7 @@
         <Label Grid.Row="2"
                Text="v1.0.0"
                FontSize="12"
-               TextColor="#999999"
+               TextColor="#6C757D"
                VerticalOptions="End"
                HorizontalOptions="Center"
                Margin="0,0,0,20" />

@@ -5,6 +5,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.Maui.Graphics;
+using MerchPlusMAUI.Services;
+using MerchPlusMAUI.Models;
+using System.Linq;
 
 namespace MerchPlusMAUI.Views
 {
@@ -14,9 +17,11 @@ namespace MerchPlusMAUI.Views
     {
         #region Fields
         private readonly ILogger<StoreReportPage> _logger;
+        private readonly IFieldVisibilityService _fieldVisibilityService;
         private readonly string _dbPath;
         private bool _isLoading = false;
         private bool _isInitialized = false;
+        private FieldVisibilityModel? _fieldVisibility;
         #endregion
 
         #region Properties
@@ -26,6 +31,9 @@ namespace MerchPlusMAUI.Views
             get => _entMemberRouteId;
             set
             {
+                Console.WriteLine($"=== EntMemberRouteId Property Set ===");
+                Console.WriteLine($"Old value: '{_entMemberRouteId}'");
+                Console.WriteLine($"New value: '{value}'");
                 _entMemberRouteId = value;
                 OnPropertyChanged();
             }
@@ -37,6 +45,9 @@ namespace MerchPlusMAUI.Views
             get => _storeName;
             set
             {
+                Console.WriteLine($"=== StoreName Property Set ===");
+                Console.WriteLine($"Old value: '{_storeName}'");
+                Console.WriteLine($"New value: '{value}'");
                 _storeName = value;
                 OnPropertyChanged();
                 PageTitle = $"{_storeName} - Rapor";
@@ -81,10 +92,11 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Constructor
-        public StoreReportPage(ILogger<StoreReportPage> logger)
+        public StoreReportPage(ILogger<StoreReportPage> logger, IFieldVisibilityService? fieldVisibilityService)
         {
             InitializeComponent();
             _logger = logger;
+            _fieldVisibilityService = fieldVisibilityService ?? new FieldVisibilityService(new HttpClient());
             _dbPath = GlobalVariables.DatabasePath;
             
             BindingContext = this;
@@ -140,6 +152,9 @@ namespace MerchPlusMAUI.Views
             }
             else
             {
+                // Sayfa zaten initialize edilmiş, verileri yenile
+                Console.WriteLine("Page already initialized, refreshing data...");
+                await RefreshReportDataAsync();
                 await this.FadeTo(1, 200, Easing.CubicOut);
             }
         }
@@ -170,24 +185,60 @@ namespace MerchPlusMAUI.Views
                 IsLoading = false;
             }
         }
-        #endregion
 
-        #region Report Data Loading
-        private async Task LoadReportDataAsync()
+        private async Task RefreshReportDataAsync()
         {
             try
             {
-                Console.WriteLine("=== Loading Report Data ===");
+                Console.WriteLine($"=== RefreshReportDataAsync Started ===");
                 
+                // EntMemberRouteId boşsa navigation parametrelerini yeniden almaya çalış
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine("EntMemberRouteId is empty, trying to get from GlobalVariables...");
+                    
+                    // GlobalVariables'dan MemberRouteId'yi al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        EntMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        Console.WriteLine($"EntMemberRouteId set from GlobalVariables: {EntMemberRouteId}");
+                    }
+                    else
+                    {
+                        // Eğer GlobalVariables'da yoksa veritabanından aktif route'u al
+                        using var db = new SQLiteConnection(_dbPath);
+                        var activeRoute = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE IsActive = 1 LIMIT 1");
+                        if (activeRoute != null && activeRoute.Count > 0)
+                        {
+                            EntMemberRouteId = activeRoute[0].Id.ToString();
+                            Console.WriteLine($"EntMemberRouteId set from DB: {EntMemberRouteId}");
+                        }
+                    }
+                }
+                
+                // Hala boşsa hata ver
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine("ERROR: EntMemberRouteId is still empty after trying to get from GlobalVariables and DB");
+                    await DisplayAlert("Hata", "Mağaza bilgileri alınamadı.", "Tamam");
+                    return;
+                }
+                
+                // Loading overlay'i göster
+                ShowLoadingOverlay();
+                
+                // Sadece rapor verilerini yenile, field visibility'yi tekrar yükleme
                 var reportData = await Task.Run(() =>
                 {
                     using var db = new SQLiteConnection(_dbPath);
                     
+                    Console.WriteLine($"EntMemberRouteId value before conversion: '{EntMemberRouteId}'");
                     var memberRouteId = Convert.ToInt32(EntMemberRouteId);
-                    Console.WriteLine($"Loading report for MemberRouteId: {memberRouteId}");
+                    Console.WriteLine($"Refreshing report for MemberRouteId: {memberRouteId}");
                     
+                    // Tüm ürünleri al (hem tamamlanmış hem de tamamlanmamış)
                     var memberRouteDetails = db.Query<entMemberRouteDetail>(
-                        "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=? AND CreatedOn IS NULL", 
+                        "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
                         memberRouteId);
 
                     Console.WriteLine($"Found {memberRouteDetails?.Count ?? 0} products");
@@ -196,29 +247,79 @@ namespace MerchPlusMAUI.Views
                     
                     if (memberRouteDetails != null && memberRouteDetails.Count > 0)
                     {
-                        // Rapor kategorileri
-                        var categories = new[]
+                        // MerchDataEntryPage ile aynı alanlar - servisten gelen görünürlük ayarlarına göre
+                        var categories = new List<dynamic>();
+                        
+                        // Servisten gelen field visibility'ye göre kategorileri belirle
+                        if (_fieldVisibility?.FaceCount == true)
                         {
-                            new { Name = "Önyüz", Field = "FacingQuantity" },
-                            new { Name = "Raf Sırası", Field = "ShelfOrder" },
-                            new { Name = "Raf Stoğu", Field = "ShelfStock" },
-                            new { Name = "Fiyat", Field = "Price" },
-                            new { Name = "Depo Stok", Field = "WarehouseStock" },
-                            new { Name = "Aktivite", Field = "Activity" }
-                        };
+                            categories.Add(new { Name = "Önyüz", Field = "FaceCount" });
+                        }
+                        
+                        if (_fieldVisibility?.ShelfIndex == true)
+                        {
+                            categories.Add(new { Name = "Raf Sırası", Field = "ShelfIndex" });
+                        }
+                        
+                        if (_fieldVisibility?.ShelfStock == true)
+                        {
+                            categories.Add(new { Name = "Raf Stoğu", Field = "ShelfStock" });
+                        }
+                        
+                        if (_fieldVisibility?.Price == true)
+                        {
+                            categories.Add(new { Name = "Fiyat", Field = "ShelfPrice" });
+                        }
+                        
+                        if (_fieldVisibility?.WarehouseStock == true)
+                        {
+                            categories.Add(new { Name = "Depo Stok", Field = "WarehouseStock" });
+                        }
+                        
+                        if (_fieldVisibility?.ActivityType == true)
+                        {
+                            categories.Add(new { Name = "Aktivite", Field = "ActivityTypeName" });
+                        }
 
                         foreach (var category in categories)
                         {
                             var completedCount = 0;
                             var totalCount = memberRouteDetails.Count;
                             
-                            // Her kategori için tamamlanma durumunu kontrol et
+                            // Her kategori için gerçek tamamlanma durumunu kontrol et
                             foreach (var detail in memberRouteDetails)
                             {
-                                // Burada gerçek alanları kontrol etmek gerekir
-                                // Şimdilik dummy veri kullanıyoruz
-                                var random = new Random();
-                                if (random.Next(0, 100) < 70) // %70 tamamlanma oranı
+                                bool isCompleted = false;
+                                
+                                switch (category.Field)
+                                {
+                                    case "FaceCount":
+                                        // FaceCount alanının dolu olup olmadığını kontrol et
+                                        isCompleted = detail.FaceCount.HasValue && detail.FaceCount.Value > 0;
+                                        break;
+                                        
+                                    case "ShelfIndex":
+                                        isCompleted = detail.ShelfIndex.HasValue && detail.ShelfIndex.Value >= 0;
+                                        break;
+                                        
+                                    case "ShelfStock":
+                                        isCompleted = detail.ShelfStock.HasValue && detail.ShelfStock.Value >= 0;
+                                        break;
+                                        
+                                    case "ShelfPrice":
+                                        isCompleted = detail.ShelfPrice.HasValue && detail.ShelfPrice.Value > 0;
+                                        break;
+                                        
+                                    case "WarehouseStock":
+                                        isCompleted = detail.WarehouseStock.HasValue && detail.WarehouseStock.Value >= 0;
+                                        break;
+                                        
+                                    case "ActivityTypeName":
+                                        isCompleted = !string.IsNullOrEmpty(detail.ActivityTypeName);
+                                        break;
+                                }
+                                
+                                if (isCompleted)
                                 {
                                     completedCount++;
                                 }
@@ -242,6 +343,328 @@ namespace MerchPlusMAUI.Views
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     UpdateReportUI(reportData.ReportItems, reportData.TotalProducts);
+                    // Loading overlay'i gizle
+                    HideLoadingOverlay();
+                });
+                
+                Console.WriteLine("=== RefreshReportDataAsync Completed ===");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR refreshing report data: {ex.Message}");
+                _logger.LogError(ex, "Error refreshing report data");
+                await DisplayAlert("Hata", "Rapor verileri yenilenirken hata oluştu.", "Tamam");
+                
+                // Hata durumunda da loading overlay'i gizle
+                HideLoadingOverlay();
+            }
+        }
+        #endregion
+
+        #region Field Visibility
+        private async Task LoadFieldVisibilityAsync()
+        {
+            try
+            {
+                Console.WriteLine("LoadFieldVisibilityAsync: Başladı");
+                
+                if (_fieldVisibilityService == null)
+                {
+                    Console.WriteLine("LoadFieldVisibilityAsync: _fieldVisibilityService null!");
+                    ShowAllFields();
+                    return;
+                }
+
+                // CustomerId'yi al
+                int customerId = await GetCustomerIdAsync();
+                
+                if (customerId <= 0)
+                {
+                    Console.WriteLine("LoadFieldVisibilityAsync: CustomerId bulunamadı, tüm alanlar gösteriliyor");
+                    ShowAllFields();
+                    return;
+                }
+
+                Console.WriteLine($"LoadFieldVisibilityAsync: CustomerId: {customerId}, Servis çağrısı yapılıyor...");
+                _fieldVisibility = await _fieldVisibilityService.GetFieldVisibilityAsync(customerId);
+                
+                Console.WriteLine($"LoadFieldVisibilityAsync: Servis cevabı alındı: {_fieldVisibility != null}");
+                
+                if (_fieldVisibility == null)
+                {
+                    Console.WriteLine("LoadFieldVisibilityAsync: Servis cevap vermedi, tüm alanlar gösteriliyor");
+                    ShowAllFields();
+                }
+                
+                Console.WriteLine("LoadFieldVisibilityAsync: Tamamlandı");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadFieldVisibilityAsync: Hata: {ex.Message}");
+                _logger.LogError(ex, "Error loading field visibility");
+                // Hata durumunda tüm alanları göster
+                ShowAllFields();
+            }
+        }
+
+        private async Task<int> GetCustomerIdAsync()
+        {
+            try
+            {
+                // 1. Önce GlobalVariables.CurrentCustomerId'yi kontrol et
+                if (!string.IsNullOrEmpty(GlobalVariables.CurrentCustomerId))
+                {
+                    if (int.TryParse(GlobalVariables.CurrentCustomerId, out int globalCustomerId))
+                    {
+                        Console.WriteLine($"GetCustomerIdAsync: GlobalVariables.CurrentCustomerId: {globalCustomerId}");
+                        return globalCustomerId;
+                    }
+                }
+
+                // 2. Route'dan customer bilgisini almaya çalış
+                if (!string.IsNullOrEmpty(EntMemberRouteId) && int.TryParse(EntMemberRouteId, out int memberRouteId))
+                {
+                    using var db = new SQLiteConnection(_dbPath);
+                    var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", memberRouteId);
+                    
+                    if (route.Count > 0)
+                    {
+                        // Route'dan CustomerId al
+                        if (route[0].CustomerId != null)
+                        {
+                            Console.WriteLine($"GetCustomerIdAsync: Route'dan CustomerId: {route[0].CustomerId}");
+                            return (int)route[0].CustomerId;
+                        }
+                    }
+                }
+
+                // 3. UserProfileService'den customer bilgisini al
+                var userProfileService = UserProfileService.Instance;
+                var currentUser = userProfileService?.GetCurrentUser();
+                if (currentUser != null && !string.IsNullOrEmpty(currentUser.Id))
+                {
+                    if (int.TryParse(currentUser.Id, out int userCustomerId))
+                    {
+                        Console.WriteLine($"GetCustomerIdAsync: UserProfile'den CustomerId: {userCustomerId}");
+                        return userCustomerId;
+                    }
+                }
+
+                // 4. GlobalVariables.CurrentMember'dan al
+                if (GlobalVariables.CurrentMember != null && !string.IsNullOrEmpty(GlobalVariables.CurrentMember.Id))
+                {
+                    if (int.TryParse(GlobalVariables.CurrentMember.Id, out int memberCustomerId))
+                    {
+                        Console.WriteLine($"GetCustomerIdAsync: CurrentMember'den CustomerId: {memberCustomerId}");
+                        return memberCustomerId;
+                    }
+                }
+
+                Console.WriteLine("GetCustomerIdAsync: CustomerId bulunamadı, test amaçlı 1 kullanılıyor");
+                return 1; // Test amaçlı sabit CustomerId
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetCustomerIdAsync: Hata: {ex.Message}");
+                return 1; // Hata durumunda da test amaçlı 1 döndür
+            }
+        }
+
+        private void ShowAllFields()
+        {
+            Console.WriteLine("ShowAllFields: Tüm alanlar gösteriliyor");
+            
+            // Tüm alanları göster
+            _fieldVisibility = new FieldVisibilityModel
+            {
+                FaceCount = true,
+                ShelfIndex = true,
+                ShelfStock = true,
+                Price = true,
+                WarehouseStock = true,
+                ActivityType = true,
+                DiscountPrice = true,
+                Notes = true
+            };
+            
+            Console.WriteLine("ShowAllFields: Tamamlandı");
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            LoadingOverlay.IsVisible = true;
+            Console.WriteLine("ShowLoadingOverlay: Loading overlay gösteriliyor");
+        }
+
+        private void HideLoadingOverlay()
+        {
+            LoadingOverlay.IsVisible = false;
+            Console.WriteLine("HideLoadingOverlay: Loading overlay gizleniyor");
+        }
+        #endregion
+
+        #region Report Data Loading
+        private async Task LoadReportDataAsync()
+        {
+            try
+            {
+                Console.WriteLine("=== Loading Report Data ===");
+                
+                // EntMemberRouteId boşsa navigation parametrelerini yeniden almaya çalış
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine("EntMemberRouteId is empty, trying to get from GlobalVariables...");
+                    
+                    // GlobalVariables'dan MemberRouteId'yi al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        EntMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        Console.WriteLine($"EntMemberRouteId set from GlobalVariables: {EntMemberRouteId}");
+                    }
+                    else
+                    {
+                        // Eğer GlobalVariables'da yoksa veritabanından aktif route'u al
+                        using var db = new SQLiteConnection(_dbPath);
+                        var activeRoute = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE IsActive = 1 LIMIT 1");
+                        if (activeRoute != null && activeRoute.Count > 0)
+                        {
+                            EntMemberRouteId = activeRoute[0].Id.ToString();
+                            Console.WriteLine($"EntMemberRouteId set from DB: {EntMemberRouteId}");
+                        }
+                    }
+                }
+                
+                // Hala boşsa hata ver
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine("ERROR: EntMemberRouteId is still empty after trying to get from GlobalVariables and DB");
+                    await DisplayAlert("Hata", "Mağaza bilgileri alınamadı.", "Tamam");
+                    return;
+                }
+                
+                // Loading overlay'i göster
+                ShowLoadingOverlay();
+                
+                // Önce field visibility'yi yükle
+                await LoadFieldVisibilityAsync();
+                
+                var reportData = await Task.Run(() =>
+                {
+                    using var db = new SQLiteConnection(_dbPath);
+                    
+                    Console.WriteLine($"EntMemberRouteId value before conversion: '{EntMemberRouteId}'");
+                    var memberRouteId = Convert.ToInt32(EntMemberRouteId);
+                    Console.WriteLine($"Loading report for MemberRouteId: {memberRouteId}");
+                    
+                    // Tüm ürünleri al (hem tamamlanmış hem de tamamlanmamış)
+                    var memberRouteDetails = db.Query<entMemberRouteDetail>(
+                        "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
+                        memberRouteId);
+
+                    Console.WriteLine($"Found {memberRouteDetails?.Count ?? 0} products");
+
+                    var reportItems = new List<StoreReportItem>();
+                    
+                    if (memberRouteDetails != null && memberRouteDetails.Count > 0)
+                    {
+                        // MerchDataEntryPage ile aynı alanlar - servisten gelen görünürlük ayarlarına göre
+                        var categories = new List<dynamic>();
+                        
+                        // Servisten gelen field visibility'ye göre kategorileri belirle
+                        if (_fieldVisibility?.FaceCount == true)
+                        {
+                            categories.Add(new { Name = "Önyüz", Field = "FaceCount" });
+                        }
+                        
+                        if (_fieldVisibility?.ShelfIndex == true)
+                        {
+                            categories.Add(new { Name = "Raf Sırası", Field = "ShelfIndex" });
+                        }
+                        
+                        if (_fieldVisibility?.ShelfStock == true)
+                        {
+                            categories.Add(new { Name = "Raf Stoğu", Field = "ShelfStock" });
+                        }
+                        
+                        if (_fieldVisibility?.Price == true)
+                        {
+                            categories.Add(new { Name = "Fiyat", Field = "ShelfPrice" });
+                        }
+                        
+                        if (_fieldVisibility?.WarehouseStock == true)
+                        {
+                            categories.Add(new { Name = "Depo Stok", Field = "WarehouseStock" });
+                        }
+                        
+                        if (_fieldVisibility?.ActivityType == true)
+                        {
+                            categories.Add(new { Name = "Aktivite", Field = "ActivityTypeName" });
+                        }
+
+                        foreach (var category in categories)
+                        {
+                            var completedCount = 0;
+                            var totalCount = memberRouteDetails.Count;
+                            
+                            // Her kategori için gerçek tamamlanma durumunu kontrol et
+                            foreach (var detail in memberRouteDetails)
+                            {
+                                bool isCompleted = false;
+                                
+                                switch (category.Field)
+                                {
+                                    case "FaceCount":
+                                        // FaceCount alanının dolu olup olmadığını kontrol et
+                                        isCompleted = detail.FaceCount.HasValue && detail.FaceCount.Value > 0;
+                                        break;
+                                        
+                                    case "ShelfIndex":
+                                        isCompleted = detail.ShelfIndex.HasValue && detail.ShelfIndex.Value >= 0;
+                                        break;
+                                        
+                                    case "ShelfStock":
+                                        isCompleted = detail.ShelfStock.HasValue && detail.ShelfStock.Value >= 0;
+                                        break;
+                                        
+                                    case "ShelfPrice":
+                                        isCompleted = detail.ShelfPrice.HasValue && detail.ShelfPrice.Value > 0;
+                                        break;
+                                        
+                                    case "WarehouseStock":
+                                        isCompleted = detail.WarehouseStock.HasValue && detail.WarehouseStock.Value >= 0;
+                                        break;
+                                        
+                                    case "ActivityTypeName":
+                                        isCompleted = !string.IsNullOrEmpty(detail.ActivityTypeName);
+                                        break;
+                                }
+                                
+                                if (isCompleted)
+                                {
+                                    completedCount++;
+                                }
+                            }
+
+                            var completionPercentage = totalCount > 0 ? (completedCount * 100) / totalCount : 0;
+                            
+                            reportItems.Add(new StoreReportItem
+                            {
+                                Name = category.Name,
+                                CompletedCount = completedCount,
+                                TotalCount = totalCount,
+                                CompletionPercentage = completionPercentage
+                            });
+                        }
+                    }
+                    
+                    return new { ReportItems = reportItems, TotalProducts = memberRouteDetails?.Count ?? 0 };
+                });
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    UpdateReportUI(reportData.ReportItems, reportData.TotalProducts);
+                    // Loading overlay'i gizle
+                    HideLoadingOverlay();
                 });
                 
                 Console.WriteLine("=== Report Data Loading Completed ===");
@@ -251,6 +674,9 @@ namespace MerchPlusMAUI.Views
                 Console.WriteLine($"ERROR loading report data: {ex.Message}");
                 _logger.LogError(ex, "Error loading report data");
                 await DisplayAlert("Hata", "Rapor verileri yüklenirken hata oluştu.", "Tamam");
+                
+                // Hata durumunda da loading overlay'i gizle
+                HideLoadingOverlay();
             }
         }
 

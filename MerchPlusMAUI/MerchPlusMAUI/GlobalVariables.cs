@@ -61,6 +61,14 @@ namespace MerchPlusMAUI
             set => _currentMember = value;
         }
 
+        // Current Member Route
+        private static entMemberRoute _currentMemberRoute = new();
+        public static entMemberRoute CurrentMemberRoute
+        {
+            get => _currentMemberRoute;
+            set => _currentMemberRoute = value;
+        }
+
         // Location
         public static Location MemberLastCoordinate { get; set; } = new();
 

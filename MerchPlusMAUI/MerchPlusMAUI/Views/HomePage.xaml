@@ -3,7 +3,7 @@
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
-             BackgroundColor="White"
+             BackgroundColor="#F8F9FA"
              Shell.NavBarIsVisible="False"
              ios:Page.UseSafeArea="False"
              Padding="0">
@@ -18,7 +18,7 @@
                      Margin="0">
             
             <!-- Logo -->
-            <Image Source="mplus_logo.png" 
+            <Image Source="merchpluslogo.png" 
                    HeightRequest="120" 
                    WidthRequest="120"
                    HorizontalOptions="Center" />
@@ -27,7 +27,7 @@
             <Label x:Name="SubtitleLabel"
                    Text="Uygulama Başlatılıyor..." 
                    FontSize="18" 
-                   TextColor="#666"
+                   TextColor="#343A40"
                    HorizontalOptions="Center" />
             
             <!-- Progress Bar -->
@@ -37,8 +37,8 @@
                          HorizontalOptions="Center">
                 <ProgressBar x:Name="InitProgressBar" 
                              Progress="0" 
-                             ProgressColor="#2196F3"
-                             BackgroundColor="#E0E0E0"
+                             ProgressColor="#DC3545"
+                             BackgroundColor="#E9ECEF"
                              HeightRequest="8"
                              WidthRequest="280"
                              HorizontalOptions="Center" />
@@ -47,14 +47,14 @@
                 <Label x:Name="ProgressPercentLabel" 
                        Text="0%" 
                        FontSize="14"
-                       TextColor="#2196F3"
+                       TextColor="#DC3545"
                        HorizontalOptions="Center" />
                 
                 <!-- Durum Mesajı -->
                 <Label x:Name="StatusLabel" 
                        Text="Başlatılıyor..." 
                        FontSize="16"
-                       TextColor="#333"
+                       TextColor="#343A40"
                        HorizontalOptions="Center"
                        HorizontalTextAlignment="Center"
                        WidthRequest="300" />

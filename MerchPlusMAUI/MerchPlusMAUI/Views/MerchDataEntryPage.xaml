@@ -39,41 +39,46 @@
                 
                 <!-- Product Info Card -->
                 <Frame BackgroundColor="White" 
-                       Padding="20" 
+                       Padding="15" 
                        CornerRadius="12" 
                        HasShadow="True"
                        BorderColor="#E9ECEF">
-                    <StackLayout Spacing="15">
+                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
                         <!-- Store Name -->
-                        <Label x:Name="RetailShopNameLabel"
+                        <Label Grid.Row="0"
+                               x:Name="RetailShopNameLabel"
                                Text="Mağaza Adı"
-                               FontSize="16"
-                               TextColor="#666"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"/>
-                        
-                        <!-- Product Name -->
-                        <Label x:Name="CustomerProductNameLabel"
-                               Text="Ürün Adı"
-                               FontSize="20"
-                               FontAttributes="Bold"
-                               TextColor="#333"
+                               FontSize="14"
+                               TextColor="#6C757D"
                                HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>
                         
                         <!-- Product Image -->
-                        <Frame BackgroundColor="#F0F0F0" 
-                               HeightRequest="200" 
-                               CornerRadius="8" 
-                               Padding="20"
-                               HasShadow="False">
+                        <Frame Grid.Row="1"
+                               BackgroundColor="#F0F0F0" 
+                               HeightRequest="80" 
+                               CornerRadius="6" 
+                               Padding="10"
+                               HasShadow="False"
+                               HorizontalOptions="Center">
                             <Image x:Name="CustomerProductPhotoImage"
                                    Source="dotnet_bot.png"
                                    Aspect="AspectFit"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"/>
                         </Frame>
-                    </StackLayout>
+                        
+                        <!-- Product Name -->
+                        <Label Grid.Row="2"
+                               x:Name="CustomerProductNameLabel"
+                               Text="Ürün Adı"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#343A40"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"/>
+                    </Grid>
                 </Frame>
 
                 <!-- Data Entry Form -->
@@ -89,7 +94,7 @@
                             <Label Grid.Column="0" 
                                    Text="Önyüz" 
                                    FontSize="16" 
-                                   TextColor="#333"
+                                   TextColor="#343A40"
                                    VerticalOptions="Center"/>
                             <Entry Grid.Column="1" 
                                    x:Name="FaceCountEntry"
@@ -253,25 +258,25 @@
             <Grid ColumnDefinitions="*,*" 
                   ColumnSpacing="15">
                 
-                <!-- Exit Button -->
-                <Button Grid.Column="0"
-                        Text="ÇIKIŞ"
-                        BackgroundColor="#6C757D"
-                        TextColor="White"
-                        FontAttributes="Bold"
-                        CornerRadius="25"
-                        Padding="20,15"
-                        Clicked="OnExitClicked"/>
-                
-                <!-- Save Button -->
-                <Button Grid.Column="1"
-                        Text="KAYDET"
-                        BackgroundColor="#007BFF"
-                        TextColor="White"
-                        FontAttributes="Bold"
-                        CornerRadius="25"
-                        Padding="20,15"
-                        Clicked="OnSaveClicked"/>
+                  <!-- Exit Button -->
+                  <Button Grid.Column="0"
+                          Text="ÇIKIŞ"
+                          BackgroundColor="#6C757D"
+                          TextColor="White"
+                          FontAttributes="Bold"
+                          CornerRadius="25"
+                          Padding="20,15"
+                          Clicked="OnExitClicked"/>
+                  
+                  <!-- Save Button -->
+                  <Button Grid.Column="1"
+                          Text="KAYDET"
+                          BackgroundColor="#DC3545"
+                          TextColor="White"
+                          FontAttributes="Bold"
+                          CornerRadius="25"
+                          Padding="20,15"
+                          Clicked="OnSaveClicked"/>
             </Grid>
         </Grid>
     </Grid>

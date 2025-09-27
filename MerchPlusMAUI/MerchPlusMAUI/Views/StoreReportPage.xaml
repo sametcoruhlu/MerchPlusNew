@@ -12,6 +12,26 @@
 
         <!-- Main Content - Report List -->
         <Grid Grid.Row="1" RowDefinitions="Auto,*">
+            <!-- Loading Overlay -->
+            <Grid x:Name="LoadingOverlay" 
+                  Grid.RowSpan="2"
+                  BackgroundColor="#80000000" 
+                  IsVisible="True">
+                <StackLayout HorizontalOptions="Center" 
+                             VerticalOptions="Center" 
+                             Spacing="20">
+                    <ActivityIndicator x:Name="LoadingSpinner" 
+                                       IsRunning="True" 
+                                       Color="White" 
+                                       WidthRequest="50" 
+                                       HeightRequest="50"/>
+                    <Label Text="Rapor verileri yükleniyor..." 
+                           TextColor="White" 
+                           FontSize="16" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Grid>
+            
             <!-- Store Info Card -->
             <Frame Grid.Row="0" 
                    BackgroundColor="White" 

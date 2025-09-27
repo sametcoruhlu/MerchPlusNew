@@ -37,60 +37,91 @@
     <!-- Ana Sayfa - Başlangıç Sayfası -->
     <ShellContent
         Title="Ana Sayfa"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:HomePage}"
         Route="HomePage" />
 
     <!-- Profil Sayfası -->
     <ShellContent
         Title="Profil"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:AboutMePage}"
         Route="AboutMePage" />
         
     <!-- Bildirimler Sayfası -->
     <ShellContent
         Title="Bildirimler"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:NotificationsPage}"
         Route="NotificationsPage" />
         
     <!-- Konum Sayfası -->
     <ShellContent
         Title="Harita"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:LocationsPage}"
         Route="LocationsPage" />
         
     <!-- Görevler Sayfası -->
     <ShellContent
         Title="Görevler"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:VisitPage}"
         Route="VisitPage" />
 
     <!-- Mağazalar Sayfası -->
     <ShellContent
         Title="Mağazalar"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:StoresPage}"
         Route="StoresPage" />
 
     <!-- Mağaza Ürünleri Sayfası -->
     <ShellContent
         Title="Mağaza Ürünleri"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:StoreProductsPage}"
         Route="StoreProductsPage" />
 
     <!-- Mağaza Raporu Sayfası -->
     <ShellContent
         Title="Mağaza Raporu"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:StoreReportPage}"
         Route="StoreReportPage" />
 
     <!-- Ürün Veri Girişi Sayfası -->
     <ShellContent
         Title="Ürün Veri Girişi"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:MerchDataEntryPage}"
         Route="MerchDataEntryPage" />
+
+    <!-- Mağaza Giriş Fotoğrafı Sayfası -->
+    <ShellContent
+        Title="Mağaza Giriş Fotoğrafı"
+        Icon="dotnet_bot.png"
+        ContentTemplate="{DataTemplate views:StoreEntryPhotoPage}"
+        Route="StoreEntryPhotoPage" />
+
+    <!-- Raf ve Teşhir Fotoğrafı Sayfası -->
+    <ShellContent
+        Title="Raf ve Teşhir Fotoğrafı"
+        Icon="dotnet_bot.png"
+        ContentTemplate="{DataTemplate views:StoreVitrinePhotoPage}"
+        Route="StoreVitrinePhotoPage" />
+
+    <!-- Teşhir Fotoğrafı Sayfası -->
+    <ShellContent
+        Title="Teşhir Fotoğrafı"
+        Icon="dotnet_bot.png"
+        ContentTemplate="{DataTemplate views:StoreDisplayPhotoPage}"
+        Route="StoreDisplayPhotoPage" />
 
     <!-- Hata Sayfası -->
     <ShellContent
         Title="Hata"
+        Icon="dotnet_bot.png"
         ContentTemplate="{DataTemplate views:ErrorPage}"
         Route="ErrorPage" />
 

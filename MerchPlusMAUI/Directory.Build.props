@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <DeployOnBuild>true</DeployOnBuild>
+    <IsPublishable>true</IsPublishable>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\obj\**;**\bin\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

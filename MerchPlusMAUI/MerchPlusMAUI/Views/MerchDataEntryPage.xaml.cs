@@ -21,6 +21,10 @@ namespace MerchPlusMAUI.Views
         private string _entMemberRouteDetailId = string.Empty;
         private bool _isNavigatingAway = false;
         
+        // XAML elementleri için property'ler
+        private Grid? _loadingOverlay;
+        private ScrollView? _mainContent;
+        
         public string EntMemberRouteDetailId
         {
             get => _entMemberRouteDetailId;
@@ -61,6 +65,35 @@ namespace MerchPlusMAUI.Views
             SetupEventHandlers();
             
             System.Diagnostics.Debug.WriteLine("MerchDataEntryPage Constructor: Tamamlandı");
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            
+            System.Diagnostics.Debug.WriteLine("=== MerchDataEntryPage OnAppearing ===");
+            
+            try
+            {
+                // XAML elementlerini initialize et
+                _loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                _mainContent = FindByName("MainContent") as ScrollView;
+                
+                System.Diagnostics.Debug.WriteLine($"LoadingOverlay found: {_loadingOverlay != null}");
+                System.Diagnostics.Debug.WriteLine($"MainContent found: {_mainContent != null}");
+                
+                // Sayfa yüklendiğinde loading overlay'i göster
+                ShowLoadingOverlay();
+                
+                // Veri yükleme işlemini başlat
+                await LoadProductDataAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"OnAppearing error: {ex.Message}");
+                _logger?.LogError(ex, "Error in OnAppearing");
+                HideLoadingOverlay();
+            }
         }
 
         private void LoadActivityTypes()
@@ -272,16 +305,42 @@ namespace MerchPlusMAUI.Views
 
         private void ShowLoadingOverlay()
         {
-            LoadingOverlay.IsVisible = true;
-            MainContent.IsVisible = false;
-            System.Diagnostics.Debug.WriteLine("ShowLoadingOverlay: Loading overlay gösteriliyor");
+            try
+            {
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = true;
+                }
+                if (_mainContent != null)
+                {
+                    _mainContent.IsVisible = false;
+                }
+                System.Diagnostics.Debug.WriteLine("ShowLoadingOverlay: Loading overlay gösteriliyor");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ShowLoadingOverlay error: {ex.Message}");
+            }
         }
 
         private void HideLoadingOverlay()
         {
-            LoadingOverlay.IsVisible = false;
-            MainContent.IsVisible = true;
-            System.Diagnostics.Debug.WriteLine("HideLoadingOverlay: Loading overlay gizleniyor, ana içerik gösteriliyor");
+            try
+            {
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = false;
+                }
+                if (_mainContent != null)
+                {
+                    _mainContent.IsVisible = true;
+                }
+                System.Diagnostics.Debug.WriteLine("HideLoadingOverlay: Loading overlay gizleniyor, ana içerik gösteriliyor");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HideLoadingOverlay error: {ex.Message}");
+            }
         }
 
         private async Task<bool> CheckTableExistsAsync(SQLiteConnection db, string tableName)
@@ -308,9 +367,8 @@ namespace MerchPlusMAUI.Views
             {
                 if (string.IsNullOrEmpty(_entMemberRouteDetailId)) return;
 
-                // Sayfa açılır açılmaz loading overlay'i göster
-                System.Diagnostics.Debug.WriteLine("LoadProductDataAsync: Sayfa açıldı, loading overlay gösteriliyor");
-                ShowLoadingOverlay();
+                // Loading overlay zaten OnAppearing'de gösterildi
+                System.Diagnostics.Debug.WriteLine("LoadProductDataAsync: Veri yükleme başlıyor");
 
                 _currentId = Convert.ToInt32(_entMemberRouteDetailId);
 
@@ -329,19 +387,58 @@ namespace MerchPlusMAUI.Views
                     return;
                 }
                 
-                // Load route detail - HomePage'deki tablo adını kullan
+                // Load route detail - Raw SQL kullanarak veri oku
+                System.Diagnostics.Debug.WriteLine($"Loading route detail for Id: {_currentId}");
+                
+                // Load route detail
                 var routeDetail = db.Query<entMemberRouteDetail>("SELECT * FROM entMemberRouteDetail WHERE Id=?", _currentId);
+                System.Diagnostics.Debug.WriteLine($"Found {routeDetail.Count} route detail records");
+                
+                // routeDetail datasını detaylı logla
+                if (routeDetail.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("=== Raw routeDetail data from database ===");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].Id: {routeDetail[0].Id}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].MemberRouteId: {routeDetail[0].MemberRouteId}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].CustomerProductId: {routeDetail[0].CustomerProductId}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].FaceCount: {routeDetail[0].FaceCount}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfIndex: {routeDetail[0].ShelfIndex}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfStock: {routeDetail[0].ShelfStock}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfPrice: {routeDetail[0].ShelfPrice}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].WarehouseStock: {routeDetail[0].WarehouseStock}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].Notes: '{routeDetail[0].Notes}'");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ActivityTypeName: '{routeDetail[0].ActivityTypeName}'");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].DiscountedPrice: {routeDetail[0].DiscountedPrice}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].CreatedOn: {routeDetail[0].CreatedOn}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].IsSentToServer: {routeDetail[0].IsSentToServer}");
+                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].SentToServerOn: {routeDetail[0].SentToServerOn}");
+                    System.Diagnostics.Debug.WriteLine("=== End of raw routeDetail data ===");
+                }
+                
                 if (routeDetail.Count == 0)
                 {
+                    System.Diagnostics.Debug.WriteLine("No route detail found, showing error");
                     await DisplayAlert("Hata", "Ürün bilgisi bulunamadı.", "Tamam");
                     await Shell.Current.GoToAsync("..");
                     return;
                 }
 
                 _currentMemberRouteDetail = routeDetail[0];
+                System.Diagnostics.Debug.WriteLine($"Route detail loaded: Id={routeDetail[0].Id}, MemberRouteId={routeDetail[0].MemberRouteId}");
+                
+                // Tüm property'leri debug et
+                System.Diagnostics.Debug.WriteLine($"FaceCount: {routeDetail[0].FaceCount}");
+                System.Diagnostics.Debug.WriteLine($"ShelfIndex: {routeDetail[0].ShelfIndex}");
+                System.Diagnostics.Debug.WriteLine($"ShelfStock: {routeDetail[0].ShelfStock}");
+                System.Diagnostics.Debug.WriteLine($"ShelfPrice: {routeDetail[0].ShelfPrice}");
+                System.Diagnostics.Debug.WriteLine($"WarehouseStock: {routeDetail[0].WarehouseStock}");
+                System.Diagnostics.Debug.WriteLine($"Notes: '{routeDetail[0].Notes}'");
+                System.Diagnostics.Debug.WriteLine($"ActivityTypeName: '{routeDetail[0].ActivityTypeName}'");
+                System.Diagnostics.Debug.WriteLine($"DiscountedPrice: {routeDetail[0].DiscountedPrice}");
+                System.Diagnostics.Debug.WriteLine($"CreatedOn: {routeDetail[0].CreatedOn}");
 
                 // Load route
-                var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", routeDetail[0].MemberRouteId);
+                var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteDetail.MemberRouteId);
                 if (route.Count == 0) return;
 
                 // Load retail shop
@@ -352,7 +449,7 @@ namespace MerchPlusMAUI.Views
                 }
 
                 // Load product
-                var product = db.Query<entCustomerProduct>("SELECT * FROM entCustomerProduct WHERE Id=?", routeDetail[0].CustomerProductId);
+                var product = db.Query<entCustomerProduct>("SELECT * FROM entCustomerProduct WHERE Id=?", _currentMemberRouteDetail.CustomerProductId);
                 if (product.Count > 0)
                 {
                     CustomerProductNameLabel.Text = product[0].Name;
@@ -362,7 +459,8 @@ namespace MerchPlusMAUI.Views
                 // Note: These properties might have different names in the actual entity
                 // We'll use the properties that exist in the entMemberRouteDetail class
                 
-                // For now, we'll set default values and load from database if properties exist
+                // Set default values first (will be overridden if existing data is found)
+                System.Diagnostics.Debug.WriteLine("Setting default values...");
                 FaceCountEntry.Text = "0";
                 ShelfIndexEntry.Text = "0";
                 ShelfStockEntry.Text = "0";
@@ -374,59 +472,107 @@ namespace MerchPlusMAUI.Views
                 // Try to load existing data if the properties exist
                 try
                 {
-                    // These property names should match the actual entMemberRouteDetail class
-                    // You may need to adjust these based on the actual property names
-                    if (routeDetail[0].GetType().GetProperty("FaceCount") != null)
-                        FaceCountEntry.Text = Convert.ToString(routeDetail[0].GetType().GetProperty("FaceCount")?.GetValue(routeDetail[0]) ?? 0);
+                    System.Diagnostics.Debug.WriteLine("=== Loading existing data from entMemberRouteDetail ===");
                     
-                    if (routeDetail[0].GetType().GetProperty("ShelfIndex") != null)
-                        ShelfIndexEntry.Text = Convert.ToString(routeDetail[0].GetType().GetProperty("ShelfIndex")?.GetValue(routeDetail[0]) ?? 0);
-                    
-                    if (routeDetail[0].GetType().GetProperty("ShelfStock") != null)
-                        ShelfStockEntry.Text = Convert.ToString(routeDetail[0].GetType().GetProperty("ShelfStock")?.GetValue(routeDetail[0]) ?? 0);
-                    
-                    if (routeDetail[0].GetType().GetProperty("ShelfPrice") != null)
+                    // Load existing data from entMemberRouteDetail
+                    if (_currentMemberRouteDetail.FaceCount.HasValue)
                     {
-                        var price = routeDetail[0].GetType().GetProperty("ShelfPrice")?.GetValue(routeDetail[0]);
-                        if (price != null && decimal.TryParse(price.ToString(), out decimal priceValue))
-                        {
-                            ShelfPrice1Entry.Text = Convert.ToString(Math.Truncate(priceValue));
-                            ShelfPrice2Entry.Text = Convert.ToInt32((priceValue - Math.Truncate(priceValue)) * 100).ToString("00");
-                        }
+                        FaceCountEntry.Text = _currentMemberRouteDetail.FaceCount.Value.ToString();
+                        System.Diagnostics.Debug.WriteLine($"FaceCount loaded: {_currentMemberRouteDetail.FaceCount.Value}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("FaceCount is null or empty");
                     }
                     
-                    if (routeDetail[0].GetType().GetProperty("WarehouseStock") != null)
-                        WarehouseStockEntry.Text = Convert.ToString(routeDetail[0].GetType().GetProperty("WarehouseStock")?.GetValue(routeDetail[0]) ?? 0);
-                    
-                    if (routeDetail[0].GetType().GetProperty("Notes") != null)
-                        NotesEditor.Text = routeDetail[0].GetType().GetProperty("Notes")?.GetValue(routeDetail[0])?.ToString() ?? string.Empty;
-                    
-                    if (routeDetail[0].GetType().GetProperty("ActivityTypeName") != null)
+                    if (_currentMemberRouteDetail.ShelfIndex.HasValue)
                     {
-                        var activityType = routeDetail[0].GetType().GetProperty("ActivityTypeName")?.GetValue(routeDetail[0])?.ToString();
-                        if (!string.IsNullOrEmpty(activityType))
-                        {
-                            var activityTypes = ActivityTypePicker.ItemsSource as List<string>;
-                            var index = activityTypes?.IndexOf(activityType) ?? -1;
-                            if (index >= 0)
-                            {
-                                ActivityTypePicker.SelectedIndex = index;
-                            }
-                        }
+                        ShelfIndexEntry.Text = _currentMemberRouteDetail.ShelfIndex.Value.ToString();
+                        System.Diagnostics.Debug.WriteLine($"ShelfIndex loaded: {_currentMemberRouteDetail.ShelfIndex.Value}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ShelfIndex is null or empty");
                     }
                     
-                    if (routeDetail[0].GetType().GetProperty("DiscountedPrice") != null)
+                    if (_currentMemberRouteDetail.ShelfStock.HasValue)
                     {
-                        var discountPrice = routeDetail[0].GetType().GetProperty("DiscountedPrice")?.GetValue(routeDetail[0]);
-                        if (discountPrice != null && decimal.TryParse(discountPrice.ToString(), out decimal discountValue))
+                        ShelfStockEntry.Text = _currentMemberRouteDetail.ShelfStock.Value.ToString();
+                        System.Diagnostics.Debug.WriteLine($"ShelfStock loaded: {_currentMemberRouteDetail.ShelfStock.Value}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ShelfStock is null or empty");
+                    }
+                    
+                    if (_currentMemberRouteDetail.ShelfPrice.HasValue)
+                    {
+                        var priceValue = _currentMemberRouteDetail.ShelfPrice.Value;
+                        ShelfPrice1Entry.Text = Convert.ToString(Math.Truncate(priceValue));
+                        ShelfPrice2Entry.Text = Convert.ToInt32((priceValue - Math.Truncate(priceValue)) * 100).ToString("00");
+                        System.Diagnostics.Debug.WriteLine($"ShelfPrice loaded: {priceValue}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ShelfPrice is null or empty");
+                    }
+                    
+                    if (_currentMemberRouteDetail.WarehouseStock.HasValue)
+                    {
+                        WarehouseStockEntry.Text = _currentMemberRouteDetail.WarehouseStock.Value.ToString();
+                        System.Diagnostics.Debug.WriteLine($"WarehouseStock loaded: {_currentMemberRouteDetail.WarehouseStock.Value}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("WarehouseStock is null or empty");
+                    }
+                    
+                    if (!string.IsNullOrEmpty(_currentMemberRouteDetail.Notes))
+                    {
+                        NotesEditor.Text = _currentMemberRouteDetail.Notes;
+                        System.Diagnostics.Debug.WriteLine($"Notes loaded: {_currentMemberRouteDetail.Notes}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Notes is null or empty");
+                    }
+                    
+                    if (!string.IsNullOrEmpty(_currentMemberRouteDetail.ActivityTypeName))
+                    {
+                        var activityTypes = ActivityTypePicker.ItemsSource as List<string>;
+                        var index = activityTypes?.IndexOf(_currentMemberRouteDetail.ActivityTypeName) ?? -1;
+                        if (index >= 0)
                         {
-                            DiscountPrice1Entry.Text = Convert.ToString(Math.Truncate(discountValue));
-                            DiscountPrice2Entry.Text = Convert.ToInt32((discountValue - Math.Truncate(discountValue)) * 100).ToString("00");
+                            ActivityTypePicker.SelectedIndex = index;
+                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName loaded: {_currentMemberRouteDetail.ActivityTypeName} (index: {index})");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName not found in picker: {_currentMemberRouteDetail.ActivityTypeName}");
                         }
                     }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("ActivityTypeName is null or empty");
+                    }
+                    
+                    if (_currentMemberRouteDetail.DiscountedPrice.HasValue)
+                    {
+                        var discountValue = _currentMemberRouteDetail.DiscountedPrice.Value;
+                        DiscountPrice1Entry.Text = Convert.ToString(Math.Truncate(discountValue));
+                        DiscountPrice2Entry.Text = Convert.ToInt32((discountValue - Math.Truncate(discountValue)) * 100).ToString("00");
+                        System.Diagnostics.Debug.WriteLine($"DiscountedPrice loaded: {discountValue}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("DiscountedPrice is null or empty");
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine("=== Existing data loading completed ===");
                 }
                 catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Error loading existing data: {ex.Message}");
                     _logger?.LogWarning(ex, "Some properties might not exist in entMemberRouteDetail");
                 }
 
@@ -496,57 +642,178 @@ namespace MerchPlusMAUI.Views
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("OnSaveClicked: Kaydet butonuna tıklandı");
             string errorMessage = string.Empty;
 
-            // Validate required fields (equivalent to Android validation)
-            if (string.IsNullOrEmpty(FaceCountEntry.Text) || Convert.ToInt32(FaceCountEntry.Text) < 0)
+            // Sadece görünen alanları kontrol et
+            System.Diagnostics.Debug.WriteLine("OnSaveClicked: Alan görünürlük kontrolü başlıyor...");
+
+            // Face Count alanı görünürse kontrol et
+            if (FaceCountGrid.IsVisible)
             {
-                errorMessage += "* Önyüz boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount alanı görünür, kontrol ediliyor...");
+                if (string.IsNullOrEmpty(FaceCountEntry.Text) || Convert.ToInt32(FaceCountEntry.Text) < 0)
+                {
+                    errorMessage += "* Önyüz boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount validasyon hatası - boş veya negatif");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount değeri: {FaceCountEntry.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount alanı gizli, atlanıyor");
             }
 
-            if (string.IsNullOrEmpty(ShelfIndexEntry.Text) || Convert.ToInt32(ShelfIndexEntry.Text) < 0)
+            // Shelf Index alanı görünürse kontrol et
+            if (ShelfIndexGrid.IsVisible)
             {
-                errorMessage += "* Raf Sırası boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex alanı görünür, kontrol ediliyor...");
+                if (string.IsNullOrEmpty(ShelfIndexEntry.Text) || Convert.ToInt32(ShelfIndexEntry.Text) < 0)
+                {
+                    errorMessage += "* Raf Sırası boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex validasyon hatası - boş veya negatif");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex değeri: {ShelfIndexEntry.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex alanı gizli, atlanıyor");
             }
 
-            if (string.IsNullOrEmpty(ShelfStockEntry.Text) || Convert.ToInt32(ShelfStockEntry.Text) < 0)
+            // Shelf Stock alanı görünürse kontrol et
+            if (ShelfStockGrid.IsVisible)
             {
-                errorMessage += "* Raf Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock alanı görünür, kontrol ediliyor...");
+                if (string.IsNullOrEmpty(ShelfStockEntry.Text) || Convert.ToInt32(ShelfStockEntry.Text) < 0)
+                {
+                    errorMessage += "* Raf Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock validasyon hatası - boş veya negatif");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock değeri: {ShelfStockEntry.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock alanı gizli, atlanıyor");
             }
 
-            if (string.IsNullOrEmpty(ShelfPrice1Entry.Text) || Convert.ToDecimal(ShelfPrice1Entry.Text) < 0)
+            // Price alanı görünürse kontrol et
+            if (PriceGrid.IsVisible)
             {
-                errorMessage += "* Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price alanı görünür, kontrol ediliyor...");
+                if (string.IsNullOrEmpty(ShelfPrice1Entry.Text) || Convert.ToDecimal(ShelfPrice1Entry.Text) < 0)
+                {
+                    errorMessage += "* Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price1 validasyon hatası - boş veya negatif");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price1 değeri: {ShelfPrice1Entry.Text}");
+                }
+
+                if (string.IsNullOrEmpty(ShelfPrice2Entry.Text))
+                {
+                    errorMessage += "* Fiyat 2. Kısım boş bırakılamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price2 validasyon hatası - boş");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price2 değeri: {ShelfPrice2Entry.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price alanı gizli, atlanıyor");
             }
 
-            if (string.IsNullOrEmpty(ShelfPrice2Entry.Text))
+            // Warehouse Stock alanı görünürse kontrol et
+            if (WarehouseStockGrid.IsVisible)
             {
-                errorMessage += "* Fiyat 2. Kısım boş bırakılamaz.\r\n";
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock alanı görünür, kontrol ediliyor...");
+                if (string.IsNullOrEmpty(WarehouseStockEntry.Text) || Convert.ToInt32(WarehouseStockEntry.Text) < 0)
+                {
+                    errorMessage += "* Depo Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock validasyon hatası - boş veya negatif");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock değeri: {WarehouseStockEntry.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock alanı gizli, atlanıyor");
             }
 
-            if (string.IsNullOrEmpty(WarehouseStockEntry.Text) || Convert.ToInt32(WarehouseStockEntry.Text) < 0)
-            {
-                errorMessage += "* Depo Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-            }
-
-            // Check discount price validation if activity type is "FIYAT INDIRIMI"
+            // Activity Type alanı görünürse kontrol et
             var selectedActivity = ActivityTypePicker.SelectedItem?.ToString();
-            if (selectedActivity == "FIYAT INDIRIMI")
+            if (ActivityTypeGrid.IsVisible)
             {
-                if (string.IsNullOrEmpty(DiscountPrice1Entry.Text) || Convert.ToDecimal(DiscountPrice1Entry.Text) < 0)
-                {
-                    errorMessage += "* İndirimli Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                }
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ActivityType alanı görünür, kontrol ediliyor...");
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Seçilen aktivite tipi: {selectedActivity}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: ActivityType alanı gizli, atlanıyor");
+            }
 
-                if (string.IsNullOrEmpty(DiscountPrice2Entry.Text))
+            // Discount Price alanı görünürse kontrol et
+            if (DiscountPriceGrid.IsVisible)
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice alanı görünür, kontrol ediliyor...");
+                if (selectedActivity == "FIYAT INDIRIMI")
                 {
-                    errorMessage += "* İndirimli Fiyat 2. Kısım boş bırakılamaz.\r\n";
+                    if (string.IsNullOrEmpty(DiscountPrice1Entry.Text) || Convert.ToDecimal(DiscountPrice1Entry.Text) < 0)
+                    {
+                        errorMessage += "* İndirimli Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
+                        System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice1 validasyon hatası - boş veya negatif");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice1 değeri: {DiscountPrice1Entry.Text}");
+                    }
+
+                    if (string.IsNullOrEmpty(DiscountPrice2Entry.Text))
+                    {
+                        errorMessage += "* İndirimli Fiyat 2. Kısım boş bırakılamaz.\r\n";
+                        System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice2 validasyon hatası - boş");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice2 değeri: {DiscountPrice2Entry.Text}");
+                    }
                 }
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice alanı gizli, atlanıyor");
+            }
+
+            // Notes alanı görünürse kontrol et (Notes zorunlu değil, sadece log)
+            if (NotesGrid.IsVisible)
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Notes alanı görünür");
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Notes değeri: {NotesEditor.Text}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Notes alanı gizli, atlanıyor");
+            }
+
+            System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Validasyon tamamlandı. Hata sayısı: {(string.IsNullOrEmpty(errorMessage) ? 0 : errorMessage.Split('\r').Length - 1)}");
 
             // Show validation errors if any
             if (!string.IsNullOrEmpty(errorMessage))
             {
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Validasyon hataları var, kullanıcıya gösteriliyor: {errorMessage}");
                 await DisplayAlert("Eksikleriniz var...", 
                     "Aşağıda listelenen sorunları düzelttikten sonra tekrar deneyin.\r\n\r\n" + errorMessage, 
                     "TAMAM");
@@ -555,58 +822,165 @@ namespace MerchPlusMAUI.Views
 
             try
             {
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Veritabanı güncelleme işlemi başlıyor...");
+                
                 // Calculate prices (equivalent to Android logic)
-                decimal priceConcat = Convert.ToDecimal(ShelfPrice1Entry.Text) + (Convert.ToDecimal(ShelfPrice2Entry.Text) / 100);
+                decimal priceConcat = 0;
                 decimal priceConcat2 = 0;
 
-                if (selectedActivity == "FIYAT INDIRIMI")
+                // Sadece görünen alanlardan fiyat hesapla
+                if (PriceGrid.IsVisible)
+                {
+                    priceConcat = Convert.ToDecimal(ShelfPrice1Entry.Text) + (Convert.ToDecimal(ShelfPrice2Entry.Text) / 100);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Fiyat hesaplandı: {priceConcat}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price alanı gizli, fiyat hesaplaması atlandı");
+                }
+
+                if (DiscountPriceGrid.IsVisible && selectedActivity == "FIYAT INDIRIMI")
                 {
                     priceConcat2 = Convert.ToDecimal(DiscountPrice1Entry.Text) + (Convert.ToDecimal(DiscountPrice2Entry.Text) / 100);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: İndirimli fiyat hesaplandı: {priceConcat2}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: İndirimli fiyat hesaplaması atlandı");
                 }
 
                 // Update database
                 using var db = new SQLiteConnection(_dbPath);
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Veritabanı bağlantısı açıldı: {_dbPath}");
                 
                 // Update the existing record - using dynamic SQL based on available properties
                 // This approach handles cases where some properties might not exist in the entity
                 var updateFields = new List<string>();
                 var parameters = new List<object>();
                 
-                // Add fields that exist in the entity
-                updateFields.Add("ShelfIndex=?");
-                parameters.Add(Convert.ToInt32(ShelfIndexEntry.Text));
+                // Sadece görünen alanları güncelle
+                if (ShelfIndexGrid.IsVisible)
+                {
+                    updateFields.Add("ShelfIndex=?");
+                    parameters.Add(Convert.ToInt32(ShelfIndexEntry.Text));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex eklendi: {ShelfIndexEntry.Text}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("ShelfStock=?");
-                parameters.Add(Convert.ToInt32(ShelfStockEntry.Text));
+                if (ShelfStockGrid.IsVisible)
+                {
+                    updateFields.Add("ShelfStock=?");
+                    parameters.Add(Convert.ToInt32(ShelfStockEntry.Text));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock eklendi: {ShelfStockEntry.Text}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("ShelfPrice=?");
-                parameters.Add(priceConcat);
+                if (PriceGrid.IsVisible)
+                {
+                    updateFields.Add("ShelfPrice=?");
+                    parameters.Add(priceConcat);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfPrice eklendi: {priceConcat}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("FaceCount=?");
-                parameters.Add(Convert.ToInt32(FaceCountEntry.Text));
+                if (FaceCountGrid.IsVisible)
+                {
+                    updateFields.Add("FaceCount=?");
+                    parameters.Add(Convert.ToInt32(FaceCountEntry.Text));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount eklendi: {FaceCountEntry.Text}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("WarehouseStock=?");
-                parameters.Add(Convert.ToInt32(WarehouseStockEntry.Text));
+                if (WarehouseStockGrid.IsVisible)
+                {
+                    updateFields.Add("WarehouseStock=?");
+                    parameters.Add(Convert.ToInt32(WarehouseStockEntry.Text));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock eklendi: {WarehouseStockEntry.Text}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("Notes=?");
-                parameters.Add(NotesEditor.Text ?? string.Empty);
+                if (NotesGrid.IsVisible)
+                {
+                    updateFields.Add("Notes=?");
+                    parameters.Add(NotesEditor.Text ?? string.Empty);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Notes eklendi: {NotesEditor.Text}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Notes alanı gizli, güncelleme atlandı");
+                }
                 
+                // Her zaman güncellenecek alanlar
                 updateFields.Add("CreatedOn=?");
                 parameters.Add(DateTime.Now);
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: CreatedOn eklendi: {DateTime.Now}");
                 
-                updateFields.Add("ActivityTypeName=?");
-                parameters.Add(selectedActivity ?? string.Empty);
+                if (ActivityTypeGrid.IsVisible)
+                {
+                    updateFields.Add("ActivityTypeName=?");
+                    parameters.Add(selectedActivity ?? string.Empty);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ActivityTypeName eklendi: {selectedActivity}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ActivityType alanı gizli, güncelleme atlandı");
+                }
                 
-                updateFields.Add("DiscountedPrice=?");
-                parameters.Add(priceConcat2);
+                if (DiscountPriceGrid.IsVisible && selectedActivity == "FIYAT INDIRIMI")
+                {
+                    updateFields.Add("DiscountedPrice=?");
+                    parameters.Add(priceConcat2);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountedPrice eklendi: {priceConcat2}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountedPrice güncelleme atlandı");
+                }
                 
                 // Add the WHERE clause parameter
                 parameters.Add(_currentId);
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WHERE Id parametresi eklendi: {_currentId}");
                 
                 var updateSql = $"UPDATE entMemberRouteDetail SET {string.Join(", ", updateFields)} WHERE Id=?";
-                db.Execute(updateSql, parameters.ToArray());
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: SQL sorgusu hazırlandı: {updateSql}");
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Parametre sayısı: {parameters.Count}");
+                
+                int affectedRows = db.Execute(updateSql, parameters.ToArray());
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Veritabanı güncellemesi tamamlandı. Etkilenen satır sayısı: {affectedRows}");
+                
+                // Güncelleme sonrası veriyi tekrar oku ve debug et
+                var updatedRouteDetail = db.Query<entMemberRouteDetail>("SELECT * FROM entMemberRouteDetail WHERE Id=?", _currentId);
+                if (updatedRouteDetail.Count > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("=== Updated data after save ===");
+                    System.Diagnostics.Debug.WriteLine($"FaceCount: {updatedRouteDetail[0].FaceCount}");
+                    System.Diagnostics.Debug.WriteLine($"ShelfIndex: {updatedRouteDetail[0].ShelfIndex}");
+                    System.Diagnostics.Debug.WriteLine($"ShelfStock: {updatedRouteDetail[0].ShelfStock}");
+                    System.Diagnostics.Debug.WriteLine($"ShelfPrice: {updatedRouteDetail[0].ShelfPrice}");
+                    System.Diagnostics.Debug.WriteLine($"WarehouseStock: {updatedRouteDetail[0].WarehouseStock}");
+                    System.Diagnostics.Debug.WriteLine($"Notes: '{updatedRouteDetail[0].Notes}'");
+                    System.Diagnostics.Debug.WriteLine($"ActivityTypeName: '{updatedRouteDetail[0].ActivityTypeName}'");
+                    System.Diagnostics.Debug.WriteLine($"DiscountedPrice: {updatedRouteDetail[0].DiscountedPrice}");
+                    System.Diagnostics.Debug.WriteLine($"CreatedOn: {updatedRouteDetail[0].CreatedOn}");
+                }
 
                 await DisplayAlert("Başarılı", "Ürün verileri kaydedildi.", "Tamam");
+                System.Diagnostics.Debug.WriteLine("OnSaveClicked: Başarı mesajı gösterildi");
                 // Artık otomatik çıkış yapmıyoruz, kullanıcı çıkış butonunu kullanacak
             }
             catch (Exception ex)

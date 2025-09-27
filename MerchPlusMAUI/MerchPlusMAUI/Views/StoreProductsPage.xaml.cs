@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
+using System.Linq;
 
 namespace MerchPlusMAUI.Views
 {
@@ -257,6 +258,21 @@ namespace MerchPlusMAUI.Views
                 
                 _logger.LogInformation($"Initializing StoreProductsPage - EntMemberRouteId: {EntMemberRouteId}");
 
+                // GlobalVariables.CurrentMemberRoute'u set et (sadece gerekirse)
+                if (!string.IsNullOrEmpty(EntMemberRouteId) && int.TryParse(EntMemberRouteId, out int memberRouteId))
+                {
+                    if (GlobalVariables.CurrentMemberRoute == null)
+                    {
+                        GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = memberRouteId };
+                        Console.WriteLine($"GlobalVariables.CurrentMemberRoute created with Id: {memberRouteId}");
+                    }
+                    else if (GlobalVariables.CurrentMemberRoute.Id != memberRouteId)
+                    {
+                        GlobalVariables.CurrentMemberRoute.Id = memberRouteId;
+                        Console.WriteLine($"GlobalVariables.CurrentMemberRoute.Id updated to: {memberRouteId}");
+                    }
+                }
+
                 Console.WriteLine("Starting database operations...");
                 // Android OnResume içindeki database işlemleri
                 await LoadProductsFromDatabaseAsync();
@@ -288,10 +304,11 @@ namespace MerchPlusMAUI.Views
                     var memberRouteId = Convert.ToInt32(EntMemberRouteId);
                     Console.WriteLine($"Querying products for MemberRouteId: {memberRouteId}");
                     
+                    // Orijinal yöntemle veri oku (daha önce çalışıyordu)
                     var listOfMemberRouteDetail = db.Query<entMemberRouteDetail>(
                         "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=? AND CreatedOn IS NULL", 
                         memberRouteId);
-
+                    
                     Console.WriteLine($"Found {listOfMemberRouteDetail?.Count ?? 0} products");
                     
                     if (listOfMemberRouteDetail == null || listOfMemberRouteDetail.Count == 0)
@@ -470,11 +487,6 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region XAML Event Handlers - Sync wrappers for async methods
-        private async void OnTakePhotoClicked(object sender, EventArgs e)
-        {
-            await OnTakePhotoClickedAsync();
-        }
-
         private async void OnSalesOrderClicked(object sender, EventArgs e)
         {
             await OnSalesOrderClickedAsync();
@@ -498,23 +510,29 @@ namespace MerchPlusMAUI.Views
 
         #region Button Event Handlers - Android button click karşılıkları
         // Android: BtnTakePhoto_Click
+        private async void OnTakePhotoClicked(object sender, EventArgs e)
+        {
+            await OnTakePhotoClickedAsync();
+        }
+
         private async Task OnTakePhotoClickedAsync()
         {
             try
             {
                 _logger.LogInformation($"Take photo clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
-                // Android: shopEntryVitrineCameraActivity.PutExtra("entMemberRouteId", Intent.GetStringExtra("entMemberRouteId"));
-                var parameters = new Dictionary<string, object>
+                // StoreVitrinePhotoPage'e navigate et (Android kodundaki gibi entMemberRouteId parametresi ile)
+                // GlobalVariables'da MemberRouteId'yi sakla
+                if (GlobalVariables.CurrentMemberRoute == null)
                 {
-                    ["entMemberRouteId"] = EntMemberRouteId
-                };
-
-                // TODO: ShopEntryVitrineCameraPage'e navigate et
-                await DisplayAlert("Vitrin Fotoğrafı", 
-                    "Vitrin fotoğrafı çekme sayfası yakında eklenecek.\n" +
-                    $"MemberRouteId: {EntMemberRouteId}", 
-                    "Tamam");
+                    GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = Convert.ToInt32(EntMemberRouteId) };
+                }
+                else
+                {
+                    GlobalVariables.CurrentMemberRoute.Id = Convert.ToInt32(EntMemberRouteId);
+                }
+                
+                await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
             }
             catch (Exception ex)
             {

@@ -6,7 +6,7 @@
              MinimumHeightRequest="70"
              VerticalOptions="Start"
              IsVisible="True"
-             BackgroundColor="#336699">
+             BackgroundColor="#343A40">
     <Grid ColumnDefinitions="Auto,*,Auto"
           RowDefinitions="Auto"
           Padding="15,10"
@@ -15,7 +15,7 @@
           MinimumHeightRequest="70"
           VerticalOptions="Start"
           HorizontalOptions="Fill"
-          BackgroundColor="#336699">
+          BackgroundColor="#343A40">
         
         <!-- Profil Fotoğrafı -->
         <Frame Grid.Column="0"
@@ -35,7 +35,7 @@
                    FontSize="28"
                    HorizontalOptions="Center"
                    VerticalOptions="Center"
-                   TextColor="#336699"
+                   TextColor="#343A40"
                    IsVisible="True"/>
             
             <!-- Profile Image (Foreground) -->
@@ -101,7 +101,7 @@
             
             <!-- Bildirim Badge (kırmızı nokta) -->
             <Frame x:Name="NotificationBadge"
-                   BackgroundColor="#FF4444"
+                   BackgroundColor="#DC3545"
                    CornerRadius="10"
                    Padding="0"
                    WidthRequest="20"

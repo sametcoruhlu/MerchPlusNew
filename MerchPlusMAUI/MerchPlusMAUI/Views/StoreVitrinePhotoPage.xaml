@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MerchPlusMAUI.Views.StoreVitrinePhotoPage"
+             Title="Raf ve Teşhir Fotoğrafı"
+             BackgroundColor="#F8F9FA">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0"
+               BackgroundColor="#343A40"
+               Padding="20,15"
+               CornerRadius="0"
+               HasShadow="True"
+               Margin="0">
+            <Label Text="Raf ve Teşhir Fotoğrafı"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+        </Frame>
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1" Padding="20">
+            <StackLayout Spacing="30">
+                
+                <!-- Raf Fotoğrafı Bölümü -->
+                <Frame BackgroundColor="White"
+                       Padding="20"
+                       CornerRadius="15"
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <Label Text="Raf Fotoğrafı"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#343A40"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        
+                        <Button x:Name="ShelfPhotoButton"
+                                Text="Raf Fotoğrafı Çek"
+                                BackgroundColor="#28A745"
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="60"
+                                Padding="20"
+                                Clicked="OnShelfPhotoClicked"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Teşhir Fotoğrafı Bölümü -->
+                <Frame BackgroundColor="White"
+                       Padding="20"
+                       CornerRadius="15"
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <Label Text="Teşhir Fotoğrafı"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#343A40"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"/>
+                        
+                        <Button x:Name="DisplayPhotoButton"
+                                Text="Teşhir Fotoğrafı Çek"
+                                BackgroundColor="#DC3545"
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="60"
+                                Padding="20"
+                                Clicked="OnDisplayPhotoClicked"/>
+                    </StackLayout>
+                </Frame>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Bottom Navigation -->
+        <Frame Grid.Row="2"
+               BackgroundColor="#343A40"
+               Padding="20,15"
+               CornerRadius="0"
+               HasShadow="True">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                
+                <!-- Geri Butonu -->
+                <Button Grid.Column="0"
+                        Text="Geri"
+                        BackgroundColor="#6C757D"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnBackClicked"/>
+                
+                <!-- Tamamla Butonu -->
+                <Button Grid.Column="1"
+                        Text="Tamamla"
+                        BackgroundColor="#DC3545"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="50"
+                        Clicked="OnFinishClicked"/>
+                        
+            </Grid>
+        </Frame>
+
+    </Grid>
+</ContentPage>
