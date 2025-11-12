@@ -91,9 +91,13 @@ namespace MerchPlusMAUI.Views
                     {
                         _currentMemberRoute = memberRoutes[0];
                         
-                        // Ürünleri yükle
+                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: MemberRoute CustomerId: {_currentMemberRoute.CustomerId}");
+                        
+                        // Ürünleri yükle - CustomerId tip uyumsuzluğunu düzelt
                         var products = db.Query<entCustomerProduct>("SELECT * FROM entCustomerProduct WHERE Id IN (SELECT CustomerProductId FROM entMemberRouteDetail WHERE MemberRouteId=?) AND CustomerId=?", 
-                            _entMemberRouteId, _currentMemberRoute.CustomerId);
+                            _entMemberRouteId, _currentMemberRoute.CustomerId?.ToString());
+                        
+                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Found {products.Count} products for CustomerId: {_currentMemberRoute.CustomerId}");
                         _listCustomerProduct = products;
                     }
                 }
@@ -137,12 +141,15 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Ürün seçimi başlatılıyor. Mevcut ürün sayısı: {_listCustomerProduct.Count}");
+                
                 if (_listCustomerProduct.Count == 0)
                 {
-                    await DisplayAlert("Uyarı", "Bu route için ürün bulunamadı.", "Tamam");
+                    await DisplayAlert("Uyarı", "Bu mağaza için ürün bulunamadı! Lütfen önce ürün girişi yapın.", "Tamam");
                     return;
                 }
 
+                System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: ProductMultiSelectionPage açılıyor...");
                 // Çoklu seçim için yeni bir sayfa oluşturalım
                 await Navigation.PushModalAsync(new ProductMultiSelectionPage(_listCustomerProduct, _selectedProducts, OnProductsSelected));
             }

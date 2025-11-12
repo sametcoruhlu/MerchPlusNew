@@ -15,16 +15,15 @@
         <controls:CommonHeader Grid.Row="0"/>
         
         <!-- Content -->
-        <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Never" Padding="0" Margin="0">
-            <VerticalStackLayout Spacing="10" Padding="15,15,15,70" Margin="0">
+        <Grid Grid.Row="1" RowDefinitions="*,*,*" Padding="15,15,15,70" Margin="0" RowSpacing="10">
                 
                 <!-- 1. MAĞAZALAR KUTUSU -->
-                <Frame Padding="10" 
+                <Frame Grid.Row="0"
+                       Padding="10" 
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
                        HasShadow="True"
-                       Margin="0,0,0,5"
-                       HeightRequest="200">
+                       Margin="0">
                     <Grid RowDefinitions="Auto,*">
                         <!-- Başlık ve Info butonu -->
                         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
@@ -153,12 +152,12 @@
                 </Frame>
                 
                 <!-- 2. RAPOR KUTUSU -->
-                <Frame Padding="10" 
+                <Frame Grid.Row="1"
+                       Padding="10" 
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
                        HasShadow="True"
-                       Margin="0,5,0,5"
-                       HeightRequest="200">
+                       Margin="0">
                     <Grid RowDefinitions="Auto,*">
                         <!-- Başlık -->
                         <Label Grid.Row="0"
@@ -179,12 +178,12 @@
                 </Frame>
                 
                 <!-- 3. YARIŞMALAR KUTUSU -->
-                <Frame Padding="10" 
+                <Frame Grid.Row="2"
+                       Padding="10" 
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
                        HasShadow="True"
-                       Margin="0,5,0,5"
-                       HeightRequest="180">
+                       Margin="0">
                     <Grid RowDefinitions="Auto,*">
                         <!-- Başlık -->
                         <Label Grid.Row="0"
@@ -217,8 +216,7 @@
                         </ScrollView>
                     </Grid>
                 </Frame>
-            </VerticalStackLayout>
-        </ScrollView>
+        </Grid>
         
         <!-- Footer -->
         <controls:CommonFooter Grid.Row="2"/>

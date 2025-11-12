@@ -179,13 +179,13 @@ namespace MerchPlusMAUI.Services
                     MemberRoute = route,
                     MemberRouteDetail = db.Query<entMemberRouteDetail>("SELECT * from entMemberRouteDetail WHERE MemberRouteId=?", route.Id).ToList(),
                     MemberRoutePhoto = db.Query<entMemberRoutePhoto>("SELECT * from entMemberRoutePhoto WHERE MemberRouteId=?", route.Id).ToList(),
-                    SalesOrder = db.Query<entSalesOrder>("SELECT * FROM entSalesOrder WHERE MemberRouteId=?", route.Id).ToList(),
-                    ProductExpiration = db.Query<entProductExpiration>("SELECT * FROM entProductExpiration WHERE MemberRouteId=?", route.Id).ToList()
+                    SalesOrder = db.Query<SalesOrder>("SELECT * FROM entSalesOrder WHERE MemberRouteId=?", route.Id).ToList(),
+                    ProductExpiration = db.Query<ProductExpiration>("SELECT * FROM entProductExpiration WHERE MemberRouteId=?", route.Id).ToList()
                 };
 
                 if (syncData.SalesOrder.Any())
                 {
-                    syncData.SalesOrderDetail = db.Query<entSalesOrderDetail>(
+                    syncData.SalesOrderDetail = db.Query<SalesOrderDetail>(
                         "SELECT * FROM entSalesOrderDetail WHERE SalesOrderId=?", 
                         syncData.SalesOrder.First().Id).ToList();
                 }
@@ -266,6 +266,194 @@ namespace MerchPlusMAUI.Services
                 return null;
             }
         }
+
+        /// <summary>
+        /// Server'a gönderilmemiş verileri senkronize eder
+        /// </summary>
+        public async Task SyncPendingDataToServer()
+        {
+            try
+            {
+                _logger.LogInformation("Starting pending data sync to server...");
+
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+
+                // Gönderilmemiş MemberRoute'ları al
+                var pendingRoutes = db.Table<entMemberRoute>()
+                    .Where(r => r.IsSentToServer == false)
+                    .ToList();
+
+                foreach (var route in pendingRoutes)
+                {
+                    await SyncMemberRouteToServer(route, db);
+                }
+
+                _logger.LogInformation($"Completed pending data sync. Processed {pendingRoutes.Count} routes.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during pending data sync to server");
+            }
+        }
+
+        /// <summary>
+        /// Tek bir MemberRoute'u server'a senkronize eder
+        /// </summary>
+        private async Task SyncMemberRouteToServer(entMemberRoute route, SQLiteConnection db)
+        {
+            try
+            {
+				// Prepare lists first to avoid referencing the variable inside its own initializer
+				var memberRouteDetails = db.Table<entMemberRouteDetail>()
+					.Where(d => d.MemberRouteId == route.Id && d.IsSentToServer == false)
+					.ToList();
+
+				var memberRoutePhotos = db.Table<entMemberRoutePhoto>()
+					.Where(p => p.MemberRouteId == route.Id && p.IsSentToServer == false)
+					.ToList();
+
+				var salesOrders = db.Table<SalesOrder>()
+					.Where(s => s.MemberRouteId == route.Id && s.IsSentToServer == false)
+					.ToList();
+
+				var salesOrderIds = salesOrders.Select(s => s.Id).ToList();
+				var salesOrderDetails = db.Table<SalesOrderDetail>()
+					.Where(sd => sd.SalesOrderId != 0 && salesOrderIds.Contains(sd.SalesOrderId) && sd.IsSentToServer == false)
+					.ToList();
+
+				var productExpirations = db.Table<ProductExpiration>()
+					.Where(pe => pe.MemberRouteId == route.Id && pe.IsSentToServer == false)
+					.ToList();
+
+				var displayPhotos = db.Table<MemberDisplayPhotos>()
+					.Where(mdp => mdp.MemberRouteId == route.Id && mdp.IsSentToServer == false)
+					.ToList();
+
+				var syncData = new MemberRouteSyncData
+				{
+					MemberRoute = route,
+					MemberRouteDetail = memberRouteDetails,
+					MemberRoutePhoto = memberRoutePhotos,
+					SalesOrder = salesOrders,
+					SalesOrderDetail = salesOrderDetails,
+					ProductExpiration = productExpirations,
+					MemberDisplayPhotos = displayPhotos
+				};
+
+                // Server'a gönder
+                var json = JsonSerializer.Serialize(syncData, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("api/MemberRoute/Sync", content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    // Başarılı gönderim sonrası flag'leri güncelle
+                    await MarkDataAsSentToServer(route.Id, db);
+                    _logger.LogInformation($"Successfully synced MemberRoute {route.Id} to server");
+                }
+                else
+                {
+                    _logger.LogWarning($"Failed to sync MemberRoute {route.Id} to server. Status: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error syncing MemberRoute {route.Id} to server");
+            }
+        }
+
+        /// <summary>
+        /// Başarılı senkronizasyon sonrası flag'leri günceller
+        /// </summary>
+        private async Task MarkDataAsSentToServer(int memberRouteId, SQLiteConnection db)
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+
+                // MemberRoute'u güncelle
+                var route = db.Table<entMemberRoute>().FirstOrDefault(r => r.Id == memberRouteId);
+                if (route != null)
+                {
+                    route.IsSentToServer = true;
+                    route.SentToServerOn = now;
+                    db.Update(route);
+                }
+
+                // İlgili detayları güncelle
+                var details = db.Table<entMemberRouteDetail>()
+                    .Where(d => d.MemberRouteId == memberRouteId && d.IsSentToServer == false)
+                    .ToList();
+                foreach (var detail in details)
+                {
+                    detail.IsSentToServer = true;
+                    detail.SentToServerOn = now;
+                    db.Update(detail);
+                }
+
+                // Fotoğrafları güncelle
+                var photos = db.Table<entMemberRoutePhoto>()
+                    .Where(p => p.MemberRouteId == memberRouteId && p.IsSentToServer == false)
+                    .ToList();
+                foreach (var photo in photos)
+                {
+                    photo.IsSentToServer = true;
+                    // Eski projede entMemberRoutePhoto'da SentToServerOn property'si yok
+                    db.Update(photo);
+                }
+
+                // Satış siparişlerini güncelle
+                var salesOrders = db.Table<SalesOrder>()
+                    .Where(s => s.MemberRouteId == memberRouteId && s.IsSentToServer == false)
+                    .ToList();
+                foreach (var order in salesOrders)
+                {
+                    order.IsSentToServer = true;
+                    order.SentToServerOn = now;
+                    db.Update(order);
+                }
+
+                // Satış sipariş detaylarını güncelle
+                var salesOrderDetails = db.Table<SalesOrderDetail>()
+                    .Where(sd => salesOrders.Any(s => s.Id == sd.SalesOrderId) && sd.IsSentToServer == false)
+                    .ToList();
+                foreach (var detail in salesOrderDetails)
+                {
+                    detail.IsSentToServer = true;
+                    detail.SentToServerOn = now;
+                    db.Update(detail);
+                }
+
+                // Ürün son kullanma tarihlerini güncelle
+                var expirations = db.Table<ProductExpiration>()
+                    .Where(pe => pe.MemberRouteId == memberRouteId && pe.IsSentToServer == false)
+                    .ToList();
+                foreach (var expiration in expirations)
+                {
+                    expiration.IsSentToServer = true;
+                    expiration.SentToServerOn = now;
+                    db.Update(expiration);
+                }
+
+                // Mağaza fotoğraflarını güncelle
+                var displayPhotos = db.Table<MemberDisplayPhotos>()
+                    .Where(mdp => mdp.MemberRouteId == memberRouteId && mdp.IsSentToServer == false)
+                    .ToList();
+                foreach (var photo in displayPhotos)
+                {
+                    photo.IsSentToServer = true;
+                    photo.SentToServerOn = now;
+                    db.Update(photo);
+                }
+
+                _logger.LogInformation($"Marked all data for MemberRoute {memberRouteId} as sent to server");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error marking data as sent to server for MemberRoute {memberRouteId}");
+            }
+        }
     }
 
     // Helper classes for sync operations
@@ -274,17 +462,10 @@ namespace MerchPlusMAUI.Services
         public entMemberRoute MemberRoute { get; set; }
         public List<entMemberRouteDetail> MemberRouteDetail { get; set; } = new List<entMemberRouteDetail>();
         public List<entMemberRoutePhoto> MemberRoutePhoto { get; set; } = new List<entMemberRoutePhoto>();
-        public List<entSalesOrder> SalesOrder { get; set; } = new List<entSalesOrder>();
-        public List<entSalesOrderDetail> SalesOrderDetail { get; set; } = new List<entSalesOrderDetail>();
-        public List<entProductExpiration> ProductExpiration { get; set; } = new List<entProductExpiration>();
+        public List<SalesOrder> SalesOrder { get; set; } = new List<SalesOrder>();
+        public List<SalesOrderDetail> SalesOrderDetail { get; set; } = new List<SalesOrderDetail>();
+        public List<ProductExpiration> ProductExpiration { get; set; } = new List<ProductExpiration>();
+        public List<MemberDisplayPhotos> MemberDisplayPhotos { get; set; } = new List<MemberDisplayPhotos>();
     }
 
-    public class MemberDisplayPhotos
-    {
-        public int Id { get; set; }
-        public int CustomerProductId { get; set; }
-        public string PhotoBase64 { get; set; } = string.Empty;
-        public bool IsSentToServer { get; set; }
-        public DateTime CreatedDate { get; set; }
-    }
 } 

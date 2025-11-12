@@ -13,7 +13,6 @@ namespace MerchPlusMAUI.Views
     {
         private readonly ILogger<AboutMePage> _logger;
         private readonly string _dbPath;
-        private readonly List<ReportItem> _reports = new List<ReportItem>();
 
         public AboutMePage() : this(null)
         {
@@ -35,36 +34,75 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
             System.Diagnostics.Debug.WriteLine("AboutMePage açıldı!");
             System.Diagnostics.Debug.WriteLine("AboutMePage Content Loaded");
             
-            LoadData();
+            // Her sayfa açılışında verileri yeniden yükle
+            await LoadDataAsync();
         }
 
-        private async void LoadData()
-        {
-            // İstatistikleri HomePage'den al
-            UpdateStatisticsFromHomePage();
-            
-            // Rapor verilerini yükleme
-            LoadReportData();
-        }
-
-        private void UpdateStatisticsFromHomePage()
+        private async Task LoadDataAsync()
         {
             try
             {
-                // HomePage'den hesaplanan istatistikleri kullan
-                PlannedCountLabel.Text = HomePage.PlannedStoresCount.ToString();
-                CompletedCountLabel.Text = HomePage.CompletedStoresCount.ToString();
-                PendingCountLabel.Text = HomePage.PendingStoresCount.ToString();
+                System.Diagnostics.Debug.WriteLine("AboutMePage: Veri yükleme başlatılıyor...");
+                
+                // İstatistikleri hesapla
+                CalculateAndUpdateStatistics();
+                
+                
+                // Mağaza listesini yükleme (en son güncel verilerle)
+                await LoadStoreList();
+                
+                System.Diagnostics.Debug.WriteLine("AboutMePage: Veri yükleme tamamlandı.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "İstatistikler yüklenirken hata oluştu");
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: Veri yükleme hatası: {ex.Message}");
+                _logger?.LogError(ex, "AboutMePage veri yükleme hatası");
+            }
+        }
+
+        private void CalculateAndUpdateStatistics()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("AboutMePage: İstatistikler hesaplanıyor...");
+                
+                using var db = new SQLiteConnection(_dbPath);
+                
+                // Toplam planlanan mağaza sayısı (tüm routes)
+                var plannedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute");
+                
+                // Tamamlanan mağaza sayısı (ExitOn is not null)
+                var completedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE ExitOn IS NOT NULL");
+                
+                // Bekleyen mağaza sayısı (EntryOn is not null but ExitOn is null) - currently in progress
+                var pendingInProgressCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL");
+                
+                // Henüz başlanmamış mağaza sayısı (EntryOn is null and ExitOn is null) - not started yet
+                var notStartedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NULL AND ExitOn IS NULL");
+                
+                // Bekleyen = devam eden + henüz başlanmamış
+                var pendingCount = pendingInProgressCount + notStartedCount;
+                
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistikler - Planlanan: {plannedCount}, Tamamlanan: {completedCount}, Bekleyen: {pendingCount} (Devam Eden: {pendingInProgressCount}, Başlanmamış: {notStartedCount})");
+                
+                // UI'yi güncelle
+                PlannedCountLabel.Text = plannedCount.ToString();
+                CompletedCountLabel.Text = completedCount.ToString();
+                PendingCountLabel.Text = pendingCount.ToString();
+                
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: UI güncellendi - Planlanan: {PlannedCountLabel.Text}, Tamamlanan: {CompletedCountLabel.Text}, Bekleyen: {PendingCountLabel.Text}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistik hesaplama hatası: {ex.Message}");
+                _logger?.LogError(ex, "İstatistikler hesaplanırken hata oluştu");
+                
                 // UI'yı varsayılan değerlere ayarla
                 PlannedCountLabel.Text = "0";
                 CompletedCountLabel.Text = "0";
@@ -154,7 +192,7 @@ namespace MerchPlusMAUI.Views
                 }
 
                 // Sync photos
-                var photos = db.Table<entMemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
+                var photos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
                 if (photos.Any())
                 {
                     await SyncPhotos(photos, db);
@@ -207,16 +245,16 @@ namespace MerchPlusMAUI.Views
                 var syncData = new MemberRouteSyncData
                 {
                     MemberRoute = route,
-                    MemberRouteDetail = db.Table<entMemberRouteDetail>()
+                    MemberRouteDetail = db.Table<MemberRouteDetail>()
                         .Where(d => d.MemberRouteId == route.Id)
                         .ToList(),
                     MemberRoutePhoto = db.Table<entMemberRoutePhoto>()
                         .Where(p => p.MemberRouteId == route.Id)
                         .ToList(),
-                    SalesOrder = db.Table<entSalesOrder>()
+                    SalesOrder = db.Table<SalesOrder>()
                         .Where(s => s.MemberRouteId == route.Id)
                         .ToList(),
-                    ProductExpiration = db.Table<entProductExpiration>()
+                    ProductExpiration = db.Table<ProductExpiration>()
                         .Where(p => p.MemberRouteId == route.Id)
                         .ToList()
                 };
@@ -224,8 +262,8 @@ namespace MerchPlusMAUI.Views
                 if (syncData.SalesOrder.Any())
                 {
                     var salesOrderIds = syncData.SalesOrder.Select(s => s.Id).ToList();
-                    syncData.SalesOrderDetail = db.Table<entSalesOrderDetail>()
-                        .Where(d => d.SalesOrderId.HasValue && salesOrderIds.Contains(d.SalesOrderId.Value))
+                    syncData.SalesOrderDetail = db.Table<SalesOrderDetail>()
+                        .Where(d => salesOrderIds.Contains(d.SalesOrderId))
                         .ToList();
                 }
 
@@ -248,7 +286,7 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async Task SyncPhotos(List<entMemberDisplayPhotos> photos, SQLiteConnection db)
+        private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
         {
             using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -285,81 +323,249 @@ namespace MerchPlusMAUI.Views
             });
         }
         
-        // Rapor verilerini yükleme
-        private void LoadReportData()
+
+        private async Task LoadStoreList()
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine("AboutMePage: Mağaza listesi yükleniyor...");
+                using var db = new SQLiteConnection(_dbPath);
+                
+                // Tüm mağaza rotalarını al
+                var memberRoutes = db.Table<entMemberRoute>().ToList();
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: {memberRoutes.Count} mağaza rotası bulundu");
+                
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    ReportContainer.Children.Clear();
-
-                    // Rapor verilerini oluştur
-                    _reports.Clear();
-                    _reports.Add(new ReportItem { Name = "Raf Fiyatlar", CompletionPercentage = 100 });
-                    _reports.Add(new ReportItem { Name = "Önyüz Adedi", CompletionPercentage = 65 });
-                    _reports.Add(new ReportItem { Name = "Var-Yok", CompletionPercentage = 83 });
-                    _reports.Add(new ReportItem { Name = "Aktivite", CompletionPercentage = 45 });
-                    _reports.Add(new ReportItem { Name = "Raf Stok", CompletionPercentage = 100 });
-                    _reports.Add(new ReportItem { Name = "Sipariş", CompletionPercentage = 22 });
-                    _reports.Add(new ReportItem { Name = "Son Kullanma Tarihi", CompletionPercentage = 100 });
-                    
-                    // Rapor öğelerini arayüze ekle
-                    foreach (var report in _reports)
+                    if (memberRoutes.Any())
                     {
-                        Microsoft.Maui.Graphics.Color progressColor = report.CompletionPercentage == 100 
-                            ? Microsoft.Maui.Graphics.Color.FromArgb("#4CAF50") // Yeşil
-                            : Microsoft.Maui.Graphics.Color.FromArgb("#F44336"); // Kırmızı
-                        
-                        var grid = new Grid
+                        foreach (var route in memberRoutes)
                         {
-                            ColumnDefinitions =
+                            // Mağaza adını al
+                            string storeName = "Bilinmeyen Mağaza";
+                            try
                             {
-                                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-                                new ColumnDefinition { Width = new GridLength(100, GridUnitType.Absolute) }
+                                if (route.RetailShopId.HasValue)
+                                {
+                                    var retailShop = db.Table<entRetailShop>()
+                                        .FirstOrDefault(rs => rs.Id == route.RetailShopId.Value);
+                                    
+                                    if (retailShop != null)
+                                    {
+                                        // entRetailShop'da Name property'si var mı kontrol et
+                                        var nameProperty = typeof(entRetailShop).GetProperty("Name");
+                                        if (nameProperty != null)
+                                        {
+                                            var nameValue = nameProperty.GetValue(retailShop);
+                                            storeName = nameValue?.ToString() ?? "Bilinmeyen Mağaza";
+                                        }
+                                        else
+                                        {
+                                            // Name property'si yoksa CustomerId kullan
+                                            storeName = route.CustomerId?.ToString() ?? "Bilinmeyen Mağaza";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        storeName = route.CustomerId?.ToString() ?? "Bilinmeyen Mağaza";
+                                    }
+                                }
+                                else
+                                {
+                                    storeName = route.CustomerId?.ToString() ?? "Bilinmeyen Mağaza";
+                                }
                             }
-                        };
-                        
-                        grid.Add(new Label
+                            catch (Exception ex)
+                            {
+                                _logger?.LogError(ex, "Mağaza adı alınırken hata oluştu");
+                                storeName = route.CustomerId?.ToString() ?? "Bilinmeyen Mağaza";
+                            }
+                            
+                            // Mağaza için tamamlanma yüzdesini hesapla
+                            var completionPercentage = CalculateStoreCompletionPercentage(route.Id, db);
+                            
+                            // Mağaza kartını oluştur
+                            var storeCard = CreateStoreCard(route, storeName, completionPercentage);
+                            ReportContainer.Children.Add(storeCard);
+                        }
+                    }
+                    else
+                    {
+                        // Mağaza yoksa bilgi mesajı göster
+                        var noStoresLabel = new Label
                         {
-                            Text = report.Name,
+                            Text = "Henüz mağaza rotası bulunmamaktadır.",
                             FontSize = 16,
+                            TextColor = Colors.Gray,
+                            HorizontalOptions = LayoutOptions.Center,
                             VerticalOptions = LayoutOptions.Center
-                        }, 0, 0);
-                        
-                        var progressStack = new VerticalStackLayout
-                        {
-                            Spacing = 2
                         };
-                        
-                        var percentLabel = new Label
-                        {
-                            Text = $"%{report.CompletionPercentage}",
-                            FontSize = 14,
-                            TextColor = progressColor,
-                            FontAttributes = FontAttributes.Bold,
-                            HorizontalOptions = LayoutOptions.End
-                        };
-                        
-                        var progressBar = new ProgressBar
-                        {
-                            Progress = report.CompletionPercentage / 100.0,
-                            ProgressColor = progressColor,
-                            HeightRequest = 8
-                        };
-                        
-                        progressStack.Add(percentLabel);
-                        progressStack.Add(progressBar);
-                        
-                        grid.Add(progressStack, 1, 0);
-                        
-                        ReportContainer.Children.Add(grid);
+                        ReportContainer.Children.Add(noStoresLabel);
                     }
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Görevler yüklenirken hata oluştu");
+                _logger?.LogError(ex, "Mağaza listesi yüklenirken hata oluştu");
+            }
+        }
+
+        private int CalculateStoreCompletionPercentage(int memberRouteId, SQLiteConnection db)
+        {
+            try
+            {
+                // Bu mağaza için ürün detaylarını al
+                var routeDetails = db.Table<entMemberRouteDetail>()
+                    .Where(d => d.MemberRouteId == memberRouteId)
+                    .ToList();
+
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: Mağaza {memberRouteId} için {routeDetails.Count} ürün detayı bulundu");
+
+                if (!routeDetails.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine($"AboutMePage: Mağaza {memberRouteId} için ürün detayı bulunamadı");
+                    return 0;
+                }
+
+                int completedFields = 0;
+                int totalFields = 0;
+
+                foreach (var detail in routeDetails)
+                {
+                    // Her ürün için tamamlanan alanları say
+                    if (detail.FaceCount.HasValue && detail.FaceCount.Value > 0)
+                        completedFields++;
+                    totalFields++;
+
+                    if (detail.ShelfPrice.HasValue && detail.ShelfPrice.Value > 0)
+                        completedFields++;
+                    totalFields++;
+
+                    if (detail.ShelfStock.HasValue && detail.ShelfStock.Value >= 0)
+                        completedFields++;
+                    totalFields++;
+
+                    if (!string.IsNullOrEmpty(detail.Notes))
+                        completedFields++;
+                    totalFields++;
+
+                    if (detail.PromotionTypeId.HasValue)
+                        completedFields++;
+                    totalFields++;
+                }
+
+                int percentage = totalFields > 0 ? (int)((double)completedFields / totalFields * 100) : 0;
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: Mağaza {memberRouteId} tamamlanma yüzdesi: {percentage}% ({completedFields}/{totalFields})");
+                
+                return percentage;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: Mağaza {memberRouteId} tamamlanma yüzdesi hesaplama hatası: {ex.Message}");
+                _logger?.LogError(ex, $"Mağaza {memberRouteId} için tamamlanma yüzdesi hesaplanırken hata oluştu");
+                return 0;
+            }
+        }
+
+        private Frame CreateStoreCard(entMemberRoute route, string storeName, int completionPercentage)
+        {
+            var card = new Frame
+            {
+                BackgroundColor = Colors.White,
+                CornerRadius = 8,
+                Padding = 10,
+                Margin = new Thickness(0, 3),
+                HasShadow = true
+            };
+
+            var grid = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(60, GridUnitType.Absolute) },
+                    new ColumnDefinition { Width = new GridLength(50, GridUnitType.Absolute) }
+                },
+                RowDefinitions =
+                {
+                    new RowDefinition { Height = GridLength.Auto },
+                    new RowDefinition { Height = GridLength.Auto }
+                }
+            };
+
+            // Mağaza adı
+            var storeNameLabel = new Label
+            {
+                Text = storeName,
+                FontSize = 14,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                LineBreakMode = LineBreakMode.TailTruncation
+            };
+            grid.Add(storeNameLabel, 0, 0);
+
+            // Tamamlanma yüzdesi
+            var percentageColor = completionPercentage >= 80 ? Colors.Green : 
+                                 completionPercentage >= 50 ? Colors.Orange : Colors.Red;
+
+            var percentageLabel = new Label
+            {
+                Text = $"%{completionPercentage}",
+                FontSize = 14,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = percentageColor,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            };
+            grid.Add(percentageLabel, 1, 0);
+
+            // Detay butonu
+            var detailButton = new Button
+            {
+                Text = "Detay",
+                FontSize = 10,
+                BackgroundColor = Colors.Blue,
+                TextColor = Colors.White,
+                CornerRadius = 4,
+                Padding = new Thickness(6, 3),
+                HeightRequest = 28
+            };
+            
+            detailButton.Clicked += async (s, e) => await OnStoreDetailClicked(route, storeName);
+            grid.Add(detailButton, 2, 0);
+
+            // Progress bar
+            var progressBar = new ProgressBar
+            {
+                Progress = completionPercentage / 100.0,
+                ProgressColor = percentageColor,
+                HeightRequest = 6,
+                Margin = new Thickness(0, 3, 0, 0)
+            };
+            grid.Add(progressBar, 0, 1);
+            Grid.SetColumnSpan(progressBar, 3);
+
+            card.Content = grid;
+            return card;
+        }
+
+        private async Task OnStoreDetailClicked(entMemberRoute route, string storeName)
+        {
+            try
+            {
+                // StoreReportPage'e git
+                var navigationParameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = route.Id.ToString(),
+                    ["StoreName"] = storeName
+                };
+
+                await Shell.Current.GoToAsync("///StoreReportPage", navigationParameters);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Store detail sayfasına yönlendirilirken hata oluştu");
+                await DisplayAlert("Hata", "Mağaza detay sayfasına yönlendirilirken hata oluştu.", "Tamam");
             }
         }
 

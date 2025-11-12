@@ -39,6 +39,7 @@ namespace MerchPlusMAUI
             builder.Services.AddSingleton<LocationService>();
             builder.Services.AddSingleton<LocationAgentService>();
             builder.Services.AddSingleton<DatabaseSyncService>();
+            builder.Services.AddSingleton<BackgroundTimerService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             
             // HTTP Client ve Field Visibility Service

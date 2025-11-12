@@ -51,6 +51,12 @@ namespace MerchPlusMAUI
         // Flags and Status
         public static bool MemberLocationAgentStarted { get; set; }
         public static bool DatabaseSyncStarted { get; set; }
+        public static bool BackgroundTimerStarted { get; set; }
+        
+        // Sync Timestamps
+        public static DateTime LastCoordinateSync { get; set; } = DateTime.UtcNow;
+        public static DateTime LastDataSync { get; set; } = DateTime.UtcNow;
+        public static DateTime LastPhotoSync { get; set; } = DateTime.UtcNow;
 
         // Member Related
         public static byte[] MemberProfilePictureByteArray { get; set; } = Array.Empty<byte>();

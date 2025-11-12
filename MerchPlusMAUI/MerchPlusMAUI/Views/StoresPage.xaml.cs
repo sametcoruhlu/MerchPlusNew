@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
 using System.Collections.Generic;
+using MerchPlusMAUI.Services;
 
 namespace MerchPlusMAUI.Views
 {
@@ -177,6 +178,27 @@ namespace MerchPlusMAUI.Views
                                 _logger?.LogError(ex, "Phone özelliği okunurken hata oluştu");
                             }
 
+                            // Uzaklık hesapla
+                            double? distanceMeters = null;
+                            if (store.CoordinateX.HasValue && store.CoordinateY.HasValue && 
+                                GlobalVariables.MemberLastCoordinate.Latitude != 0 && GlobalVariables.MemberLastCoordinate.Longitude != 0)
+                            {
+                                var haversine = new HaversineUtility();
+                                var storePosition = new Position
+                                {
+                                    Latitude = Convert.ToDouble(store.CoordinateX.Value), // eski projede Convert.ToDouble kullanılıyor
+                                    Longitude = Convert.ToDouble(store.CoordinateY.Value)  // eski projede Convert.ToDouble kullanılıyor
+                                };
+
+                                var currentPosition = new Position
+                                {
+                                    Latitude = GlobalVariables.MemberLastCoordinate.Latitude,
+                                    Longitude = GlobalVariables.MemberLastCoordinate.Longitude
+                                };
+
+                                distanceMeters = haversine.GetDistanceInMeters(currentPosition, storePosition);
+                            }
+
                             var storeViewModel = new StoreViewModel
                             {
                                 Id = store.Id,
@@ -189,12 +211,19 @@ namespace MerchPlusMAUI.Views
                                 StoreType = GetStoreStatusText(route),
                                 StatusColor = GetStatusColor(route),
                                 LastVisit = route.ExitOn?.ToString("dd.MM.yyyy HH:mm") ?? "",
-                                HasLastVisit = route.ExitOn != null
+                                HasLastVisit = route.ExitOn != null,
+                                DistanceMeters = distanceMeters,
+                                DistanceText = distanceMeters.HasValue ? 
+                                    (distanceMeters.Value < 1000 ? $"{distanceMeters.Value:F0}m" : $"{distanceMeters.Value / 1000:F1}km") : 
+                                    "Konum bilgisi yok"
                             };
 
                             stores.Add(storeViewModel);
                         }
                     }
+
+                    // Uzaklığa göre sırala (yakın olanlar önce)
+                    stores = stores.OrderBy(s => s.DistanceMeters ?? double.MaxValue).ToList();
 
                     // UI güncellemesi ana thread'de yapılmalı
                     MainThread.BeginInvokeOnMainThread(() =>
@@ -281,11 +310,27 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Store tapped: {selectedStore.StoreName} (MemberRouteId: {selectedStore.MemberRouteId})");
                     _logger?.LogInformation($"Store tapped: {selectedStore.StoreName} (MemberRouteId: {selectedStore.MemberRouteId})");
 
+                    // Konum durumunu kontrol et
+                    _logger?.LogInformation($"=== MAĞAZA SEÇİMİ KONUM KONTROLÜ ===");
+                    _logger?.LogInformation($"GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                    _logger?.LogInformation($"Store DistanceMeters: {selectedStore.DistanceMeters}");
+                    _logger?.LogInformation($"Store DistanceText: {selectedStore.DistanceText}");
+
                     // Visual feedback
                     await frame.ScaleTo(0.95, 50);
                     await frame.ScaleTo(1.0, 50);
 
-                    // StoreReportPage'e git
+                    // Uzaklık kontrolü yap
+                    var canProceed = await CheckStoreDistanceAndProceed(selectedStore);
+                    if (!canProceed)
+                    {
+                        _logger?.LogWarning($"Mağaza seçimi başarısız, uzaklık kontrolü geçemedi");
+                        return; // Uzaklık kontrolü başarısız, işlemi durdur
+                    }
+                    
+                    _logger?.LogInformation($"Mağaza seçimi başarılı, StoreProductsPage'e yönlendiriliyor");
+
+                    // StoreProductsPage'e git
                     var navigationParameters = new Dictionary<string, object>
                     {
                         ["entMemberRouteId"] = selectedStore.MemberRouteId.ToString(),
@@ -294,10 +339,10 @@ namespace MerchPlusMAUI.Views
 
                     Console.WriteLine($"Navigation parameters (Tap): entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters (Tap): entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
-                    _logger?.LogInformation($"Navigating to StoreReportPage via tap with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
+                    _logger?.LogInformation($"Navigating to StoreProductsPage via tap with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
                     Console.WriteLine("Starting navigation...");
-                    await Shell.Current.GoToAsync("///StoreReportPage", navigationParameters);
+                    await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     Console.WriteLine("Navigation completed (Tap)");
                     System.Diagnostics.Debug.WriteLine("Navigation completed (Tap)");
                 }
@@ -336,6 +381,12 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Store selected: {selectedStore.StoreName} (MemberRouteId: {selectedStore.MemberRouteId})");
                     _logger?.LogInformation($"Store selected: {selectedStore.StoreName} (MemberRouteId: {selectedStore.MemberRouteId})");
 
+                    // Konum durumunu kontrol et
+                    _logger?.LogInformation($"=== MAĞAZA SEÇİMİ KONUM KONTROLÜ (Selection) ===");
+                    _logger?.LogInformation($"GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                    _logger?.LogInformation($"Store DistanceMeters: {selectedStore.DistanceMeters}");
+                    _logger?.LogInformation($"Store DistanceText: {selectedStore.DistanceText}");
+
                     // Mağaza seçimi sıfırla
                     CollectionView storesCollectionView = null;
                     try
@@ -353,7 +404,17 @@ namespace MerchPlusMAUI.Views
                         System.Diagnostics.Debug.WriteLine($"Error finding StoresCollectionView: {ex.Message}");
                     }
 
-                    // StoreReportPage'e git - Android koduna uygun olarak MemberRouteId kullan
+                    // Uzaklık kontrolü yap
+                    var canProceed = await CheckStoreDistanceAndProceed(selectedStore);
+                    if (!canProceed)
+                    {
+                        _logger?.LogWarning($"Mağaza seçimi başarısız, uzaklık kontrolü geçemedi (Selection)");
+                        return; // Uzaklık kontrolü başarısız, işlemi durdur
+                    }
+                    
+                    _logger?.LogInformation($"Mağaza seçimi başarılı, StoreProductsPage'e yönlendiriliyor (Selection)");
+
+                    // StoreProductsPage'e git - Android koduna uygun olarak MemberRouteId kullan
                     var navigationParameters = new Dictionary<string, object>
                     {
                         ["entMemberRouteId"] = selectedStore.MemberRouteId.ToString(),
@@ -361,10 +422,10 @@ namespace MerchPlusMAUI.Views
                     };
 
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
-                    _logger?.LogInformation($"Navigating to StoreReportPage with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
+                    _logger?.LogInformation($"Navigating to StoreProductsPage with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
                     // Navigation yap
-                    await Shell.Current.GoToAsync("///StoreReportPage", navigationParameters);
+                    await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     System.Diagnostics.Debug.WriteLine("Navigation completed");
                 }
                 catch (Exception ex)
@@ -385,6 +446,251 @@ namespace MerchPlusMAUI.Views
                 _logger?.LogWarning("OnStoreSelected called but no store was selected");
             }
         }
+
+        /// <summary>
+        /// Mağaza uzaklık kontrolü yapar ve gerekirse giriş işlemini başlatır
+        /// </summary>
+        /// <param name="selectedStore">Seçilen mağaza</param>
+        /// <returns>İşleme devam edilebilir mi?</returns>
+        private async Task<bool> CheckStoreDistanceAndProceed(StoreViewModel selectedStore)
+        {
+            try
+            {
+                // Koordinat kontrolü - Detaylı log ekle
+                _logger?.LogInformation($"=== KONUM KONTROLÜ BAŞLADI ===");
+                _logger?.LogInformation($"GlobalVariables.MemberLastCoordinate.Latitude: {GlobalVariables.MemberLastCoordinate.Latitude}");
+                _logger?.LogInformation($"GlobalVariables.MemberLastCoordinate.Longitude: {GlobalVariables.MemberLastCoordinate.Longitude}");
+                
+                // Veritabanından son konum bilgisini kontrol et
+                using var dbCheck = new SQLiteConnection(_dbPath);
+                var lastCoordinate = dbCheck.Table<MemberCoordinate>()
+                    .OrderByDescending(c => c.LastUpdateTime)
+                    .FirstOrDefault();
+                
+                if (lastCoordinate != null)
+                {
+                    _logger?.LogInformation($"Veritabanından son konum - Latitude: {lastCoordinate.Latitude}, Longitude: {lastCoordinate.Longitude}, LastUpdateTime: {lastCoordinate.LastUpdateTime}");
+                }
+                else
+                {
+                    _logger?.LogWarning("Veritabanında hiç konum bilgisi bulunamadı!");
+                }
+                
+                if (GlobalVariables.MemberLastCoordinate.Latitude == 0 && GlobalVariables.MemberLastCoordinate.Longitude == 0)
+                {
+                    _logger?.LogError("GlobalVariables.MemberLastCoordinate sıfır değerlerde! Konum servisi çalışmıyor olabilir.");
+                    
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await DisplayAlert("Koordinatınız Alınamadı", 
+                            "MerchPlus uygulamasını çalıştırdığınızdan bu yana koordinatınız elde edilemedi. Lütfen gökyüzünü gören açık bir alana çıkarak bir süre bekleyiniz ve tekrar giriş yapmayı deneyiniz.", 
+                            "Tamam");
+                    });
+                    return false;
+                }
+                
+                _logger?.LogInformation($"=== KONUM KONTROLÜ BAŞARILI ===");
+
+                using var db = new SQLiteConnection(_dbPath);
+                
+                // Mağaza bilgilerini al
+                var route = db.Table<entMemberRoute>()
+                    .FirstOrDefault(r => r.Id == selectedStore.MemberRouteId);
+                
+                _logger?.LogInformation($"Route bulundu - ID: {route?.Id}, Type: {route?.GetType().Name}");
+                
+                // Route'un Primary Key özelliklerini kontrol et
+                if (route != null)
+                {
+                    var routeType = route.GetType();
+                    var idProperty = routeType.GetProperty("Id");
+                    _logger?.LogInformation($"Route.Id property: {idProperty?.Name}, Value: {route.Id}");
+                    
+                    // SQLite Table attribute'unu kontrol et
+                    var tableAttributes = routeType.GetCustomAttributes(typeof(SQLite.TableAttribute), false);
+                    if (tableAttributes.Length > 0)
+                    {
+                        _logger?.LogInformation($"Route Table attribute bulundu: {tableAttributes[0]}");
+                    }
+                    else
+                    {
+                        _logger?.LogWarning("Route Table attribute bulunamadı!");
+                    }
+                }
+                
+                if (route?.RetailShopId == null)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                    });
+                    return false;
+                }
+
+                var retailShop = db.Table<entRetailShop>()
+.FirstOrDefault(s => s.Id == route.RetailShopId.Value);
+
+                _logger?.LogInformation($"Mağaza bilgileri - ID: {retailShop?.Id}, Name: {retailShop?.Name}");
+                _logger?.LogInformation($"Mağaza koordinatları - CoordinateX: {retailShop?.CoordinateX}, CoordinateY: {retailShop?.CoordinateY}");
+
+                if (retailShop?.CoordinateX == null || retailShop?.CoordinateY == null)
+                {
+                    _logger?.LogWarning($"Mağaza {retailShop?.Name} için koordinat bilgisi eksik!");
+                    
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await DisplayAlert("Uyarı", "Bu mağaza için koordinat bilgisi bulunmuyor. Devam etmek istiyor musunuz?", "Evet", "Hayır");
+                    });
+                    return true; // Koordinat yoksa devam et
+                }
+
+                // Uzaklık hesapla
+                var haversine = new HaversineUtility();
+                var storePosition = new Position
+                {
+                    Latitude = Convert.ToDouble(retailShop.CoordinateX.Value), // eski projede Convert.ToDouble kullanılıyor
+                    Longitude = Convert.ToDouble(retailShop.CoordinateY.Value)  // eski projede Convert.ToDouble kullanılıyor
+                };
+
+                var currentPosition = new Position
+                {
+                    Latitude = GlobalVariables.MemberLastCoordinate.Latitude,
+                    Longitude = GlobalVariables.MemberLastCoordinate.Longitude
+                };
+
+                _logger?.LogInformation($"Uzaklık hesaplama - Mağaza: Lat={storePosition.Latitude}, Lon={storePosition.Longitude}");
+                _logger?.LogInformation($"Uzaklık hesaplama - Cihaz: Lat={currentPosition.Latitude}, Lon={currentPosition.Longitude}");
+
+                var distanceMeters = haversine.GetDistanceInMeters(currentPosition, storePosition);
+                _logger?.LogInformation($"Hesaplanan uzaklık: {distanceMeters:F2} metre");
+
+                // 500 metre kontrolü
+                if (distanceMeters > 500)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await DisplayAlert("UZAKTASINIZ", 
+                            $"Bu mağaza için sisteme tanımlı koordinatın yaklaşık olarak {distanceMeters:F2} metre uzağındasınız. Eğer giriş işlemini mağazanın içinde yapıyorsanız gökyüzünü gören bir alana çıkarak tekrar deneyiniz.", 
+                            "Tamam");
+                    });
+                    return false;
+                }
+
+                // Mağaza durumu kontrolü - eski projeye göre tekrar giriş mantığı
+                if (route.EntryOn == null)
+                {
+                    // İlk giriş - giriş tarihini kaydet
+                    route.EntryOn = DateTime.Now;
+                    route.EntryCoordinateX = (decimal)retailShop.CoordinateX.Value; // eski projede decimal türünde
+                    route.EntryCoordinateY = (decimal)retailShop.CoordinateY.Value; // eski projede decimal türünde
+                    
+                    _logger?.LogInformation($"İlk giriş - Route güncelleniyor - ID: {route.Id}, EntryOn: {route.EntryOn}");
+                    
+                    try
+                    {
+                        db.Update(route);
+                        _logger?.LogInformation($"Store entry recorded for {selectedStore.StoreName} at {DateTime.Now}");
+                    }
+                    catch (Exception updateEx)
+                    {
+                        _logger?.LogError(updateEx, $"Route güncelleme hatası - ID: {route.Id}");
+                        
+                        // Alternatif: SQL komutu ile güncelle
+                        try
+                        {
+                            db.Execute("UPDATE entMemberRoute SET EntryOn = ?, EntryCoordinateX = ?, EntryCoordinateY = ? WHERE Id = ?",
+                                route.EntryOn, route.EntryCoordinateX, route.EntryCoordinateY, route.Id);
+                            _logger?.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                        }
+                        catch (Exception sqlEx)
+                        {
+                            _logger?.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
+                            throw; // Hata fırlat
+                        }
+                    }
+                }
+                else if (route.ExitOn != null)
+                {
+                    // Daha önce çıkış yapılmış - tekrar giriş için onay iste
+                    _logger?.LogInformation($"Mağaza daha önce tamamlanmış - EntryOn: {route.EntryOn}, ExitOn: {route.ExitOn}");
+                    
+                    var result = await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        return await DisplayAlert("Mağaza Daha Önce Tamamlandı", 
+                            $"Bu mağaza daha önce ziyaret edilmiş ve tamamlanmış.\r\n\r\n" +
+                            $"Giriş: {route.EntryOn?.ToString("dd.MM.yyyy HH:mm")}\r\n" +
+                            $"Çıkış: {route.ExitOn?.ToString("dd.MM.yyyy HH:mm")}\r\n\r\n" +
+                            $"Tekrar giriş yapmak istiyor musunuz?", 
+                            "EVET, TEKRAR GİRİŞ YAP", "VAZGEÇ");
+                    });
+                    
+                    if (result)
+                    {
+                        // Tekrar giriş - yeni giriş tarihini kaydet, çıkış tarihini sıfırla
+                        route.EntryOn = DateTime.Now;
+                        route.ExitOn = null; // Çıkış tarihini sıfırla
+                        route.EntryCoordinateX = (decimal)retailShop.CoordinateX.Value;
+                        route.EntryCoordinateY = (decimal)retailShop.CoordinateY.Value;
+                        route.IsSentToServer = false; // Server'a gönderilmemiş olarak işaretle
+                        
+                        _logger?.LogInformation($"Tekrar giriş - Route güncelleniyor - ID: {route.Id}, EntryOn: {route.EntryOn}, ExitOn: null");
+                        
+                        try
+                        {
+                            db.Update(route);
+                            _logger?.LogInformation($"Store re-entry recorded for {selectedStore.StoreName} at {DateTime.Now}");
+                        }
+                        catch (Exception updateEx)
+                        {
+                            _logger?.LogError(updateEx, $"Route güncelleme hatası - ID: {route.Id}");
+                            
+                            // Alternatif: SQL komutu ile güncelle
+                            try
+                            {
+                                db.Execute("UPDATE entMemberRoute SET EntryOn = ?, ExitOn = ?, EntryCoordinateX = ?, EntryCoordinateY = ?, IsSentToServer = ? WHERE Id = ?",
+                                    route.EntryOn, route.ExitOn, route.EntryCoordinateX, route.EntryCoordinateY, route.IsSentToServer, route.Id);
+                                _logger?.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                            }
+                            catch (Exception sqlEx)
+                            {
+                                _logger?.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
+                                throw; // Hata fırlat
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _logger?.LogInformation($"Kullanıcı tekrar giriş yapmayı reddetti - Mağaza: {selectedStore.StoreName}");
+                        return false; // Tekrar giriş reddedildi
+                    }
+                }
+                else
+                {
+                    // Giriş yapılmış ama çıkış yapılmamış - devam ediyor
+                    _logger?.LogInformation($"Mağaza zaten aktif - EntryOn: {route.EntryOn}, ExitOn: null");
+                    
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await DisplayAlert("Mağaza Zaten Aktif", 
+                            $"Bu mağaza zaten aktif olarak ziyaret ediliyor.\r\n\r\n" +
+                            $"Giriş: {route.EntryOn?.ToString("dd.MM.yyyy HH:mm")}\r\n\r\n" +
+                            $"Mağaza sayfasına yönlendiriliyorsunuz.", 
+                            "Tamam");
+                    });
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Uzaklık kontrolü sırasında hata oluştu");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await DisplayAlert("Hata", $"Uzaklık kontrolü sırasında bir hata oluştu: {ex.Message}", "Tamam");
+                });
+                return false;
+            }
+        }
     }
 
     // Mağaza görünüm modeli
@@ -401,5 +707,7 @@ namespace MerchPlusMAUI.Views
         public string LastVisit { get; set; }
         public bool HasLastVisit { get; set; }
         public int MemberRouteId { get; set; }
+        public double? DistanceMeters { get; set; }
+        public string DistanceText { get; set; } = string.Empty;
     }
 }

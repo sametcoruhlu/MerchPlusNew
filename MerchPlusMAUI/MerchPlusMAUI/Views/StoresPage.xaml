@@ -69,7 +69,7 @@
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer Tapped="OnStoreTapped" />
                             </Frame.GestureRecognizers>
-                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                                 
                                 <!-- Mağaza Adı -->
                                 <Label Grid.Column="0" Grid.Row="0"
@@ -94,8 +94,16 @@
                                        TextColor="#336699"
                                        Margin="0,0,0,5"/>
                                 
+                                <!-- Uzaklık -->
+                                <Label Grid.Column="0" Grid.Row="3"
+                                       Text="{Binding DistanceText}"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="#FF6B35"
+                                       Margin="0,0,0,5"/>
+                                
                                 <!-- Durum -->
-                                <Frame Grid.Column="0" Grid.Row="3"
+                                <Frame Grid.Column="0" Grid.Row="4"
                                        BackgroundColor="{Binding StatusColor}"
                                        CornerRadius="12"
                                        Padding="8,4"
@@ -109,14 +117,14 @@
                                 </Frame>
                                 
                                 <!-- Son Ziyaret -->
-                                <Label Grid.Column="0" Grid.Row="4"
+                                <Label Grid.Column="0" Grid.Row="5"
                                        Text="{Binding LastVisit, StringFormat='Son Ziyaret: {0}'}"
                                        FontSize="12"
                                        TextColor="Gray"
                                        IsVisible="{Binding HasLastVisit}"/>
                                 
                                 <!-- Ok İkonu -->
-                                <Label Grid.Column="1" Grid.Row="0" Grid.RowSpan="5"
+                                <Label Grid.Column="1" Grid.Row="0" Grid.RowSpan="6"
                                        Text="→"
                                        FontSize="24"
                                        TextColor="#336699"

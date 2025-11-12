@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
 using System.Linq;
+using MerchPlusMAUI.Services;
 
 namespace MerchPlusMAUI.Views
 {
@@ -258,19 +259,48 @@ namespace MerchPlusMAUI.Views
                 
                 _logger.LogInformation($"Initializing StoreProductsPage - EntMemberRouteId: {EntMemberRouteId}");
 
-                // GlobalVariables.CurrentMemberRoute'u set et (sadece gerekirse)
-                if (!string.IsNullOrEmpty(EntMemberRouteId) && int.TryParse(EntMemberRouteId, out int memberRouteId))
+                // GlobalVariables.CurrentMemberRoute'u set et
+                int memberRouteId = 0;
+                
+                if (!string.IsNullOrEmpty(EntMemberRouteId) && int.TryParse(EntMemberRouteId, out memberRouteId))
                 {
-                    if (GlobalVariables.CurrentMemberRoute == null)
+                    // EntMemberRouteId'den al
+                    Console.WriteLine($"Using EntMemberRouteId: {memberRouteId}");
+                }
+                else if (GlobalVariables.CurrentMemberRoute != null)
+                {
+                    // GlobalVariables'dan al
+                    memberRouteId = GlobalVariables.CurrentMemberRoute.Id;
+                    Console.WriteLine($"Using GlobalVariables.CurrentMemberRoute.Id: {memberRouteId}");
+                }
+                else
+                {
+                    // Veritabanından aktif route'u al
+                    using var db = new SQLiteConnection(_dbPath);
+                    var activeRoute = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL LIMIT 1");
+                    if (activeRoute != null && activeRoute.Count > 0)
                     {
-                        GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = memberRouteId };
-                        Console.WriteLine($"GlobalVariables.CurrentMemberRoute created with Id: {memberRouteId}");
+                        memberRouteId = activeRoute[0].Id;
+                        Console.WriteLine($"Using active route from DB: {memberRouteId}");
                     }
-                    else if (GlobalVariables.CurrentMemberRoute.Id != memberRouteId)
+                    else
                     {
-                        GlobalVariables.CurrentMemberRoute.Id = memberRouteId;
-                        Console.WriteLine($"GlobalVariables.CurrentMemberRoute.Id updated to: {memberRouteId}");
+                        Console.WriteLine("No active route found in database");
+                        _logger.LogWarning("No active route found in database");
+                        return;
                     }
+                }
+                
+                // GlobalVariables.CurrentMemberRoute'u set et
+                if (GlobalVariables.CurrentMemberRoute == null)
+                {
+                    GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = memberRouteId };
+                    Console.WriteLine($"GlobalVariables.CurrentMemberRoute created with Id: {memberRouteId}");
+                }
+                else if (GlobalVariables.CurrentMemberRoute.Id != memberRouteId)
+                {
+                    GlobalVariables.CurrentMemberRoute.Id = memberRouteId;
+                    Console.WriteLine($"GlobalVariables.CurrentMemberRoute.Id updated to: {memberRouteId}");
                 }
 
                 Console.WriteLine("Starting database operations...");
@@ -600,10 +630,40 @@ namespace MerchPlusMAUI.Views
             {
                 _logger.LogInformation($"Report clicked - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                 
+                // EntMemberRouteId ve StoreName kontrolü
+                string memberRouteId = EntMemberRouteId;
+                string storeName = StoreName;
+                
+                if (string.IsNullOrEmpty(memberRouteId))
+                {
+                    _logger.LogWarning("EntMemberRouteId is null or empty, trying to get from GlobalVariables");
+                    
+                    // GlobalVariables'dan al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        memberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        _logger.LogInformation($"Got EntMemberRouteId from GlobalVariables: {memberRouteId}");
+                    }
+                    else
+                    {
+                        _logger.LogError("GlobalVariables.CurrentMemberRoute is also null");
+                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
+                        return;
+                    }
+                }
+                
+                if (string.IsNullOrEmpty(storeName))
+                {
+                    _logger.LogWarning("StoreName is null or empty, setting default value");
+                    storeName = "Mağaza";
+                }
+                
+                _logger.LogInformation($"Final parameters - EntMemberRouteId: {memberRouteId}, StoreName: {storeName}");
+                
                 var parameters = new Dictionary<string, object>
                 {
-                    ["entMemberRouteId"] = EntMemberRouteId,
-                    ["StoreName"] = StoreName
+                    ["entMemberRouteId"] = memberRouteId,
+                    ["StoreName"] = storeName
                 };
 
                 await Shell.Current.GoToAsync("///StoreReportPage", parameters);
@@ -622,22 +682,239 @@ namespace MerchPlusMAUI.Views
             {
                 _logger.LogInformation($"Exit shop clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
-                // Android: exitShopActivity.PutExtra("entMemberRouteId", Intent.GetStringExtra("entMemberRouteId"));
-                var parameters = new Dictionary<string, object>
+                // EntMemberRouteId null kontrolü
+                if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    ["entMemberRouteId"] = EntMemberRouteId
-                };
+                    _logger.LogError("EntMemberRouteId is null or empty in OnExitShopClickedAsync");
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
+                    return;
+                }
+                
+                // Çıkış validasyonu yap
+                var canExit = await ValidateExitShop();
+                if (!canExit)
+                {
+                    return; // Çıkış validasyonu başarısız
+                }
 
-                // TODO: ExitShopPage'e navigate et
-                await DisplayAlert("Mağazadan Çık", 
-                    "Mağazadan çıkış sayfası yakında eklenecek.\n" +
-                    $"MemberRouteId: {EntMemberRouteId}", 
-                    "Tamam");
+                // Çıkış işlemini tamamla
+                await CompleteExitShop();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnExitShopClicked");
                 await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        /// <summary>
+        /// Mağazadan çıkış validasyonu yapar
+        /// </summary>
+        /// <returns>Çıkış yapılabilir mi?</returns>
+        private async Task<bool> ValidateExitShop()
+        {
+            try
+            {
+                // Koordinat kontrolü
+                if (GlobalVariables.MemberLastCoordinate.Latitude == 0 && GlobalVariables.MemberLastCoordinate.Longitude == 0)
+                {
+                    await DisplayAlert("Koordinatınız Alınamadı", 
+                        "MerchPlus uygulamasını çalıştırdığınızdan bu yana koordinatınız elde edilemedi. Lütfen gökyüzünü gören açık bir alana çıkarak bir süre bekleyiniz ve tekrar giriş yapmayı deneyiniz.", 
+                        "Tamam");
+                    return false;
+                }
+
+                using var db = new SQLiteConnection(_dbPath);
+                
+                // EntMemberRouteId null kontrolü
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    _logger.LogError("EntMemberRouteId is null or empty");
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı.", "Tamam");
+                    return false;
+                }
+                
+                // Route bilgilerini al
+                var routeId = int.Parse(EntMemberRouteId);
+                var route = db.Table<entMemberRoute>()
+                    .FirstOrDefault(r => r.Id == routeId);
+                
+                if (route?.RetailShopId == null)
+                {
+                    await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                    return false;
+                }
+
+                var retailShop = db.Table<entRetailShop>()
+                    .FirstOrDefault(s => s.Id == route.RetailShopId.Value);
+
+                if (retailShop?.CoordinateX != null && retailShop?.CoordinateY != null)
+                {
+                    // Uzaklık kontrolü
+                    var haversine = new HaversineUtility();
+                    var storePosition = new Position
+                    {
+                        Latitude = Convert.ToDouble(retailShop.CoordinateX.Value), // eski projede Convert.ToDouble kullanılıyor
+                        Longitude = Convert.ToDouble(retailShop.CoordinateY.Value)  // eski projede Convert.ToDouble kullanılıyor
+                    };
+
+                    var currentPosition = new Position
+                    {
+                        Latitude = GlobalVariables.MemberLastCoordinate.Latitude,
+                        Longitude = GlobalVariables.MemberLastCoordinate.Longitude
+                    };
+
+                    var distanceMeters = haversine.GetDistanceInMeters(currentPosition, storePosition);
+
+                    if (distanceMeters > 500)
+                    {
+                        await DisplayAlert("UZAKTASINIZ", 
+                            $"Bu mağaza için sisteme tanımlı koordinatın yaklaşık olarak {distanceMeters:F2} metre uzağındasınız. Mağazadan çıkış yapabilmek için mağaza yakınında bulunmalısınız.", 
+                            "Tamam");
+                        return false;
+                    }
+                }
+
+                // Fotoğraf kontrolü (en az 1 fotoğraf olmalı)
+                var photos = db.Table<entMemberRoutePhoto>()
+                    .Where(p => p.MemberRouteId == routeId)
+                    .ToList();
+
+                if (photos.Count < 1)
+                {
+                    await DisplayAlert("Raf Düzeni Fotoğrafı Eksik", 
+                        "Mağazaya girişinizi fotoğraf çekerek belgelediniz fakat raf düzeninize ait fotoğraf yok.\r\n\r\nÖncelikle fotoğraf çekiniz.", 
+                        "Tamam");
+                    return false;
+                }
+
+                // Eksik ürün girişi kontrolü
+                var unenteredProducts = db.Table<entMemberRouteDetail>()
+                    .Where(d => d.CreatedOn == null && d.MemberRouteId == routeId)
+                    .ToList();
+
+                if (unenteredProducts.Count > 0)
+                {
+                    var result = await DisplayAlert("Eksik Veri Girişi", 
+                        $"Toplam {unenteredProducts.Count} ürünün veri girişini yapmadınız. Çıkmanız halinde eksik ürün girişi yaptığınız yöneticinize bildirilecektir.\r\n\r\nYine de çıkmak istiyor musunuz?", 
+                        "ÇIKIŞI ONAYLIYORUM", "VAZGEÇ");
+                    
+                    return result;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Çıkış validasyonu sırasında hata oluştu");
+                await DisplayAlert("Hata", $"Çıkış validasyonu sırasında bir hata oluştu: {ex.Message}", "Tamam");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Mağazadan çıkış işlemini tamamlar - eski projeye göre geliştirilmiş
+        /// </summary>
+        private async Task CompleteExitShop()
+        {
+            try
+            {
+                _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ BAŞLADI ===");
+                _logger.LogInformation($"EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
+                
+                using var db = new SQLiteConnection(_dbPath);
+                
+                // EntMemberRouteId null kontrolü
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    _logger.LogError("EntMemberRouteId is null or empty in CompleteExitShop");
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+                
+                // Route'u güncelle
+                var routeId = int.Parse(EntMemberRouteId);
+                var route = db.Table<entMemberRoute>()
+                    .FirstOrDefault(r => r.Id == routeId);
+                
+                if (route != null)
+                {
+                    // Çıkış tarihini kaydet
+                    route.ExitOn = DateTime.Now;
+                    route.IsSentToServer = false; // Server'a gönderilmemiş olarak işaretle
+                    
+                    _logger.LogInformation($"Route güncelleniyor - ID: {route.Id}, ExitOn: {route.ExitOn}, IsSentToServer: {route.IsSentToServer}");
+                    
+                    try
+                    {
+                        db.Update(route);
+                        _logger.LogInformation($"Store exit recorded successfully for {StoreName} at {DateTime.Now}");
+                    }
+                    catch (Exception updateEx)
+                    {
+                        _logger.LogError(updateEx, $"Route güncelleme hatası - ID: {route.Id}");
+                        
+                        // Alternatif: SQL komutu ile güncelle
+                        try
+                        {
+                            db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
+                                route.ExitOn, route.IsSentToServer, route.Id);
+                            _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                        }
+                        catch (Exception sqlEx)
+                        {
+                            _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
+                            throw; // Hata fırlat
+                        }
+                    }
+                    
+                    // Çıkış istatistiklerini logla
+                    _logger.LogInformation($"=== ÇIKIŞ İSTATİSTİKLERİ ===");
+                    _logger.LogInformation($"Giriş Zamanı: {route.EntryOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
+                    _logger.LogInformation($"Çıkış Zamanı: {route.ExitOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
+                    
+                    if (route.EntryOn.HasValue && route.ExitOn.HasValue)
+                    {
+                        var duration = route.ExitOn.Value - route.EntryOn.Value;
+                        _logger.LogInformation($"Mağazada Geçirilen Süre: {duration.Hours} saat {duration.Minutes} dakika");
+                    }
+                    
+                    // Fotoğraf sayısını kontrol et
+                    var photoCount = db.Table<entMemberRoutePhoto>()
+                        .Where(p => p.MemberRouteId == routeId)
+                        .Count();
+                    _logger.LogInformation($"Çekilen Fotoğraf Sayısı: {photoCount}");
+                    
+                    // Ürün girişi sayısını kontrol et
+                    var productCount = db.Table<entMemberRouteDetail>()
+                        .Where(d => d.MemberRouteId == routeId && d.CreatedOn != null)
+                        .Count();
+                    _logger.LogInformation($"Girilen Ürün Sayısı: {productCount}");
+                }
+                else
+                {
+                    _logger.LogError($"Route bulunamadı - EntMemberRouteId: {EntMemberRouteId}");
+                    await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                    return;
+                }
+
+                _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ TAMAMLANDI ===");
+                
+                // Başarı mesajı göster
+                await DisplayAlert("Başarılı", 
+                    $"Mağazadan çıkış işlemi tamamlandı.\r\n\r\n" +
+                    $"Mağaza: {StoreName}\r\n" +
+                    $"Çıkış Zamanı: {DateTime.Now:dd.MM.yyyy HH:mm}\r\n\r\n" +
+                    $"Ana menüye yönlendiriliyorsunuz.", 
+                    "Tamam");
+                
+                // Ana menüye dön
+                await Shell.Current.GoToAsync("///AboutMePage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Çıkış işlemi tamamlanırken hata oluştu");
+                await DisplayAlert("Hata", $"Çıkış işlemi tamamlanırken bir hata oluştu: {ex.Message}", "Tamam");
             }
         }
         #endregion

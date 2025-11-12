@@ -56,7 +56,7 @@ namespace MerchPlusMAUI.Controls
             // Ana sayfaya yönlendirme
             if (MauiShell.Current != null)
             {
-                MauiShell.Current.GoToAsync("//AboutMe");
+                MauiShell.Current.GoToAsync("//AboutMePage");
             }
         }
 
@@ -196,7 +196,7 @@ namespace MerchPlusMAUI.Controls
                 }
 
                 // Sync photos
-                var photos = db.Table<entMemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
+                var photos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
                 if (photos.Any())
                 {
                     await SyncPhotos(photos, db);
@@ -243,16 +243,16 @@ namespace MerchPlusMAUI.Controls
                 var syncData = new MemberRouteSyncData
                 {
                     MemberRoute = route,
-                    MemberRouteDetail = db.Table<entMemberRouteDetail>()
+                    MemberRouteDetail = db.Table<MemberRouteDetail>()
                         .Where(d => d.MemberRouteId == route.Id)
                         .ToList(),
                     MemberRoutePhoto = db.Table<entMemberRoutePhoto>()
                         .Where(p => p.MemberRouteId == route.Id)
                         .ToList(),
-                    SalesOrder = db.Table<entSalesOrder>()
+                    SalesOrder = db.Table<SalesOrder>()
                         .Where(s => s.MemberRouteId == route.Id)
                         .ToList(),
-                    ProductExpiration = db.Table<entProductExpiration>()
+                    ProductExpiration = db.Table<ProductExpiration>()
                         .Where(p => p.MemberRouteId == route.Id)
                         .ToList()
                 };
@@ -260,8 +260,8 @@ namespace MerchPlusMAUI.Controls
                 if (syncData.SalesOrder.Any())
                 {
                     var salesOrderIds = syncData.SalesOrder.Select(s => s.Id).ToList();
-                    syncData.SalesOrderDetail = db.Table<entSalesOrderDetail>()
-                        .Where(d => d.SalesOrderId.HasValue && salesOrderIds.Contains(d.SalesOrderId.Value))
+                    syncData.SalesOrderDetail = db.Table<SalesOrderDetail>()
+                        .Where(d => salesOrderIds.Contains(d.SalesOrderId))
                         .ToList();
                 }
 
@@ -284,7 +284,7 @@ namespace MerchPlusMAUI.Controls
             }
         }
 
-        private async Task SyncPhotos(List<entMemberDisplayPhotos> photos, SQLiteConnection db)
+        private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
         {
             using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

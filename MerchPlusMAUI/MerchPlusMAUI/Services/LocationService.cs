@@ -90,6 +90,20 @@ namespace MerchPlusMAUI.Services
                 {
                     try
                     {
+                        _logger.LogInformation("=== LOCATIONSERVICE KONUM ALMA DENEMESİ ===");
+                        
+                        // Konum iznini kontrol et
+                        var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+                        _logger.LogInformation($"LocationService - Konum izni durumu: {status}");
+                        
+                        if (status != PermissionStatus.Granted)
+                        {
+                            _logger.LogWarning("LocationService - Konum izni verilmemiş, izin isteniyor...");
+                            status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                            _logger.LogInformation($"LocationService - İzin isteme sonucu: {status}");
+                        }
+                        
+                        _logger.LogInformation("LocationService - Konum alınıyor... (Timeout: 10 saniye)");
                         var location = await Geolocation.GetLocationAsync(new GeolocationRequest
                         {
                             DesiredAccuracy = GeolocationAccuracy.Medium,
@@ -133,7 +147,14 @@ namespace MerchPlusMAUI.Services
                             
                             db.Insert(coordinate);
                             
-                            _logger.LogInformation($"Konum alındı: {location.Latitude}, {location.Longitude}");
+                            _logger.LogInformation($"=== LOCATIONSERVICE KONUM ALINDI ===");
+                            _logger.LogInformation($"Konum: Lat={location.Latitude}, Lon={location.Longitude}, Accuracy={location.Accuracy}");
+                            _logger.LogInformation($"GlobalVariables güncellendi: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                            _logger.LogInformation($"Veritabanına kaydedildi: MemberId={memberId}, LastUpdateTime={coordinate.LastUpdateTime}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("LocationService: Konum alınamadı (location null)");
                         }
                     }
                     catch (Exception ex)

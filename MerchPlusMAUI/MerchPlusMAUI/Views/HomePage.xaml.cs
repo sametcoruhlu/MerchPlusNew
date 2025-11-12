@@ -221,29 +221,57 @@ namespace MerchPlusMAUI.Views
                     UpdateProgress(75, "Konum servisi başlatılıyor...");
                     try
                     {
+                        _logger.LogInformation($"=== KONUM SERVİSİ BAŞLATMA KONTROLÜ ===");
+                        _logger.LogInformation($"GlobalVariables.MemberLocationAgentStarted: {GlobalVariables.MemberLocationAgentStarted}");
+                        _logger.LogInformation($"_locationService null mu?: {_locationService == null}");
+                        
+                        // Veritabanından son konum bilgisini yükle
+                        await LoadLastKnownLocation();
+                        
+                        _logger.LogInformation($"=== KONUM SERVİSİ DURUMU ===");
+                        _logger.LogInformation($"GlobalVariables.MemberLocationAgentStarted: {GlobalVariables.MemberLocationAgentStarted}");
+                        _logger.LogInformation($"_locationService null mu?: {_locationService == null}");
+                        _logger.LogInformation($"GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                        
                         if (!GlobalVariables.MemberLocationAgentStarted)
                         {
                             GlobalVariables.MemberLocationAgentStarted = true;
                             if (_locationService != null)
                             {
+                                _logger.LogInformation("LocationAgentService başlatılıyor...");
                                 await _locationService.StartLocationTracking();
-                                _logger.LogInformation("Location service started successfully");
+                                _logger.LogInformation("LocationAgentService başarıyla başlatıldı");
+                                
+                                // Başlatma sonrası GlobalVariables kontrolü
+                                _logger.LogInformation($"Başlatma sonrası GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                                
+                                // 5 saniye bekle ve tekrar kontrol et
+                                await Task.Delay(5000);
+                                _logger.LogInformation($"5 saniye sonra GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                                
+                                // Eğer hala konum yoksa manuel test yap
+                                if (GlobalVariables.MemberLastCoordinate.Latitude == 0 && GlobalVariables.MemberLastCoordinate.Longitude == 0)
+                                {
+                                    _logger.LogWarning("Konum servisi çalışmıyor, manuel konum testi yapılıyor...");
+                                    await TestLocationManually();
+                                }
                             }
                             else
                             {
-                                _logger.LogWarning("Location service is null, skipping location tracking");
+                                _logger.LogError("LocationAgentService null! Konum servisi başlatılamadı");
                             }
                         }
                         else
                         {
-                            _logger.LogInformation("Location service already started");
+                            _logger.LogInformation("Konum servisi zaten başlatılmış");
+                            _logger.LogInformation($"Mevcut GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Location service start failed");
+                        _logger.LogError(ex, "Konum servisi başlatma hatası");
                         // Don't throw here, location service failure shouldn't stop the app
-                        _logger.LogWarning("Continuing without location service");
+                        _logger.LogWarning("Konum servisi olmadan devam ediliyor");
                     }
 
                     UpdateProgress(85, "Veritabanı senkronizasyonu başlatılıyor...");
@@ -2112,6 +2140,104 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             _httpClient?.Dispose();
+        }
+
+        /// <summary>
+        /// Veritabanından son bilinen konum bilgisini yükler
+        /// </summary>
+        private async Task LoadLastKnownLocation()
+        {
+            try
+            {
+                _logger.LogInformation("=== SON BİLİNEN KONUM YÜKLENİYOR ===");
+                
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                db.CreateTable<MemberCoordinate>();
+                
+                var lastCoordinate = db.Table<MemberCoordinate>()
+                    .OrderByDescending(c => c.LastUpdateTime)
+                    .FirstOrDefault();
+                
+                if (lastCoordinate != null)
+                {
+                    // GlobalVariables'a son konumu yükle
+                    GlobalVariables.MemberLastCoordinate = new Location
+                    {
+                        Latitude = lastCoordinate.Latitude,
+                        Longitude = lastCoordinate.Longitude
+                    };
+                    
+                    _logger.LogInformation($"Son konum yüklendi: Lat={lastCoordinate.Latitude}, Lon={lastCoordinate.Longitude}, LastUpdateTime={lastCoordinate.LastUpdateTime}");
+                    _logger.LogInformation($"GlobalVariables güncellendi: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                }
+                else
+                {
+                    _logger.LogWarning("Veritabanında hiç konum bilgisi bulunamadı! GlobalVariables sıfır değerlerde kalacak.");
+                    _logger.LogInformation($"Mevcut GlobalVariables.MemberLastCoordinate: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Son konum yüklenirken hata oluştu");
+            }
+        }
+
+        /// <summary>
+        /// Manuel konum testi yapar
+        /// </summary>
+        private async Task TestLocationManually()
+        {
+            try
+            {
+                _logger.LogInformation("=== MANUEL KONUM TESTİ BAŞLADI ===");
+                
+                // Konum iznini kontrol et
+                var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+                _logger.LogInformation($"Manuel test - Konum izni durumu: {status}");
+                
+                if (status != PermissionStatus.Granted)
+                {
+                    _logger.LogWarning("Manuel test - Konum izni verilmemiş, izin isteniyor...");
+                    status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                    _logger.LogInformation($"Manuel test - İzin isteme sonucu: {status}");
+                }
+                
+                if (status == PermissionStatus.Granted)
+                {
+                    _logger.LogInformation("Manuel test - Konum alınıyor...");
+                    var location = await Geolocation.GetLocationAsync(new GeolocationRequest
+                    {
+                        DesiredAccuracy = GeolocationAccuracy.Medium,
+                        Timeout = TimeSpan.FromSeconds(10)
+                    });
+                    
+                    if (location != null)
+                    {
+                        _logger.LogInformation($"Manuel test - Konum alındı: Lat={location.Latitude}, Lon={location.Longitude}");
+                        
+                        // GlobalVariables'a kaydet
+                        GlobalVariables.MemberLastCoordinate = new Location
+                        {
+                            Latitude = location.Latitude,
+                            Longitude = location.Longitude
+                        };
+                        
+                        _logger.LogInformation($"Manuel test - GlobalVariables güncellendi: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                    }
+                    else
+                    {
+                        _logger.LogError("Manuel test - Konum alınamadı (location null)");
+                    }
+                }
+                else
+                {
+                    _logger.LogError($"Manuel test - Konum izni reddedildi: {status}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Manuel konum testi sırasında hata oluştu");
+            }
         }
     }
 

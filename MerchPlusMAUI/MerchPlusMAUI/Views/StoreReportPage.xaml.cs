@@ -169,9 +169,6 @@ namespace MerchPlusMAUI.Views
                 
                 await LoadReportDataAsync();
                 
-                // Buton durumlarını güncelle
-                UpdateButtonVisibility();
-                
                 Console.WriteLine("=== InitializeReportAsync Completed ===");
             }
             catch (Exception ex)
@@ -797,116 +794,6 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Event Handlers
-        private async void OnEntryContinueButtonClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                // Butonun mevcut durumunu kontrol et
-                var currentText = EntryContinueText.Text;
-                
-                if (currentText == "Giriş")
-                {
-                    _logger.LogInformation($"Entry button clicked for store: {StoreName}");
-                    
-                    // Mağazaya giriş yap (EntryOn alanını güncelle)
-                    await UpdateStoreEntryStatus(true);
-                    
-                    // Buton durumlarını güncelle
-                    UpdateButtonVisibility();
-                    
-                    // StoreProductsPage'e git
-                    var parameters = new Dictionary<string, object>
-                    {
-                        ["entMemberRouteId"] = EntMemberRouteId,
-                        ["StoreName"] = StoreName
-                    };
-                    
-                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
-                }
-                else if (currentText == "Devam")
-                {
-                    _logger.LogInformation($"Continue button clicked for store: {StoreName}");
-                    
-                    // Direkt StoreProductsPage'e git
-                    var parameters = new Dictionary<string, object>
-                    {
-                        ["entMemberRouteId"] = EntMemberRouteId,
-                        ["StoreName"] = StoreName
-                    };
-                    
-                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in entry/continue button click");
-                await DisplayAlert("Hata", "İşlem sırasında hata oluştu.", "Tamam");
-            }
-        }
-
-        private async void OnExitButtonClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                _logger.LogInformation($"Exit button clicked for store: {StoreName}");
-                
-                // Onay al
-                bool result = await DisplayAlert("Mağazadan Çıkış", 
-                    $"{StoreName} mağazasından çıkış yapmak istediğinizden emin misiniz?", 
-                    "Evet", "Hayır");
-                
-                if (result)
-                {
-                    // Mağazadan çıkış yap (ExitOn alanını güncelle)
-                    await UpdateStoreEntryStatus(false);
-                    
-                    // Buton durumlarını güncelle
-                    UpdateButtonVisibility();
-                    
-                    // Başarı mesajı
-                    await DisplayAlert("Başarılı", 
-                        $"{StoreName} mağazasından başarıyla çıkış yaptınız.", 
-                        "Tamam");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in exit button click");
-                await DisplayAlert("Hata", "Mağazadan çıkış yapılırken hata oluştu.", "Tamam");
-            }
-        }
-
-        private async void OnBackToProductsClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                var parameters = new Dictionary<string, object>
-                {
-                    ["entMemberRouteId"] = EntMemberRouteId,
-                    ["StoreName"] = StoreName
-                };
-                
-                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error navigating to products page");
-                await DisplayAlert("Hata", "Ürünler sayfasına geçiş yapılırken hata oluştu.", "Tamam");
-            }
-        }
-
-        private async void OnBackToStoreClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                await Shell.Current.GoToAsync("///StoresPage");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error navigating to stores page");
-                await DisplayAlert("Hata", "Mağazalar sayfasına geçiş yapılırken hata oluştu.", "Tamam");
-            }
-        }
         #endregion
 
         #region Helper Methods
@@ -959,68 +846,6 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private void UpdateButtonVisibility()
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(EntMemberRouteId))
-                {
-                    _logger.LogWarning("EntMemberRouteId is empty in UpdateButtonVisibility");
-                    return;
-                }
-
-                if (!int.TryParse(EntMemberRouteId, out int memberRouteId))
-                {
-                    _logger.LogWarning($"Invalid EntMemberRouteId in UpdateButtonVisibility: {EntMemberRouteId}");
-                    return;
-                }
-
-                using var db = new SQLiteConnection(_dbPath);
-                
-                var memberRoute = db.Table<entMemberRoute>().FirstOrDefault(x => x.Id == memberRouteId);
-                if (memberRoute != null)
-                {
-                    bool hasEntry = memberRoute.EntryOn != null;
-                    bool hasExit = memberRoute.ExitOn != null;
-
-                    // Butonları ana thread'de güncelle
-                    MainThread.BeginInvokeOnMainThread(() =>
-                    {
-                        if (hasExit)
-                        {
-                            // Çıkış yapılmış - giriş butonu göster
-                            EntryContinueIcon.Text = "\ue89c";
-                            EntryContinueText.Text = "Giriş";
-                            ExitButton.IsVisible = false;
-                        }
-                        else if (hasEntry)
-                        {
-                            // Giriş yapılmış ama çıkış yapılmamış - devam butonu göster
-                            EntryContinueIcon.Text = "\ue037";
-                            EntryContinueText.Text = "Devam";
-                            ExitButton.IsVisible = true;
-                        }
-                        else
-                        {
-                            // Hiç giriş yapılmamış - giriş butonu göster
-                            EntryContinueIcon.Text = "\ue89c";
-                            EntryContinueText.Text = "Giriş";
-                            ExitButton.IsVisible = false;
-                        }
-                    });
-
-                    _logger.LogInformation($"Button visibility updated - Entry: {hasEntry}, Exit: {hasExit}");
-                }
-                else
-                {
-                    _logger.LogWarning($"MemberRoute not found for id: {memberRouteId}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating button visibility");
-            }
-        }
 
         private async void OnHomeButtonClicked(object sender, EventArgs e)
         {
@@ -1029,7 +854,7 @@ namespace MerchPlusMAUI.Views
                 _logger.LogInformation("Home button clicked from StoreReportPage");
                 
                 // Ana sayfaya git
-                await Shell.Current.GoToAsync("///HomePage");
+                await Shell.Current.GoToAsync("///AboutMePage");
             }
             catch (Exception ex)
             {

@@ -11,6 +11,7 @@ namespace MerchPlusMAUI.Views
     {
         private readonly ILogger<StoreVitrinePhotoPage> _logger;
         private string _entMemberRouteId;
+        private string _storeName = "Mağaza";
         private readonly string _dbPath;
 
         public StoreVitrinePhotoPage(ILogger<StoreVitrinePhotoPage> logger)
@@ -42,6 +43,28 @@ namespace MerchPlusMAUI.Views
                         {
                             _entMemberRouteId = activeRoute[0].Id.ToString();
                             System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Active MemberRouteId from DB: {_entMemberRouteId}");
+                        }
+                    }
+                }
+                
+                // StoreName'i al
+                if (!string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    using (var db = new SQLiteConnection(_dbPath))
+                    {
+                        var route = db.Table<entMemberRoute>()
+                            .FirstOrDefault(r => r.Id == int.Parse(_entMemberRouteId));
+                        
+                        if (route?.RetailShopId != null)
+                        {
+                            var retailShop = db.Table<entRetailShop>()
+                                .FirstOrDefault(s => s.Id == route.RetailShopId.Value);
+                            
+                            if (retailShop != null)
+                            {
+                                _storeName = retailShop.Name ?? "Mağaza";
+                                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: StoreName from DB: {_storeName}");
+                            }
                         }
                     }
                 }
@@ -144,14 +167,14 @@ namespace MerchPlusMAUI.Views
                     {
                         var route = routeQuery[0];
 
-                        // entMemberRoutePhoto tablosuna raf fotoğrafını kaydet
+                        // entMemberRoutePhoto tablosuna raf fotoğrafını kaydet (eski projeye göre)
                         var shelfPhoto = new entMemberRoutePhoto
                         {
                             CreatedOn = DateTime.Now,
-                            IsSentToServer = false,
-                            MemberId = route.MemberId,
+                            IsSentToServer = false, // Eski projede IsSentToServer kullanılıyor
+                            MemberId = route.MemberId, // Eski projede MemberId kullanılıyor
                             MemberRouteId = route.Id,
-                            ProfilePicturePath = base64Photo
+                            ProfilePicturePath = base64Photo // Eski projede ProfilePicturePath kullanılıyor
                         };
 
                         db.Insert(shelfPhoto);
@@ -171,62 +194,41 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async Task SaveDisplayPhotoToDatabase(byte[] photoBytes)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(_entMemberRouteId))
-                {
-                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: MemberRouteId bulunamadı");
-                    return;
-                }
-
-                // Fotoğrafı Base64 string'e çevir
-                string base64Photo = Convert.ToBase64String(photoBytes);
-
-                using (var db = new SQLiteConnection(_dbPath))
-                {
-                    // entMemberRoute tablosundan route bilgilerini al
-                    var routeQuery = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id = ?", Convert.ToInt32(_entMemberRouteId));
-                    if (routeQuery != null && routeQuery.Count > 0)
-                    {
-                        var route = routeQuery[0];
-
-                        // entMemberRoutePhoto tablosuna teşhir fotoğrafını kaydet
-                        var displayPhoto = new entMemberRoutePhoto
-                        {
-                            CreatedOn = DateTime.Now,
-                            IsSentToServer = false,
-                            MemberId = route.MemberId,
-                            MemberRouteId = route.Id,
-                            ProfilePicturePath = base64Photo
-                        };
-
-                        db.Insert(displayPhoto);
-                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Teşhir fotoğrafı veritabanına kaydedildi");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Route bulunamadı");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Teşhir fotoğrafı kaydetme hatası: {ex.Message}");
-                _logger?.LogError(ex, "Error saving display photo to database");
-                throw;
-            }
-        }
-
         private async void OnBackClicked(object sender, EventArgs e)
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Geri butonuna tıklandı");
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
                 
-                // StoreProductsPage'e geri dön
-                await Shell.Current.GoToAsync("//StoreProductsPage");
+                // EntMemberRouteId kontrolü
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: _entMemberRouteId is null or empty, trying to get from GlobalVariables");
+                    
+                    // GlobalVariables'dan tekrar al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        _entMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Got _entMemberRouteId from GlobalVariables: {_entMemberRouteId}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
+                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                        return;
+                    }
+                }
+                
+                // StoreProductsPage'e geri dön - navigation parametreleri ile
+                var navigationParameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = _entMemberRouteId,
+                    ["StoreName"] = _storeName
+                };
+                
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
+                await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
             }
             catch (Exception ex)
             {
@@ -241,9 +243,36 @@ namespace MerchPlusMAUI.Views
             try
             {
                 System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Tamamla butonuna tıklandı");
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
                 
-                // StoreProductsPage'e geri dön
-                await Shell.Current.GoToAsync("//StoreProductsPage");
+                // EntMemberRouteId kontrolü
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: _entMemberRouteId is null or empty, trying to get from GlobalVariables");
+                    
+                    // GlobalVariables'dan tekrar al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        _entMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Got _entMemberRouteId from GlobalVariables: {_entMemberRouteId}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
+                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                        return;
+                    }
+                }
+                
+                // StoreProductsPage'e geri dön - navigation parametreleri ile
+                var navigationParameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = _entMemberRouteId,
+                    ["StoreName"] = _storeName
+                };
+                
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
+                await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
             }
             catch (Exception ex)
             {

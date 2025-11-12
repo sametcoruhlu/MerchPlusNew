@@ -30,6 +30,7 @@ namespace MerchPlusMAUI.Models
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public DateTime CreatedOn { get; set; }
+        public DateTime? SentToServerOn { get; set; }
     }
 
     [SQLite.Table("entMemberRoutePhoto")]
@@ -52,6 +53,8 @@ namespace MerchPlusMAUI.Models
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
+        public bool IsSentToServer { get; set; } = false;
+        public DateTime? SentToServerOn { get; set; }
     }
 
     [SQLite.Table("entSalesOrderDetail")]
@@ -64,6 +67,8 @@ namespace MerchPlusMAUI.Models
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice { get; set; }
+        public bool IsSentToServer { get; set; } = false;
+        public DateTime? SentToServerOn { get; set; }
     }
 
     [SQLite.Table("entProductExpiration")]
@@ -76,6 +81,7 @@ namespace MerchPlusMAUI.Models
         public string ProductId { get; set; }
         public DateTime ExpirationDate { get; set; }
         public int Quantity { get; set; }
+        public DateTime? SentToServerOn { get; set; }
     }
 
     [SQLite.Table("entMemberDisplayPhotos")]
@@ -90,6 +96,7 @@ namespace MerchPlusMAUI.Models
         public DateTime CreatedOn { get; set; }
         public bool IsSentToServer { get; set; }
         public int PromotionTypeId { get; set; }
+        public DateTime? SentToServerOn { get; set; }
     }
 
     [SQLite.Table("entConfiguration")]
@@ -107,19 +114,22 @@ namespace MerchPlusMAUI.Models
         public entMemberRoute MemberRoute { get; set; } = new();
 
         [JsonPropertyName("memberRouteDetail")]
-        public List<entMemberRouteDetail> MemberRouteDetail { get; set; } = new();
+        public List<MemberRouteDetail> MemberRouteDetail { get; set; } = new();
 
         [JsonPropertyName("memberRoutePhoto")]
         public List<entMemberRoutePhoto> MemberRoutePhoto { get; set; } = new();
 
         [JsonPropertyName("salesOrder")]
-        public List<entSalesOrder> SalesOrder { get; set; } = new();
+        public List<SalesOrder> SalesOrder { get; set; } = new();
 
         [JsonPropertyName("salesOrderDetail")]
-        public List<entSalesOrderDetail> SalesOrderDetail { get; set; } = new();
+        public List<SalesOrderDetail> SalesOrderDetail { get; set; } = new();
 
         [JsonPropertyName("productExpiration")]
-        public List<entProductExpiration> ProductExpiration { get; set; } = new();
+        public List<ProductExpiration> ProductExpiration { get; set; } = new();
+
+        [JsonPropertyName("memberDisplayPhotos")]
+        public List<MemberDisplayPhotos> MemberDisplayPhotos { get; set; } = new();
     }
 
     public class CustomerProductPicture

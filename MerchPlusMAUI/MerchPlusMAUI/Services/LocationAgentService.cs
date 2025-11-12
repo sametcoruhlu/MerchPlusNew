@@ -58,8 +58,11 @@ namespace MerchPlusMAUI.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("=== LOCATIONAGENTSERVICE STARTASYNC BAŞLADI ===");
+            _logger.LogInformation($"CancellationToken.IsCancellationRequested: {cancellationToken.IsCancellationRequested}");
             _logger.LogInformation("Location service is starting.");
             await ExecuteAsync();
+            _logger.LogInformation("=== LOCATIONAGENTSERVICE STARTASYNC TAMAMLANDI ===");
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -71,6 +74,10 @@ namespace MerchPlusMAUI.Services
 
         private async Task ExecuteAsync()
         {
+            _logger.LogInformation("=== EXECUTEASYNC BAŞLADI ===");
+            _logger.LogInformation($"_isRunning: {_isRunning}");
+            _logger.LogInformation($"_cancellationTokenSource.Token.IsCancellationRequested: {_cancellationTokenSource.Token.IsCancellationRequested}");
+            
             if (_isRunning)
             {
                 _logger.LogInformation("Location service is already running");
@@ -78,14 +85,20 @@ namespace MerchPlusMAUI.Services
             }
 
             _isRunning = true;
+            _logger.LogInformation("Location service execution started");
 
             try
             {
+                int loopCount = 0;
                 while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
+                    loopCount++;
+                    _logger.LogInformation($"=== KONUM ALMA DÖNGÜSÜ #{loopCount} ===");
                     await UpdateLocationAsync();
+                    _logger.LogInformation($"Konum alma döngüsü #{loopCount} tamamlandı, 5 dakika bekleniyor...");
                     await Task.Delay(TimeSpan.FromMinutes(5), _cancellationTokenSource.Token);
                 }
+                _logger.LogInformation("Konum alma döngüsü sonlandırıldı");
             }
             catch (System.OperationCanceledException)
             {
@@ -98,6 +111,7 @@ namespace MerchPlusMAUI.Services
             finally
             {
                 _isRunning = false;
+                _logger.LogInformation("Location service execution ended");
             }
         }
 
@@ -105,6 +119,21 @@ namespace MerchPlusMAUI.Services
         {
             try
             {
+                _logger.LogInformation("=== KONUM ALMA DENEMESİ BAŞLADI ===");
+                _logger.LogInformation($"Geolocation servisi null mu?: {_geolocation == null}");
+                
+                // Konum iznini kontrol et
+                var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+                _logger.LogInformation($"Konum izni durumu: {status}");
+                
+                if (status != PermissionStatus.Granted)
+                {
+                    _logger.LogWarning("Konum izni verilmemiş, izin isteniyor...");
+                    status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                    _logger.LogInformation($"İzin isteme sonucu: {status}");
+                }
+                
+                _logger.LogInformation("Konum alınıyor... (Timeout: 30 saniye)");
                 var location = await _geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
@@ -113,6 +142,13 @@ namespace MerchPlusMAUI.Services
 
                 if (location != null)
                 {
+                    // GlobalVariables'a konumu kaydet (bu eksikti!)
+                    GlobalVariables.MemberLastCoordinate = new Location
+                    {
+                        Latitude = location.Latitude,
+                        Longitude = location.Longitude
+                    };
+                    
                     int memberId = 1; // Varsayılan değer
                     string memberIdString = GlobalVariables.CurrentMember?.Id ?? string.Empty;
                     
@@ -137,7 +173,14 @@ namespace MerchPlusMAUI.Services
                     connection.CreateTable<MemberCoordinate>();
                     connection.Insert(coordinate);
 
-                    _logger.LogInformation($"Updated location for member {coordinate.MemberId}: Lat={coordinate.Latitude}, Lon={coordinate.Longitude}");
+                    _logger.LogInformation($"=== LOCATIONAGENTSERVICE KONUM ALINDI ===");
+                    _logger.LogInformation($"Konum: Lat={location.Latitude}, Lon={location.Longitude}");
+                    _logger.LogInformation($"GlobalVariables güncellendi: Lat={GlobalVariables.MemberLastCoordinate.Latitude}, Lon={GlobalVariables.MemberLastCoordinate.Longitude}");
+                    _logger.LogInformation($"Veritabanına kaydedildi: MemberId={memberId}, LastUpdateTime={coordinate.LastUpdateTime}");
+                }
+                else
+                {
+                    _logger.LogWarning("LocationAgentService: Konum alınamadı (location null)");
                 }
             }
             catch (Exception ex)

@@ -8,6 +8,7 @@ using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.ApplicationModel;
 using System.Diagnostics;
 using MerchPlusMAUI.Views;
+using MerchPlusMAUI.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
@@ -33,11 +34,49 @@ namespace MerchPlusMAUI
                 _serviceProvider = serviceProvider;
                 MainPage = new AppShell();
                 SetupExceptionHandling();
+                
+                // Servisleri başlat
+                _ = Task.Run(async () => await StartServicesAsync());
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"InitializeComponent hatası: {ex.Message}");
                 _logger?.LogError(ex, "App başlatılırken hata");
+            }
+        }
+
+        /// <summary>
+        /// Arka plan servislerini başlatır
+        /// </summary>
+        private async Task StartServicesAsync()
+        {
+            try
+            {
+                _logger?.LogInformation("Starting background services...");
+
+                // DatabaseSyncService'i başlat
+                var databaseSyncService = _serviceProvider.GetService<DatabaseSyncService>();
+                if (databaseSyncService != null)
+                {
+                    await databaseSyncService.StartAsync(CancellationToken.None);
+                    GlobalVariables.DatabaseSyncStarted = true;
+                    _logger?.LogInformation("DatabaseSyncService started");
+                }
+
+                // BackgroundTimerService'i başlat
+                var backgroundTimerService = _serviceProvider.GetService<BackgroundTimerService>();
+                if (backgroundTimerService != null)
+                {
+                    await backgroundTimerService.StartAsync(CancellationToken.None);
+                    GlobalVariables.BackgroundTimerStarted = true;
+                    _logger?.LogInformation("BackgroundTimerService started");
+                }
+
+                _logger?.LogInformation("All background services started successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error starting background services");
             }
         }
 

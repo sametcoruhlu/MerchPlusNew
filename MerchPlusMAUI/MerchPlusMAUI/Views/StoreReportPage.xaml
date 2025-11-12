@@ -76,7 +76,7 @@
 
         <!-- Bottom Navigation with Entry/Exit Buttons -->
         <Grid Grid.Row="2" 
-              ColumnDefinitions="*,*,*,*,*,*" 
+              ColumnDefinitions="*,*" 
               BackgroundColor="{StaticResource Primary}" 
               Padding="0,5"
               RowSpacing="0"
@@ -123,98 +123,6 @@
                        HorizontalOptions="Center"/>
                 <Grid.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnRefreshButtonClicked"/>
-                </Grid.GestureRecognizers>
-            </Grid>
-            
-            <!-- Giriş/Devam Butonu (duruma göre değişir) -->
-            <Grid x:Name="EntryContinueButton"
-                  Grid.Column="2" 
-                  RowDefinitions="Auto,Auto" 
-                  RowSpacing="2"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <Label x:Name="EntryContinueIcon"
-                       Grid.Row="0"
-                       Text="&#xe89c;"
-                       FontFamily="MaterialIcons"
-                       TextColor="White"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-                <Label x:Name="EntryContinueText"
-                       Grid.Row="1"
-                       Text="Giriş"
-                       TextColor="White"
-                       FontSize="12"
-                       HorizontalOptions="Center"/>
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnEntryContinueButtonClicked"/>
-                </Grid.GestureRecognizers>
-            </Grid>
-
-            <!-- Çıkış Butonu -->
-            <Grid x:Name="ExitButton"
-                  Grid.Column="3" 
-                  RowDefinitions="Auto,Auto" 
-                  RowSpacing="2"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <Label Grid.Row="0"
-                       Text="&#xe5cd;"
-                       FontFamily="MaterialIcons"
-                       TextColor="White"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-                <Label Grid.Row="1"
-                       Text="Çıkış"
-                       TextColor="White"
-                       FontSize="12"
-                       HorizontalOptions="Center"/>
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnExitButtonClicked"/>
-                </Grid.GestureRecognizers>
-            </Grid>
-            
-            <!-- Back to Store Button -->
-            <Grid Grid.Column="4" 
-                  RowDefinitions="Auto,Auto" 
-                  RowSpacing="2"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <Label Grid.Row="0"
-                       Text="&#xe8cc;"
-                       FontFamily="MaterialIcons"
-                       TextColor="White"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-                <Label Grid.Row="1"
-                       Text="Mağaza"
-                       TextColor="White"
-                       FontSize="12"
-                       HorizontalOptions="Center"/>
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnBackToStoreClicked"/>
-                </Grid.GestureRecognizers>
-            </Grid>
-
-            <!-- Back to Products Button -->
-            <Grid Grid.Column="5" 
-                  RowDefinitions="Auto,Auto" 
-                  RowSpacing="2"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <Label Grid.Row="0"
-                       Text="&#xe8f6;"
-                       FontFamily="MaterialIcons"
-                       TextColor="White"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-                <Label Grid.Row="1"
-                       Text="Ürünler"
-                       TextColor="White"
-                       FontSize="12"
-                       HorizontalOptions="Center"/>
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnBackToProductsClicked"/>
                 </Grid.GestureRecognizers>
             </Grid>
         </Grid>
