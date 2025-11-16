@@ -612,18 +612,27 @@ namespace MerchPlusMAUI.Views
             try
             {
                 _logger.LogInformation($"Expiration date clicked - EntMemberRouteId: {EntMemberRouteId}");
+                Console.WriteLine($"[StoreProductsPage] OnExpirationDateClicked - EntMemberRouteId='{EntMemberRouteId}'");
                 
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+
                 // Android: expirationDateActivity.PutExtra("entMemberRouteId", Intent.GetStringExtra("entMemberRouteId"));
                 var parameters = new Dictionary<string, object>
                 {
                     ["entMemberRouteId"] = EntMemberRouteId
                 };
 
-                // TODO: ExpirationDatePage'e navigate et
-                await DisplayAlert("Son Kullanma Tarihi", 
-                    "SKT kontrol sayfası yakında eklenecek.\n" +
-                    $"MemberRouteId: {EntMemberRouteId}", 
-                    "Tamam");
+                Console.WriteLine("[StoreProductsPage] Navigating to ExpirationDatePage with parameters:");
+                foreach (var kvp in parameters)
+                {
+                    Console.WriteLine($"    {kvp.Key} = '{kvp.Value}'");
+                }
+
+                await Shell.Current.GoToAsync("///ExpirationDatePage", parameters);
             }
             catch (Exception ex)
             {

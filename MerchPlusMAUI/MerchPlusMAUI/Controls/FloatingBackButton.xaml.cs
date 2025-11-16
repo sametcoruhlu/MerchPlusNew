@@ -107,6 +107,34 @@ namespace MerchPlusMAUI.Controls
                             }
                             break;
                             
+                        case "ExpirationDatePage":
+                            // ExpirationDatePage'den StoreProductsPage'e geri dön
+                            System.Diagnostics.Debug.WriteLine("FloatingBackButton: Navigating from ExpirationDatePage to StoreProductsPage");
+                            try
+                            {
+                                if (currentPage is ExpirationDatePage expirationDatePage)
+                                {
+                                    var parameters = new Dictionary<string, object>
+                                    {
+                                        ["entMemberRouteId"] = expirationDatePage.EntMemberRouteId,
+                                        ["StoreName"] = expirationDatePage.StoreName
+                                    };
+                                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                }
+                                else
+                                {
+                                    // Parametreler alınamazsa fallback olarak StoresPage'e git
+                                    await Shell.Current.GoToAsync("///StoresPage");
+                                }
+                            }
+                            catch (Exception navEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"FloatingBackButton: ExpirationDatePage navigation error: {navEx.Message}");
+                                // Fallback: StoresPage'e git
+                                await Shell.Current.GoToAsync("///StoresPage");
+                            }
+                            break;
+                            
                         default:
                             // Diğer sayfalar için generic back navigation
                             System.Diagnostics.Debug.WriteLine($"FloatingBackButton: Generic back navigation from {pageName}");

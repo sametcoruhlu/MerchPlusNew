@@ -132,4 +132,11 @@
         ContentTemplate="{DataTemplate views:ErrorPage}"
         Route="ErrorPage" />
 
+    <!-- SKT Raporlama Sayfası -->
+    <ShellContent
+        Title="SKT Raporlama"
+        Icon="dotnet_bot.png"
+        ContentTemplate="{DataTemplate views:ExpirationDatePage}"
+        Route="ExpirationDatePage" />
+
 </Shell>
