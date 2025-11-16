@@ -83,6 +83,13 @@
         ContentTemplate="{DataTemplate views:StoreProductsPage}"
         Route="StoreProductsPage" />
 
+    <!-- Sipariş Sayfası -->
+    <ShellContent
+        Title="Sipariş Girişi"
+        Icon="dotnet_bot.png"
+        ContentTemplate="{DataTemplate views:SalesOrderPage}"
+        Route="SalesOrderPage" />
+
     <!-- Mağaza Raporu Sayfası -->
     <ShellContent
         Title="Mağaza Raporu"

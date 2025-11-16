@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="MerchPlusMAUI.Views.SalesOrderPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
+             Title="Sipariş Girişi"
+             BackgroundColor="#F8F9FA">
+
+    <Grid RowDefinitions="70,*,80">
+        <!-- Header -->
+        <controls:CommonHeader Grid.Row="0" />
+
+        <!-- Main Content -->
+        <ScrollView Grid.Row="1"
+                    Padding="20,10"
+                    BackgroundColor="#F8F9FA">
+            <StackLayout Spacing="20">
+
+                <!-- Store Info -->
+                <Frame BackgroundColor="White"
+                       Padding="20"
+                       CornerRadius="12"
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="8">
+                        <Label Text="Mağaza"
+                               FontSize="14"
+                               TextColor="#6C757D" />
+                        <Label Text="{Binding StoreName}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="#343A40" />
+                        <Label Text="{Binding OrderSummaryText}"
+                               FontSize="14"
+                               TextColor="#6C757D" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Product Selection -->
+                <Frame BackgroundColor="White"
+                       Padding="20"
+                       CornerRadius="12"
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <StackLayout Spacing="15">
+                        <Label Text="Sipariş Kalemi Ekle"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#343A40" />
+
+                        <StackLayout Spacing="6">
+                            <Label Text="Ürün"
+                                   FontSize="14"
+                                   TextColor="#6C757D" />
+                            <Picker ItemsSource="{Binding CustomerProducts}"
+                                    ItemDisplayBinding="{Binding Name}"
+                                    SelectedItem="{Binding SelectedProduct}"
+                                    Title="Ürün seçiniz" />
+                            <Label Text="{Binding SelectedProduct.ProductBarcode, StringFormat='Barkod: {0}'}"
+                                   IsVisible="{Binding HasSelectedProduct}"
+                                   FontSize="13"
+                                   TextColor="#999999" />
+                        </StackLayout>
+
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="12">
+                            <StackLayout Grid.Column="0"
+                                         Spacing="6">
+                                <Label Text="Miktar"
+                                       FontSize="14"
+                                       TextColor="#6C757D" />
+                                <Entry Text="{Binding QuantityText}"
+                                       Placeholder="Adet"
+                                       Keyboard="Numeric"
+                                       MaxLength="6" />
+                            </StackLayout>
+
+                            <StackLayout Grid.Column="1"
+                                         WidthRequest="150"
+                                         Spacing="6">
+                                <Label Text="Paket Tipi"
+                                       FontSize="14"
+                                       TextColor="#6C757D" />
+                                <Picker ItemsSource="{Binding PackageTypes}"
+                                        ItemDisplayBinding="{Binding Name}"
+                                        SelectedItem="{Binding SelectedPackageType}"
+                                        Title="Seçiniz" />
+                            </StackLayout>
+                        </Grid>
+
+                        <Button Text="Listeye Ekle"
+                                BackgroundColor="#DC3545"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                HeightRequest="50"
+                                CornerRadius="25"
+                                Clicked="OnAddItemClicked" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Order Preview -->
+                <Frame BackgroundColor="White"
+                       Padding="0"
+                       CornerRadius="12"
+                       HasShadow="True"
+                       BorderColor="#E9ECEF">
+                    <Grid>
+                        <CollectionView ItemsSource="{Binding OrderPreviewItems}"
+                                        SelectionMode="None">
+                            <CollectionView.EmptyView>
+                                <StackLayout Padding="20"
+                                             Spacing="10"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Center">
+                                    <Label Text="📝"
+                                           FontSize="36"
+                                           HorizontalOptions="Center"
+                                           TextColor="#CED4DA" />
+                                    <Label Text="Henüz sipariş kalemi eklenmedi."
+                                           FontSize="14"
+                                           TextColor="#6C757D"
+                                           HorizontalTextAlignment="Center" />
+                                </StackLayout>
+                            </CollectionView.EmptyView>
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Padding="15"
+                                          ColumnDefinitions="*,Auto"
+                                          RowDefinitions="Auto,Auto"
+                                          ColumnSpacing="10"
+                                          BackgroundColor="Transparent">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Label Grid.Column="0"
+                                               Grid.Row="0"
+                                               Text="{Binding ProductName}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="#343A40" />
+                                        <Label Grid.Column="0"
+                                               Grid.Row="1"
+                                               Text="{Binding PackageTypeName}"
+                                               FontSize="14"
+                                               TextColor="#6C757D" />
+
+                                        <Button Grid.Column="1"
+                                                Grid.RowSpan="2"
+                                                Text="Sil"
+                                                BackgroundColor="#6C757D"
+                                                TextColor="White"
+                                                CornerRadius="20"
+                                                HeightRequest="40"
+                                                WidthRequest="80"
+                                                CommandParameter="{Binding Id}"
+                                                Clicked="OnDeleteItemClicked" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </Frame>
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Bottom Actions -->
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,*"
+              BackgroundColor="White"
+              Padding="20,10"
+              ColumnSpacing="10">
+            <Button Grid.Column="0"
+                    Text="Geri Dön"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    Clicked="OnBackClicked" />
+            <Button Grid.Column="1"
+                    Text="Siparişi Kaydet"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    Clicked="OnSaveClicked" />
+        </Grid>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="3"
+              BackgroundColor="#66000000"
+              IsVisible="{Binding IsBusy}">
+            <Frame HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   BackgroundColor="White"
+                   CornerRadius="12"
+                   Padding="25"
+                   HasShadow="True">
+                <StackLayout Spacing="10"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center">
+                    <ActivityIndicator IsRunning="True"
+                                       Color="#DC3545"
+                                       WidthRequest="40"
+                                       HeightRequest="40" />
+                    <Label Text="İşlem yapılıyor..."
+                           FontSize="14"
+                           TextColor="#343A40"
+                           HorizontalOptions="Center" />
+                </StackLayout>
+            </Frame>
+        </Grid>
+    </Grid>
+</ContentPage>
+

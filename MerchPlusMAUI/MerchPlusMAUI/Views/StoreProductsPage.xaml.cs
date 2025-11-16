@@ -577,18 +577,27 @@ namespace MerchPlusMAUI.Views
             try
             {
                 _logger.LogInformation($"Sales order clicked - EntMemberRouteId: {EntMemberRouteId}");
+                Console.WriteLine($"[StoreProductsPage] OnSalesOrderClicked - EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
                 
-                // Android: salesOrderActivity.PutExtra("entMemberRouteId", Intent.GetStringExtra("entMemberRouteId"));
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+
                 var parameters = new Dictionary<string, object>
                 {
-                    ["entMemberRouteId"] = EntMemberRouteId
+                    ["entMemberRouteId"] = EntMemberRouteId,
+                    ["StoreName"] = StoreName
                 };
 
-                // TODO: SalesOrderPage'e navigate et
-                await DisplayAlert("Sipariş Girişi", 
-                    "Sipariş giriş sayfası yakında eklenecek.\n" +
-                    $"MemberRouteId: {EntMemberRouteId}", 
-                    "Tamam");
+                Console.WriteLine("[StoreProductsPage] Navigating to SalesOrderPage with parameters:");
+                foreach (var kvp in parameters)
+                {
+                    Console.WriteLine($"    {kvp.Key} = '{kvp.Value}'");
+                }
+
+                await Shell.Current.GoToAsync("///SalesOrderPage", parameters);
             }
             catch (Exception ex)
             {
