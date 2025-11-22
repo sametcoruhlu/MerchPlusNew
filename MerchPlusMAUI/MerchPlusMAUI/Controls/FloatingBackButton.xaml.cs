@@ -74,7 +74,33 @@ namespace MerchPlusMAUI.Controls
                         case "MerchDataEntryPage":
                             // MerchDataEntryPage'den StoreProductsPage'e git
                             System.Diagnostics.Debug.WriteLine("FloatingBackButton: Navigating from MerchDataEntryPage to StoreProductsPage");
-                            await Shell.Current.GoToAsync("..");
+                            try
+                            {
+                                if (currentPage is MerchDataEntryPage merchDataEntryPage)
+                                {
+                                    var parameters = new Dictionary<string, object>
+                                    {
+                                        ["entMemberRouteId"] = merchDataEntryPage.EntMemberRouteId ?? string.Empty,
+                                        ["StoreName"] = merchDataEntryPage.StoreName ?? "Mağaza"
+                                    };
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"FloatingBackButton: MerchDataEntryPage parameters - entMemberRouteId: {parameters["entMemberRouteId"]}, StoreName: {parameters["StoreName"]}");
+                                    
+                                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                }
+                                else
+                                {
+                                    // Parametreler alınamazsa fallback olarak relative navigation
+                                    System.Diagnostics.Debug.WriteLine("FloatingBackButton: Cannot get parameters from MerchDataEntryPage, using relative navigation");
+                                    await Shell.Current.GoToAsync("..");
+                                }
+                            }
+                            catch (Exception navEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"FloatingBackButton: MerchDataEntryPage navigation error: {navEx.Message}");
+                                // Fallback: relative navigation
+                                await Shell.Current.GoToAsync("..");
+                            }
                             break;
                             
                         case "StoreProductsPage":

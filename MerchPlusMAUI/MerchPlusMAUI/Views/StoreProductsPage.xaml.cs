@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
 using System.Linq;
+using System.Globalization;
 using MerchPlusMAUI.Services;
 
 namespace MerchPlusMAUI.Views
@@ -103,7 +104,6 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Commands
-        public ICommand SearchCommand { get; private set; }
         public ICommand TakePhotoCommand { get; private set; }
         public ICommand SalesOrderCommand { get; private set; }
         public ICommand ExpirationDateCommand { get; private set; }
@@ -136,7 +136,6 @@ namespace MerchPlusMAUI.Views
 
         private void InitializeCommands()
         {
-            SearchCommand = new Command<string>(OnSearchExecuted);
             TakePhotoCommand = new Command(async () => await OnTakePhotoClickedAsync());
             SalesOrderCommand = new Command(async () => await OnSalesOrderClickedAsync());
             ExpirationDateCommand = new Command(async () => await OnExpirationDateClickedAsync());
@@ -1005,31 +1004,74 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Search Functionality
-        private void OnSearchExecuted(string searchText)
+        /// <summary>
+        /// Türkçe karakterleri normalize ederek arama yapılabilir hale getirir
+        /// </summary>
+        private string NormalizeForSearch(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            // Önce küçük harfe çevir (Türkçe locale ile)
+            var normalized = text.ToLower(System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+            
+            // Türkçe karakter eşleştirmeleri (küçük harfe çevrildikten sonra)
+            normalized = normalized.Replace("ı", "i")
+                                  .Replace("ğ", "g")
+                                  .Replace("ü", "u")
+                                  .Replace("ş", "s")
+                                  .Replace("ö", "o")
+                                  .Replace("ç", "c");
+            
+            return normalized;
+        }
+
+        private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
+                var searchText = e.NewTextValue ?? string.Empty;
                 IsSearchActive = !string.IsNullOrWhiteSpace(searchText);
                 
                 FilteredProducts.Clear();
 
-                var itemsToShow = string.IsNullOrWhiteSpace(searchText) 
-                    ? Products 
-                    : Products.Where(p => 
-                        p.ProductName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                        p.ProductCode.Contains(searchText, StringComparison.OrdinalIgnoreCase));
-
-                foreach (var product in itemsToShow)
+                // Arama kutusu boşsa tüm ürünleri göster
+                if (string.IsNullOrWhiteSpace(searchText))
                 {
-                    FilteredProducts.Add(product);
+                    foreach (var product in Products)
+                    {
+                        FilteredProducts.Add(product);
+                    }
+                }
+                else
+                {
+                    // Arama metnini normalize et
+                    var normalizedSearchText = NormalizeForSearch(searchText);
+                    
+                    // Ürünleri filtrele - normalize edilmiş metinlerle karşılaştır
+                    foreach (var product in Products)
+                    {
+                        var productNameNormalized = NormalizeForSearch(product.ProductName ?? string.Empty);
+                        var productCodeNormalized = NormalizeForSearch(product.ProductCode ?? string.Empty);
+                        
+                        // Normalize edilmiş metinlerle eşleşme kontrolü
+                        if (productNameNormalized.Contains(normalizedSearchText) ||
+                            productCodeNormalized.Contains(normalizedSearchText))
+                        {
+                            FilteredProducts.Add(product);
+                        }
+                    }
                 }
 
                 ProductCountText = IsSearchActive 
                     ? $"{FilteredProducts.Count} ürün bulundu" 
                     : $"{Products.Count} ürün listelendi";
+                
+                Console.WriteLine($"Search text changed: '{searchText}' - Found {FilteredProducts.Count} products");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in OnSearchTextChanged: {ex.Message}");
                 _logger.LogError(ex, "Error in search");
             }
         }

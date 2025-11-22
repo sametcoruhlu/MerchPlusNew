@@ -61,8 +61,8 @@
                            PlaceholderColor="#999"
                            TextColor="#333"
                            BackgroundColor="Transparent"
-                           SearchCommand="{Binding SearchCommand}"
-                           SearchCommandParameter="{Binding Source={x:Reference ProductSearchBar}, Path=Text}"/>
+                           Keyboard="{x:Static Keyboard.Text}"
+                           TextChanged="OnSearchTextChanged"/>
             </Frame>
 
             <!-- Product List -->

@@ -21,6 +21,14 @@ namespace MerchPlusMAUI.Views
         private string _entMemberRouteDetailId = string.Empty;
         private bool _isNavigatingAway = false;
         
+        // Store route and store name for navigation back to StoreProductsPage
+        private int? _currentMemberRouteId = null;
+        private string _currentStoreName = string.Empty;
+        
+        // Public properties for FloatingBackButton to access
+        public string EntMemberRouteId => _currentMemberRouteId?.ToString() ?? string.Empty;
+        public string StoreName => _currentStoreName ?? string.Empty;
+        
         // XAML elementleri için property'ler
         private Grid? _loadingOverlay;
         private ScrollView? _mainContent;
@@ -441,11 +449,18 @@ namespace MerchPlusMAUI.Views
                 var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteDetail.MemberRouteId);
                 if (route.Count == 0) return;
 
+                // Store MemberRouteId for navigation back
+                _currentMemberRouteId = _currentMemberRouteDetail.MemberRouteId;
+                System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage: Stored MemberRouteId: {_currentMemberRouteId}");
+
                 // Load retail shop
                 var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId);
                 if (retailShop.Count > 0)
                 {
                     RetailShopNameLabel.Text = retailShop[0].Name;
+                    // Store StoreName for navigation back
+                    _currentStoreName = retailShop[0].Name ?? string.Empty;
+                    System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage: Stored StoreName: {_currentStoreName}");
                 }
 
                 // Load product
@@ -1002,13 +1017,61 @@ namespace MerchPlusMAUI.Views
                 // Navigation stack'i kontrol et
                 System.Diagnostics.Debug.WriteLine($"OnExitClicked: Current navigation stack count: {Shell.Current.Navigation.NavigationStack.Count}");
                 
-                // StoreProductsPage'e git
-                System.Diagnostics.Debug.WriteLine("OnExitClicked: StoreProductsPage'e yönlendiriliyor");
-                await Shell.Current.GoToAsync("//StoreProductsPage");
+                // MemberRouteId ve StoreName'i kontrol et
+                if (!_currentMemberRouteId.HasValue)
+                {
+                    System.Diagnostics.Debug.WriteLine("OnExitClicked: WARNING - _currentMemberRouteId is null, trying to get from _currentMemberRouteDetail");
+                    
+                    // Eğer _currentMemberRouteId set edilmemişse, _currentMemberRouteDetail'den al
+                    if (_currentMemberRouteDetail != null)
+                    {
+                        _currentMemberRouteId = _currentMemberRouteDetail.MemberRouteId;
+                        System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got MemberRouteId from _currentMemberRouteDetail: {_currentMemberRouteId}");
+                        
+                        // StoreName'i de veritabanından al
+                        if (string.IsNullOrEmpty(_currentStoreName))
+                        {
+                            using var db = new SQLiteConnection(_dbPath);
+                            var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteId.Value);
+                            if (route.Count > 0 && route[0].RetailShopId.HasValue)
+                            {
+                                var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId.Value);
+                                if (retailShop.Count > 0)
+                                {
+                                    _currentStoreName = retailShop[0].Name ?? string.Empty;
+                                    System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got StoreName from DB: {_currentStoreName}");
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // StoreProductsPage'e git - parametrelerle birlikte
+                if (_currentMemberRouteId.HasValue)
+                {
+                    var parameters = new Dictionary<string, object>
+                    {
+                        ["entMemberRouteId"] = _currentMemberRouteId.Value.ToString(),
+                        ["StoreName"] = _currentStoreName ?? "Mağaza"
+                    };
+                    
+                    System.Diagnostics.Debug.WriteLine($"OnExitClicked: Navigating to StoreProductsPage with parameters:");
+                    System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {parameters["entMemberRouteId"]}");
+                    System.Diagnostics.Debug.WriteLine($"    StoreName: {parameters["StoreName"]}");
+                    
+                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("OnExitClicked: WARNING - Cannot get MemberRouteId, navigating without parameters");
+                    // Fallback: parametre olmadan git (eski davranış)
+                    await Shell.Current.GoToAsync("//StoreProductsPage");
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"OnExitClicked: Genel hata: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"OnExitClicked: Stack trace: {ex.StackTrace}");
                 _logger?.LogError(ex, "Error navigating back");
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
