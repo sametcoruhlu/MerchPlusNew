@@ -82,7 +82,8 @@
               RowDefinitions="Auto,Auto" 
               RowSpacing="2"
               HorizontalOptions="Center"
-              VerticalOptions="Center">
+              VerticalOptions="Center"
+              x:Name="UpdateButtonGrid">
             <Label Grid.Row="0"
                    Text="&#xe863;"
                    FontFamily="MaterialIcons"
@@ -90,6 +91,7 @@
                    FontSize="24"
                    HorizontalOptions="Center"/>
             <Label Grid.Row="1"
+                   x:Name="UpdateButtonLabel"
                    Text="Güncelle"
                    TextColor="White"
                    FontSize="12"

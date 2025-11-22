@@ -2,6 +2,7 @@ using entMerchPlus;
 using SQLite;
 using System.Text.Json.Serialization;
 using System;
+using Newtonsoft.Json;
 
 namespace MerchPlusMAUI.Models
 {
@@ -110,26 +111,60 @@ namespace MerchPlusMAUI.Models
     [Serializable]
     public class MemberRouteSyncData
     {
-        [JsonPropertyName("memberRoute")]
-        public entMemberRoute MemberRoute { get; set; } = new();
+        // Eski projede olduğu gibi constructor ve property initialization
+        public MemberRouteSyncData()
+        {
+            // Eski projede olduğu gibi initialize ediliyor
+        }
 
-        [JsonPropertyName("memberRouteDetail")]
-        public List<MemberRouteDetail> MemberRouteDetail { get; set; } = new();
+        // Eski projede olduğu gibi PascalCase property'ler (Newtonsoft.Json default olarak PascalCase serialize eder)
+        // JsonPropertyName attribute'larını kaldırdık çünkü eski projede yok ve sunucu PascalCase bekliyor
+        private entMemberRoute memberRoute = new entMemberRoute();
+        public entMemberRoute MemberRoute
+        {
+            get { return memberRoute; }
+            set { memberRoute = value; }
+        }
 
-        [JsonPropertyName("memberRoutePhoto")]
-        public List<entMemberRoutePhoto> MemberRoutePhoto { get; set; } = new();
+        // Eski projede entMemberRouteDetail, entSalesOrder, entSalesOrderDetail, entProductExpiration kullanılıyor
+        // Sunucu bu entity'leri bekliyor, bu yüzden entMerchPlus namespace'inden kullanıyoruz
+        private List<entMemberRouteDetail> memberRouteDetail = new List<entMemberRouteDetail>();
+        public List<entMemberRouteDetail> MemberRouteDetail
+        {
+            get { return memberRouteDetail; }
+            set { memberRouteDetail = value; }
+        }
 
-        [JsonPropertyName("salesOrder")]
-        public List<SalesOrder> SalesOrder { get; set; } = new();
+        private List<entMemberRoutePhoto> memberRoutePhoto = new List<entMemberRoutePhoto>();
+        public List<entMemberRoutePhoto> MemberRoutePhoto
+        {
+            get { return memberRoutePhoto; }
+            set { memberRoutePhoto = value; }
+        }
 
-        [JsonPropertyName("salesOrderDetail")]
-        public List<SalesOrderDetail> SalesOrderDetail { get; set; } = new();
+        private List<entSalesOrder> salesOrder = new List<entSalesOrder>();
+        public List<entSalesOrder> SalesOrder
+        {
+            get { return salesOrder; }
+            set { salesOrder = value; }
+        }
 
-        [JsonPropertyName("productExpiration")]
-        public List<ProductExpiration> ProductExpiration { get; set; } = new();
+        private List<entSalesOrderDetail> salesOrderDetail = new List<entSalesOrderDetail>();
+        public List<entSalesOrderDetail> SalesOrderDetail
+        {
+            get { return salesOrderDetail; }
+            set { salesOrderDetail = value; }
+        }
 
-        [JsonPropertyName("memberDisplayPhotos")]
-        public List<MemberDisplayPhotos> MemberDisplayPhotos { get; set; } = new();
+        private List<entProductExpiration> productExpiration = new List<entProductExpiration>();
+        public List<entProductExpiration> ProductExpiration
+        {
+            get { return productExpiration; }
+            set { productExpiration = value; }
+        }
+        
+        // Eski projede MemberDisplayPhotos property'si yok, sadece MemberRoute, RouteDetail, RoutePhoto, SalesOrder, SalesOrderDetail, ProductExpiration var
+        // Bu yüzden MemberDisplayPhotos'u kaldırdık (eski projede olduğu gibi)
     }
 
     public class CustomerProductPicture

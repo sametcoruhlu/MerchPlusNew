@@ -6,6 +6,9 @@ using MerchPlusMAUI.Models;
 using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 using Microsoft.Maui.Graphics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Text;
 
 namespace MerchPlusMAUI.Views
 {
@@ -238,50 +241,131 @@ namespace MerchPlusMAUI.Views
         private async Task SyncRoutes(List<entMemberRoute> routes, SQLiteConnection db)
         {
             using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath) };
+            client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            client.Timeout = new TimeSpan(0, 10, 0); // 10 dakika timeout (eski projede olduğu gibi)
 
             foreach (var route in routes)
             {
-                var syncData = new MemberRouteSyncData
-                {
-                    MemberRoute = route,
-                    MemberRouteDetail = db.Table<MemberRouteDetail>()
-                        .Where(d => d.MemberRouteId == route.Id)
-                        .ToList(),
-                    MemberRoutePhoto = db.Table<entMemberRoutePhoto>()
-                        .Where(p => p.MemberRouteId == route.Id)
-                        .ToList(),
-                    SalesOrder = db.Table<SalesOrder>()
-                        .Where(s => s.MemberRouteId == route.Id)
-                        .ToList(),
-                    ProductExpiration = db.Table<ProductExpiration>()
-                        .Where(p => p.MemberRouteId == route.Id)
-                        .ToList()
-                };
+                // Eski projede olduğu gibi tüm verileri topla
+                // Eski projede entMemberRouteDetail, entSalesOrder, entSalesOrderDetail, entProductExpiration kullanılıyor
+                // Veritabanından raw SQL ile okuyup entMerchPlus entity'lerine map ediyoruz
+                // Tam namespace belirtiyoruz çünkü Models namespace'inde de aynı isimde class'lar var
+                var detailRows = db.Query<entMerchPlus.entMemberRouteDetail>(
+                    "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
+                    route.Id).ToList();
 
-                if (syncData.SalesOrder.Any())
+                var photoRows = db.Query<entMerchPlus.entMemberRoutePhoto>(
+                    "SELECT * FROM entMemberRoutePhoto WHERE MemberRouteId=?", 
+                    route.Id).ToList();
+
+                var salesOrder = db.Query<entMerchPlus.entSalesOrder>(
+                    "SELECT * FROM entSalesOrder WHERE MemberRouteId=?", 
+                    route.Id).ToList();
+
+                List<entMerchPlus.entSalesOrderDetail> salesOrderDetail = new List<entMerchPlus.entSalesOrderDetail>();
+                if (salesOrder.Any())
                 {
-                    var salesOrderIds = syncData.SalesOrder.Select(s => s.Id).ToList();
-                    syncData.SalesOrderDetail = db.Table<SalesOrderDetail>()
-                        .Where(d => salesOrderIds.Contains(d.SalesOrderId))
-                        .ToList();
+                    var salesOrderIds = salesOrder.Select(s => s.Id).ToList();
+                    foreach (var soId in salesOrderIds)
+                    {
+                        var details = db.Query<entMerchPlus.entSalesOrderDetail>(
+                            "SELECT * FROM entSalesOrderDetail WHERE SalesOrderId=?", 
+                            soId).ToList();
+                        salesOrderDetail.AddRange(details);
+                    }
                 }
 
-                var endpoint = syncData.SalesOrder.Any()
+                var productExpiration = db.Query<entMerchPlus.entProductExpiration>(
+                    "SELECT * FROM entProductExpiration WHERE MemberRouteId=?", 
+                    route.Id).ToList();
+
+                // MemberRouteSyncData oluştur (eski projede olduğu gibi)
+                // Eski projede property'ler Add() ile dolduruluyor, aynısını yapıyoruz
+                MemberRouteSyncData syncData = new MemberRouteSyncData();
+                syncData.MemberRoute = route;
+
+                foreach (entMerchPlus.entMemberRouteDetail memberRouteDetail in detailRows)
+                {
+                    syncData.MemberRouteDetail.Add(memberRouteDetail);
+                }
+
+                foreach (entMerchPlus.entMemberRoutePhoto memberRoutePhoto in photoRows)
+                {
+                    syncData.MemberRoutePhoto.Add(memberRoutePhoto);
+                }
+
+                if (salesOrder.Any())
+                {
+                    foreach (entMerchPlus.entSalesOrder salesOrderEntity in salesOrder)
+                    {
+                        syncData.SalesOrder.Add(salesOrderEntity);
+                    }
+
+                    foreach (entMerchPlus.entSalesOrderDetail salesOrderDetailEntity in salesOrderDetail)
+                    {
+                        syncData.SalesOrderDetail.Add(salesOrderDetailEntity);
+                    }
+                }
+
+                if (productExpiration.Any())
+                {
+                    foreach (entMerchPlus.entProductExpiration productExpirationEntity in productExpiration)
+                    {
+                        syncData.ProductExpiration.Add(productExpirationEntity);
+                    }
+                }
+
+                // Endpoint belirle (eski projede olduğu gibi)
+                var endpoint = salesOrder.Any()
                     ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
                     : "MemberRouteController/CompleteMemberRouteWiselyFromJsonArray";
 
-                var jsonString = System.Text.Json.JsonSerializer.Serialize(syncData);
-                var content = new StringContent(jsonString);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                // JSON serialize (eski projede Newtonsoft.Json kullanılıyor, aynısını kullanıyoruz)
+                // Newtonsoft.Json default olarak PascalCase serialize eder, sunucu bunu bekliyor
+                var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(syncData);
+                var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
                 
                 var response = await client.PostAsync(endpoint, content);
+                var responseString = await response.Content.ReadAsStringAsync();
 
+                // Response kontrolü (eski projede olduğu gibi - Result != "NOK")
+                // Eski projede Newtonsoft.Json kullanılıyor, aynısını kullanıyoruz
                 if (response.IsSuccessStatusCode)
                 {
-                    db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
-                    db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
-                    db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                    // JSON response'u parse et (eski projede olduğu gibi - Newtonsoft.Json)
+                    try
+                    {
+                        Newtonsoft.Json.Linq.JObject returnObject = (Newtonsoft.Json.Linq.JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(responseString);
+                        if (Convert.ToString(returnObject["Result"]) != "NOK")
+                        {
+                            // Başarılı - flag'leri güncelle (eski projede olduğu gibi)
+                            db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
+                            db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                            db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                            
+                            // SalesOrder ve SalesOrderDetail flag'lerini de güncelle
+                            if (salesOrder.Any())
+                            {
+                                foreach (var so in salesOrder)
+                                {
+                                    db.Execute("UPDATE entSalesOrder SET IsSentToServer=? WHERE Id=?", true, so.Id);
+                                }
+                                foreach (var sod in salesOrderDetail)
+                                {
+                                    db.Execute("UPDATE entSalesOrderDetail SET IsSentToServer=? WHERE Id=?", true, sod.Id);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // JSON parse hatası, ama HTTP başarılı
+                        System.Diagnostics.Debug.WriteLine($"Response parse hatası: {ex.Message}");
+                        db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
+                        db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                        db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                    }
                 }
             }
         }
