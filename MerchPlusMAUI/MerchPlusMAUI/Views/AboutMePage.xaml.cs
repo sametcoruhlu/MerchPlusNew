@@ -233,6 +233,18 @@ namespace MerchPlusMAUI.Views
             
             if (response.IsSuccessStatusCode)
             {
+                // Silmeden önce son koordinat bilgisini GlobalVariables'a kaydet
+                var lastCoordinate = coordinates.OrderByDescending(c => c.LastUpdateTime ?? c.CreatedOn ?? DateTime.MinValue).FirstOrDefault();
+                if (lastCoordinate != null && lastCoordinate.Latitude.HasValue && lastCoordinate.Longitude.HasValue)
+                {
+                    GlobalVariables.MemberLastCoordinate = new MerchPlusMAUI.Location
+                    {
+                        Latitude = lastCoordinate.Latitude.Value,
+                        Longitude = lastCoordinate.Longitude.Value
+                    };
+                    Console.WriteLine($"[AboutMePage] Son koordinat GlobalVariables'a kaydedildi: Lat={lastCoordinate.Latitude}, Lon={lastCoordinate.Longitude}");
+                }
+                
                 using var db = new SQLiteConnection(_dbPath);
                 db.DeleteAll<MerchPlusMAUI.Models.entMemberCoordinate>();
             }
@@ -255,9 +267,12 @@ namespace MerchPlusMAUI.Views
                     "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
                     route.Id).ToList();
 
+                // Raf fotoğrafları - sadece gönderilmemiş olanları al (IsSentToServer=false)
                 var photoRows = db.Query<entMerchPlus.entMemberRoutePhoto>(
-                    "SELECT * FROM entMemberRoutePhoto WHERE MemberRouteId=?", 
-                    route.Id).ToList();
+                    "SELECT * FROM entMemberRoutePhoto WHERE MemberRouteId=? AND IsSentToServer=?", 
+                    route.Id, false).ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"[AboutMePage] Route {route.Id} için {photoRows.Count} adet gönderilmemiş raf fotoğrafı bulundu");
 
                 var salesOrder = db.Query<entMerchPlus.entSalesOrder>(
                     "SELECT * FROM entSalesOrder WHERE MemberRouteId=?", 
@@ -316,6 +331,9 @@ namespace MerchPlusMAUI.Views
                     }
                 }
 
+                // DateTime alanlarını kontrol et ve null olanları düzelt (sunucu null DateTime kabul etmiyor)
+                FixDateTimeFields(syncData);
+
                 // Endpoint belirle (eski projede olduğu gibi)
                 var endpoint = salesOrder.Any()
                     ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
@@ -344,6 +362,16 @@ namespace MerchPlusMAUI.Views
                             db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                             db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                             
+                            // Raf fotoğrafları flag'lerini de güncelle (IsSentToServer=false olanları)
+                            if (photoRows.Any())
+                            {
+                                foreach (var photo in photoRows)
+                                {
+                                    db.Execute("UPDATE entMemberRoutePhoto SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                                    System.Diagnostics.Debug.WriteLine($"[AboutMePage] Raf fotoğrafı Id: {photo.Id} için IsSentToServer=true yapıldı");
+                                }
+                            }
+                            
                             // SalesOrder ve SalesOrderDetail flag'lerini de güncelle
                             if (salesOrder.Any())
                             {
@@ -365,6 +393,144 @@ namespace MerchPlusMAUI.Views
                         db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
                         db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                         db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                        
+                        // Raf fotoğrafları flag'lerini de güncelle
+                        if (photoRows.Any())
+                        {
+                            foreach (var photo in photoRows)
+                            {
+                                db.Execute("UPDATE entMemberRoutePhoto SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+        /// </summary>
+        private void FixDateTimeFields(MemberRouteSyncData syncData)
+        {
+            var now = DateTime.Now;
+
+            // MemberRoute DateTime alanlarını kontrol et
+            if (syncData.MemberRoute != null)
+            {
+                var routeType = typeof(entMerchPlus.entMemberRoute);
+                var createdOnProp = routeType.GetProperty("CreatedOn");
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(syncData.MemberRoute);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(syncData.MemberRoute, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] MemberRoute.CreatedOn null/default, {now} olarak set edildi");
+                    }
+                }
+            }
+
+            // MemberRouteDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.MemberRouteDetail)
+            {
+                var detailType = typeof(entMerchPlus.entMemberRouteDetail);
+                var createdOnProp = detailType.GetProperty("CreatedOn");
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(detail);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(detail, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] MemberRouteDetail[{detail.Id}].CreatedOn null/default, {now} olarak set edildi");
+                    }
+                }
+            }
+
+            // MemberRoutePhoto DateTime alanlarını kontrol et
+            foreach (var photo in syncData.MemberRoutePhoto)
+            {
+                var photoType = typeof(entMerchPlus.entMemberRoutePhoto);
+                var createdOnProp = photoType.GetProperty("CreatedOn");
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(photo);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(photo, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] MemberRoutePhoto[{photo.Id}].CreatedOn null/default, {now} olarak set edildi");
+                    }
+                }
+            }
+
+            // ProductExpiration DateTime alanlarını kontrol et
+            foreach (var expiration in syncData.ProductExpiration)
+            {
+                var expirationType = typeof(entMerchPlus.entProductExpiration);
+                var createdOnProp = expirationType.GetProperty("CreatedOn");
+                var expirationDateProp = expirationType.GetProperty("ExpirationDate");
+                
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(expiration);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(expiration, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] ProductExpiration[{expiration.Id}].CreatedOn null/default, {now} olarak set edildi");
+                    }
+                }
+                
+                if (expirationDateProp != null)
+                {
+                    var value = expirationDateProp.GetValue(expiration);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        expirationDateProp.SetValue(expiration, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] ProductExpiration[{expiration.Id}].ExpirationDate null/default, {now} olarak set edildi");
+                    }
+                }
+            }
+
+            // SalesOrder DateTime alanlarını kontrol et
+            foreach (var salesOrder in syncData.SalesOrder)
+            {
+                var salesOrderType = typeof(entMerchPlus.entSalesOrder);
+                var createdOnProp = salesOrderType.GetProperty("CreatedOn");
+                var orderDateProp = salesOrderType.GetProperty("OrderDate");
+                
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(salesOrder);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(salesOrder, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] SalesOrder[{salesOrder.Id}].CreatedOn null/default, {now} olarak set edildi");
+                    }
+                }
+                
+                if (orderDateProp != null)
+                {
+                    var value = orderDateProp.GetValue(salesOrder);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        orderDateProp.SetValue(salesOrder, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] SalesOrder[{salesOrder.Id}].OrderDate null/default, {now} olarak set edildi");
+                    }
+                }
+            }
+
+            // SalesOrderDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.SalesOrderDetail)
+            {
+                var detailType = typeof(entMerchPlus.entSalesOrderDetail);
+                var createdOnProp = detailType.GetProperty("CreatedOn");
+                
+                if (createdOnProp != null)
+                {
+                    var value = createdOnProp.GetValue(detail);
+                    if (value == null || (value is DateTime dt && dt == default(DateTime)))
+                    {
+                        createdOnProp.SetValue(detail, now);
+                        System.Diagnostics.Debug.WriteLine($"[AboutMePage] SalesOrderDetail[{detail.Id}].CreatedOn null/default, {now} olarak set edildi");
                     }
                 }
             }
@@ -372,22 +538,102 @@ namespace MerchPlusMAUI.Views
 
         private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
         {
-            using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            foreach (var photo in photos)
+            try
             {
-                var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
-                var content = new StringContent(jsonString);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                
-                var response = await client.PostAsync("MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                Console.WriteLine("========================================");
+                Console.WriteLine("[AboutMePage - TEŞHİR FOTOĞRAFI SENKRONIZASYON] Başlatılıyor...");
+                Console.WriteLine($"Zaman: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"[AboutMePage] {photos.Count} adet fotoğraf gönderilecek");
 
-                if (response.IsSuccessStatusCode)
+                using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                foreach (var photo in photos)
                 {
-                    db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE CustomerProductId=?", 
-                        true, photo.CustomerProductId);
+                    try
+                    {
+                        // DisplayPicturePath null/boş kontrolü
+                        if (string.IsNullOrEmpty(photo.DisplayPicturePath))
+                        {
+                            Console.WriteLine($"[AboutMePage] ❌ UYARI: Fotoğraf Id: {photo.Id} için DisplayPicturePath null veya boş, atlanıyor");
+                            _logger.LogWarning($"Display photo Id: {photo.Id} has null or empty DisplayPicturePath, skipping");
+                            continue; // Bu fotoğrafı atla, bir sonrakine geç
+                        }
+                        
+                        Console.WriteLine($"[AboutMePage] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                        
+                        var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
+                        var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                        
+                        var response = await client.PostAsync("MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        
+                        Console.WriteLine($"[AboutMePage] HTTP Status: {response.StatusCode}, Response: {responseString}");
+
+                        // Response kontrolü - DatabaseSyncService'deki gibi
+                        bool isSuccess = false;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
+                            if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("ArgumentNullException", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine($"[AboutMePage] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
+                                isSuccess = false;
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    var responseJson = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(responseString);
+                                    if (responseJson.TryGetProperty("Result", out var resultProperty))
+                                    {
+                                        var result = resultProperty.GetString();
+                                        Console.WriteLine($"[AboutMePage] Response Result: {result}");
+                                        isSuccess = result != "NOK";
+                                    }
+                                    else
+                                    {
+                                        // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                        Console.WriteLine($"[AboutMePage] UYARI: Response'da 'Result' key'i bulunamadı, hata mesajı da yok - başarılı sayılıyor");
+                                        isSuccess = true;
+                                    }
+                                }
+                                catch
+                                {
+                                    // JSON parse hatası, ama HTTP başarılı ve hata mesajı yok
+                                    isSuccess = true;
+                                }
+                            }
+                        }
+
+                        if (isSuccess)
+                        {
+                            // Başarılı - IsSentToServer flag'ini güncelle (Id ile, CustomerProductId ile değil!)
+                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
+                                true, photo.Id);
+                            Console.WriteLine($"[AboutMePage] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi ve IsSentToServer=true yapıldı");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[AboutMePage] ❌ Başarısız - Fotoğraf Id: {photo.Id} sunucuya gönderilemedi");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[AboutMePage] ❌ HATA (Fotoğraf Id: {photo.Id}): {ex.Message}");
+                        _logger.LogError(ex, $"Error syncing display photo - Id: {photo.Id}");
+                    }
                 }
+                
+                Console.WriteLine($"[AboutMePage - TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tamamlandı - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AboutMePage] ❌ GENEL HATA: {ex.Message}");
+                _logger.LogError(ex, "Error occurred while syncing display photos");
             }
         }
 

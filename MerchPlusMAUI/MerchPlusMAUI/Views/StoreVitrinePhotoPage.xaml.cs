@@ -52,8 +52,10 @@ namespace MerchPlusMAUI.Views
                 {
                     using (var db = new SQLiteConnection(_dbPath))
                     {
+                        // int.Parse'i lambda dışında yap (SQLite parse fonksiyonunu tanımıyor)
+                        var routeId = int.Parse(_entMemberRouteId);
                         var route = db.Table<entMemberRoute>()
-                            .FirstOrDefault(r => r.Id == int.Parse(_entMemberRouteId));
+                            .FirstOrDefault(r => r.Id == routeId);
                         
                         if (route?.RetailShopId != null)
                         {

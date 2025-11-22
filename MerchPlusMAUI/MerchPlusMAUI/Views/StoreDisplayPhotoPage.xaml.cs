@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 using SQLite;
 using System.Diagnostics;
 using System.IO;
@@ -245,11 +246,11 @@ namespace MerchPlusMAUI.Views
                         };
 
                         newItems.Add(newItem);
-                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Fotoğraf hazırlandı - Ürün: {product.Name}");
+                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Fotoğraf hazırlandı - Teşhir Tipi: {_entPromotionTypeSelected.Name}, Ürün: {product.Name}, PromotionTypeId: {_entPromotionTypeSelected.Id}");
                     }
 
-                    // Ana thread'de tüm öğeleri tek seferde ekle
-                    Device.BeginInvokeOnMainThread(() =>
+                    // Ana thread'de tüm öğeleri tek seferde ekle - await ile bekle
+                    await MainThread.InvokeOnMainThreadAsync(() =>
                     {
                         foreach (var item in newItems)
                         {
@@ -264,11 +265,21 @@ namespace MerchPlusMAUI.Views
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Toplam fotoğraf sayısı: {_displayPhotoList.Count}");
                     });
 
-                    // Alert'i ana thread'de göster
-                    Device.BeginInvokeOnMainThread(async () =>
-                    {
-                        await DisplayAlert("Başarılı", $"Teşhir fotoğrafı başarıyla çekildi ve {_selectedProducts.Count} ürün için listeye eklendi.", "Tamam");
-                    });
+                    // Alert'i göster - await ile bekle
+                    await DisplayAlert("Başarılı", $"Teşhir fotoğrafı başarıyla çekildi ve {_selectedProducts.Count} ürün için listeye eklendi.\nTeşhir Tipi: {_entPromotionTypeSelected.Name}", "Tamam");
+                    
+                    // Fotoğraf çekildikten sonra seçimleri temizle (yeni teşhir tipi seçimi için)
+                    // Ama listedeki fotoğrafları koru
+                    _entPromotionTypeSelected = new entPromotionType { Id = -1, Name = "Seçiniz" };
+                    _selectedProducts.Clear();
+                    
+                    // UI'ı güncelle
+                    SelectedPromotionLabel.IsVisible = false;
+                    PromotionTypeLabel.IsVisible = true;
+                    SelectedProductsLabel.IsVisible = false;
+                    ProductSelectionLabel.IsVisible = true;
+                    
+                    System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Seçimler temizlendi, yeni teşhir tipi seçimi için hazır");
                 }
                 else
                 {
@@ -290,7 +301,7 @@ namespace MerchPlusMAUI.Views
                 if (sender is Button button && button.BindingContext is DisplayPhotoItem item)
                 {
                     // Ana thread'de ObservableCollection'dan kaldır
-                    Device.BeginInvokeOnMainThread(() =>
+                    MainThread.BeginInvokeOnMainThread(() =>
                     {
                         _displayPhotoList.Remove(item);
                         
@@ -326,8 +337,23 @@ namespace MerchPlusMAUI.Views
                 {
                     foreach (var photoItem in _displayPhotoList)
                     {
+                        // Fotoğraf byte array kontrolü
+                        if (photoItem.PhotoBytes == null || photoItem.PhotoBytes.Length == 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: UYARI - Fotoğraf byte array null veya boş, atlanıyor - Ürün: {photoItem.ProductName}");
+                            await DisplayAlert("Uyarı", $"Ürün '{photoItem.ProductName}' için fotoğraf verisi bulunamadı, atlanıyor.", "Tamam");
+                            continue;
+                        }
+                        
                         // Fotoğrafı Base64 string'e çevir
                         string base64Photo = Convert.ToBase64String(photoItem.PhotoBytes);
+                        
+                        if (string.IsNullOrEmpty(base64Photo))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: UYARI - Base64 string boş, atlanıyor - Ürün: {photoItem.ProductName}");
+                            await DisplayAlert("Uyarı", $"Ürün '{photoItem.ProductName}' için fotoğraf Base64'e çevrilemedi, atlanıyor.", "Tamam");
+                            continue;
+                        }
                         
                         // entMemberDisplayPhotos tablosuna kaydet
                         var photoEntity = new entMemberDisplayPhotos
@@ -342,10 +368,33 @@ namespace MerchPlusMAUI.Views
                         };
 
                         db.Insert(photoEntity);
+                        
+                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Fotoğraf kaydedildi - Id: {photoEntity.Id}, PromotionTypeId: {photoItem.PromotionTypeId}, PromotionType: {photoItem.PromotionType}, ProductId: {photoItem.ProductId}, ProductName: {photoItem.ProductName}, DisplayPicturePath uzunluğu: {base64Photo.Length}");
                     }
                 }
 
                 System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Tüm fotoğraflar veritabanına kaydedildi");
+                
+                // Sayfayı temizle - yeni giriş için
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _displayPhotoList.Clear();
+                    PhotoListView.ItemsSource = null;
+                    PhotoListView.ItemsSource = _displayPhotoList;
+                    
+                    // Seçimleri de temizle
+                    _entPromotionTypeSelected = new entPromotionType { Id = -1, Name = "Seçiniz" };
+                    _selectedProducts.Clear();
+                    
+                    // UI'ı resetle
+                    SelectedPromotionLabel.IsVisible = false;
+                    PromotionTypeLabel.IsVisible = true;
+                    SelectedProductsLabel.IsVisible = false;
+                    ProductSelectionLabel.IsVisible = true;
+                    
+                    System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Sayfa temizlendi, yeni giriş için hazır");
+                });
+                
                 await DisplayAlert("Başarılı", "Teşhir fotoğrafları başarıyla kaydedildi.", "Tamam");
                 
                 // StoreVitrinePhotoPage'e geri dön

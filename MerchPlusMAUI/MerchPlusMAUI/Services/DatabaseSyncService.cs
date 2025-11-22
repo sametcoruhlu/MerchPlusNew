@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MerchPlusMAUI.Services
 {
@@ -93,6 +95,11 @@ namespace MerchPlusMAUI.Services
 
             try
             {
+                // İlk çalışmada 30 saniye bekle - LocationAgentService'in koordinat kaydetmesi için zaman tanı
+                Console.WriteLine("[DatabaseSyncService] İlk senkronizasyon için 30 saniye bekleniyor (LocationAgentService'in koordinat kaydetmesi için)...");
+                _logger.LogInformation("Waiting 30 seconds before first sync to allow LocationAgentService to save coordinates");
+                await Task.Delay(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
+                
                 while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     await SyncData();
@@ -113,29 +120,28 @@ namespace MerchPlusMAUI.Services
             }
         }
 
-        private async Task SyncData()
+        public async Task SyncData()
         {
             try
             {
-                using var connection = new SQLiteConnection(GlobalVariables.DatabasePath);
-                connection.CreateTable<MemberCoordinate>();
-
-                var fiveMinutesAgo = DateTime.UtcNow.AddMinutes(-5);
-                var recentCoordinates = connection.Table<MemberCoordinate>()
-                    .Where(c => c.LastUpdateTime >= fiveMinutesAgo)
-                    .ToList();
-
-                _logger.LogInformation($"Found {recentCoordinates.Count} coordinates to sync");
-
-                foreach (var coordinate in recentCoordinates)
-                {
-                    // TODO: Implement sync logic with server
-                    _logger.LogInformation($"Syncing coordinate for member {coordinate.MemberId} at {coordinate.LastUpdateTime}");
-                    await Task.Delay(100); // Add a small delay to prevent overwhelming the server
-                }
+                Console.WriteLine("========================================");
+                Console.WriteLine($"[VERİ SENKRONIZASYON] Başlatılıyor - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
+                
+                // Eski projede olduğu gibi önce koordinatları senkronize et
+                await SyncCoordinates();
+                
+                // Sonra diğer verileri senkronize et
+                await SyncMemberRoutes();
+                await SyncDisplayPhotos();
+                
+                Console.WriteLine($"[VERİ SENKRONIZASYON] Tamamlandı - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[VERİ SENKRONIZASYON] ❌ HATA: {ex.Message}");
+                Console.WriteLine("========================================");
                 _logger.LogError(ex, "Error occurred while syncing data");
             }
         }
@@ -147,21 +153,127 @@ namespace MerchPlusMAUI.Services
 
         private async Task SyncCoordinates()
         {
-            using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-            var coordinates = db.Query<MemberCoordinate>("SELECT * from entMemberCoordinate");
-
-            if (coordinates.Any())
+            try
             {
-                var response = await PostToApi(_httpClient, "MemberCoordinateController/InsertMemberCoordinateFromAndroidArray", coordinates);
+                Console.WriteLine("========================================");
+                Console.WriteLine("[KOORDINAT SENKRONIZASYON] Başlatılıyor...");
+                Console.WriteLine($"Zaman: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                _logger.LogInformation("Synchronizing coordinates with Server > entMemberCoordinate!");
                 
-                if (response?.GetProperty("Result").GetString() != "NOK")
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                
+                // Tablo var mı kontrol et
+                var tableExists = db.ExecuteScalar<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='entMemberCoordinate'");
+                Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Tablo kontrolü: entMemberCoordinate tablosu {(tableExists > 0 ? "VAR" : "YOK")}");
+                
+                if (tableExists == 0)
                 {
-                    db.DeleteAll<MemberCoordinate>();
+                    // Tablo yoksa oluştur
+                    db.CreateTable<MerchPlusMAUI.Models.entMemberCoordinate>();
+                    Console.WriteLine("[KOORDINAT SENKRONIZASYON] entMemberCoordinate tablosu oluşturuldu");
+                }
+                
+                // Toplam kayıt sayısını kontrol et
+                var totalCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberCoordinate");
+                Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Tabloda toplam {totalCount} adet kayıt var");
+                
+                // Eski projede olduğu gibi entMemberCoordinate tablosundan okuyoruz
+                var coordinates = db.Query<MerchPlusMAUI.Models.entMemberCoordinate>("SELECT * from entMemberCoordinate");
+                Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Query sonucu: {coordinates.Count()} adet koordinat bulundu");
+
+                if (coordinates.Any())
+                {
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Tabloda {coordinates.Count} adet koordinat bulundu");
+                    _logger.LogInformation($"Found {coordinates.Count} coordinates to sync");
+                    
+                    // Koordinat detaylarını logla
+                    Console.WriteLine("[KOORDINAT SENKRONIZASYON] Gönderilecek koordinatlar:");
+                    for (int i = 0; i < coordinates.Count; i++)
+                    {
+                        var coord = coordinates[i];
+                        Console.WriteLine($"  [{i + 1}] MemberId: '{coord.MemberId}'");
+                        Console.WriteLine($"      CoordinateX (decimal): {coord.CoordinateX}, CoordinateY (decimal): {coord.CoordinateY}");
+                        Console.WriteLine($"      Latitude (double): {coord.Latitude}, Longitude (double): {coord.Longitude}");
+                        Console.WriteLine($"      CreatedOn: {coord.CreatedOn:yyyy-MM-dd HH:mm:ss}, LastUpdateTime: {coord.LastUpdateTime:yyyy-MM-dd HH:mm:ss}");
+                    }
+                    
+                    // JSON önizlemesi (ilk koordinat)
+                    if (coordinates.Any())
+                    {
+                        var firstCoord = coordinates.First();
+                        var previewJson = Newtonsoft.Json.JsonConvert.SerializeObject(firstCoord);
+                        Console.WriteLine($"[KOORDINAT SENKRONIZASYON] JSON önizlemesi (ilk koordinat): {previewJson}");
+                    }
+                    
+                    // Eski projede olduğu gibi Newtonsoft.Json kullanıyoruz
+                    using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath) };
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] API Endpoint: {GlobalVariables.APIPath}MemberCoordinateController/InsertMemberCoordinateFromAndroidArray");
+                    
+                    // Eski projede olduğu gibi JSON serialize
+                    var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(coordinates);
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] JSON hazırlandı (uzunluk: {jsonString.Length} karakter)");
+                    var request = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                    
+                    Console.WriteLine("[KOORDINAT SENKRONIZASYON] Sunucuya POST isteği gönderiliyor...");
+                    var startTime = DateTime.Now;
+                    var response = await client.PostAsync("MemberCoordinateController/InsertMemberCoordinateFromAndroidArray", request);
+                    var endTime = DateTime.Now;
+                    var duration = (endTime - startTime).TotalSeconds;
+                    
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] HTTP Response alındı (süre: {duration:F2} saniye)");
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] HTTP Status Code: {response.StatusCode} ({(int)response.StatusCode})");
+                    
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Response içeriği: {responseString}");
+                    
+                    // Eski projede olduğu gibi response kontrolü
+                    JObject returnObject = (JObject)Newtonsoft.Json.JsonConvert.DeserializeObject(responseString);
+                    var result = Convert.ToString(returnObject["Result"]);
+                    Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Response Result: {result}");
+                    
+                    if (result != "NOK")
+                    {
+                        // Başarılı - silmeden önce son koordinat bilgisini GlobalVariables'a kaydet
+                        var lastCoordinate = coordinates.OrderByDescending(c => c.LastUpdateTime ?? c.CreatedOn ?? DateTime.MinValue).FirstOrDefault();
+                        if (lastCoordinate != null && lastCoordinate.Latitude.HasValue && lastCoordinate.Longitude.HasValue)
+                        {
+                            GlobalVariables.MemberLastCoordinate = new MerchPlusMAUI.Location
+                            {
+                                Latitude = lastCoordinate.Latitude.Value,
+                                Longitude = lastCoordinate.Longitude.Value
+                            };
+                            Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Son koordinat GlobalVariables'a kaydedildi: Lat={lastCoordinate.Latitude}, Lon={lastCoordinate.Longitude}");
+                        }
+                        
+                        // Başarılı - tüm kayıtları sil (eski projede olduğu gibi)
+                        var deletedCount = db.DeleteAll<MerchPlusMAUI.Models.entMemberCoordinate>();
+                        Console.WriteLine($"[KOORDINAT SENKRONIZASYON] ✅ BAŞARILI - {coordinates.Count} koordinat sunucuya gönderildi ve tablodan silindi");
+                        Console.WriteLine("========================================");
+                        _logger.LogInformation($"Successfully synced {coordinates.Count} coordinates to server");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[KOORDINAT SENKRONIZASYON] ❌ BAŞARISIZ - Sunucu NOK döndü. Koordinatlar tabloda kaldı.");
+                        Console.WriteLine("========================================");
+                        _logger.LogWarning("Database Sync Failed > Member Coordinate upload");
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Database Sync Failed > Member Coordinate upload");
+                    Console.WriteLine("[KOORDINAT SENKRONIZASYON] Tabloda gönderilecek koordinat yok");
+                    Console.WriteLine("========================================");
+                    _logger.LogInformation("No coordinates to sync");
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[KOORDINAT SENKRONIZASYON] ❌ HATA: {ex.Message}");
+                Console.WriteLine($"[KOORDINAT SENKRONIZASYON] StackTrace: {ex.StackTrace}");
+                Console.WriteLine("========================================");
+                _logger.LogError(ex, "Error occurred while syncing coordinates");
             }
         }
 
@@ -190,6 +302,9 @@ namespace MerchPlusMAUI.Services
                         syncData.SalesOrder.First().Id).ToList();
                 }
 
+                // DateTime alanlarını kontrol et ve null olanları düzelt (sunucu null DateTime kabul etmiyor)
+                FixDateTimeFields(syncData);
+
                 var endpoint = syncData.SalesOrder.Any() 
                     ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
                     : "MemberRouteController/CompleteMemberRouteWiselyFromJsonArray";
@@ -209,27 +324,227 @@ namespace MerchPlusMAUI.Services
             }
         }
 
+        /// <summary>
+        /// Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+        /// Reflection kullanarak tüm DateTime property'lerini otomatik olarak kontrol eder
+        /// </summary>
+        private void FixDateTimeFields(MemberRouteSyncData syncData)
+        {
+            var now = DateTime.Now;
+
+            // MemberRoute DateTime alanlarını kontrol et (tüm DateTime property'leri)
+            if (syncData.MemberRoute != null)
+            {
+                FixDateTimeFieldsForEntity(syncData.MemberRoute, "MemberRoute", syncData.MemberRoute.Id);
+            }
+
+            // MemberRouteDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.MemberRouteDetail)
+            {
+                FixDateTimeFieldsForEntity(detail, "MemberRouteDetail", detail.Id);
+            }
+
+            // MemberRoutePhoto DateTime alanlarını kontrol et
+            foreach (var photo in syncData.MemberRoutePhoto)
+            {
+                FixDateTimeFieldsForEntity(photo, "MemberRoutePhoto", photo.Id);
+            }
+
+            // ProductExpiration DateTime alanlarını kontrol et
+            foreach (var expiration in syncData.ProductExpiration)
+            {
+                FixDateTimeFieldsForEntity(expiration, "ProductExpiration", expiration.Id);
+            }
+
+            // SalesOrder DateTime alanlarını kontrol et
+            foreach (var salesOrder in syncData.SalesOrder)
+            {
+                FixDateTimeFieldsForEntity(salesOrder, "SalesOrder", salesOrder.Id);
+            }
+
+            // SalesOrderDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.SalesOrderDetail)
+            {
+                FixDateTimeFieldsForEntity(detail, "SalesOrderDetail", detail.Id);
+            }
+        }
+
+        /// <summary>
+        /// Bir entity'nin tüm DateTime ve DateTime? property'lerini kontrol eder ve null/default olanları düzeltir
+        /// </summary>
+        private void FixDateTimeFieldsForEntity<T>(T entity, string entityName, int? id = null)
+        {
+            if (entity == null) return;
+
+            var now = DateTime.Now;
+            var entityType = typeof(T);
+            
+            // Tüm DateTime ve DateTime? property'lerini bul
+            var dateTimeProperties = entityType.GetProperties()
+                .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
+                .Where(p => p.CanRead && p.CanWrite);
+
+            foreach (var prop in dateTimeProperties)
+            {
+                try
+                {
+                    var value = prop.GetValue(entity);
+                    
+                    // Null veya default(DateTime) kontrolü
+                    bool needsFix = false;
+                    if (value == null)
+                    {
+                        needsFix = true;
+                    }
+                    else if (value is DateTime dateTimeValue)
+                    {
+                        // DateTime.MinValue veya default(DateTime) kontrolü
+                        if (dateTimeValue == default(DateTime) || dateTimeValue == DateTime.MinValue || dateTimeValue.Year < 1900)
+                        {
+                            needsFix = true;
+                        }
+                    }
+                    else if (prop.PropertyType == typeof(DateTime?) && value != null)
+                    {
+                        // Nullable DateTime için - önce null kontrolü yapıldı, şimdi değer kontrolü
+                        if (value is DateTime nullableDateTimeValue)
+                        {
+                            if (nullableDateTimeValue == default(DateTime) || nullableDateTimeValue == DateTime.MinValue || nullableDateTimeValue.Year < 1900)
+                            {
+                                needsFix = true;
+                            }
+                        }
+                    }
+                    else if (prop.PropertyType == typeof(DateTime?) && value == null)
+                    {
+                        // Nullable DateTime ve null değer
+                        needsFix = true;
+                    }
+
+                    if (needsFix)
+                    {
+                        // DateTime? için null değilse DateTime.Now, null ise DateTime.Now
+                        if (prop.PropertyType == typeof(DateTime?))
+                        {
+                            prop.SetValue(entity, (DateTime?)now);
+                        }
+                        else
+                        {
+                            prop.SetValue(entity, now);
+                        }
+                        
+                        string idStr = id.HasValue ? $"[ID:{id.Value}]" : "";
+                        Console.WriteLine($"[DatabaseSyncService] {entityName}{idStr}.{prop.Name} null/default, {now:yyyy-MM-dd HH:mm:ss} olarak set edildi");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DatabaseSyncService] {entityName}.{prop.Name} kontrol edilirken hata: {ex.Message}");
+                }
+            }
+        }
+
         private async Task SyncDisplayPhotos()
         {
-            _logger.LogInformation("Synchronizing data with Server > MemberDisplayPhoto!");
-
-            using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-            var photos = db.Query<MemberDisplayPhotos>("SELECT * from entMemberDisplayPhotos WHERE IsSentToServer=false");
-
-            foreach (var photo in photos)
+            try
             {
-                photo.IsSentToServer = true;
-                var response = await PostToApi(_httpClient2, "MemberDisplayPhotosController/InsertMemberDisplayPhotos", photo);
+                Console.WriteLine("========================================");
+                Console.WriteLine("[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Başlatılıyor...");
+                Console.WriteLine($"Zaman: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                _logger.LogInformation("Synchronizing data with Server > MemberDisplayPhoto!");
 
-                if (response?.GetProperty("Result").GetString() != "NOK")
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                var photos = db.Query<MemberDisplayPhotos>("SELECT * from entMemberDisplayPhotos WHERE IsSentToServer=false");
+                
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tabloda {photos.Count} adet gönderilmemiş fotoğraf bulundu");
+
+                foreach (var photo in photos)
                 {
-                    db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE CustomerProductId=?", 
-                        true, photo.CustomerProductId);
+                    try
+                    {
+                        // DisplayPicturePath null/boş kontrolü
+                        if (string.IsNullOrEmpty(photo.DisplayPicturePath))
+                        {
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ UYARI: Fotoğraf Id: {photo.Id} için DisplayPicturePath null veya boş, atlanıyor");
+                            _logger.LogWarning($"Display photo Id: {photo.Id} has null or empty DisplayPicturePath, skipping");
+                            continue; // Bu fotoğrafı atla, bir sonrakine geç
+                        }
+                        
+                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                        
+                        var response = await PostToApi(_httpClient2, "MemberDisplayPhotosController/InsertMemberDisplayPhotos", photo);
+
+                        // Response null kontrolü ve TryGetProperty kullan (KeyNotFoundException'ı önlemek için)
+                        bool isSuccess = false;
+                        string responseString = string.Empty;
+                        
+                        if (response.HasValue)
+                        {
+                            responseString = response.Value.ToString();
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response içeriği: {responseString}");
+                            
+                            // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
+                            if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("ArgumentNullException", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
+                                isSuccess = false;
+                            }
+                            else if (response.Value.TryGetProperty("Result", out var resultProperty))
+                            {
+                                var result = resultProperty.GetString();
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response Result: {result}");
+                                isSuccess = result != "NOK";
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response'da 'Result' key'i bulunamadı");
+                                // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                isSuccess = true;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response null geldi");
+                            _logger.LogWarning("Database Sync Failed > MemberDisplayPhoto - Response is null");
+                            isSuccess = false;
+                        }
+
+                        if (isSuccess)
+                        {
+                            // Başarılı - IsSentToServer flag'ini güncelle (Id ile güncelle, CustomerProductId ile değil)
+                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
+                                true, photo.Id);
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi");
+                            _logger.LogInformation($"Successfully synced display photo - Id: {photo.Id}");
+                        }
+                        else
+                        {
+                            // Başarısız - IsSentToServer flag'ini geri al
+                            photo.IsSentToServer = false;
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Başarısız - Fotoğraf Id: {photo.Id} sunucuya gönderilemedi");
+                            _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HATA (Fotoğraf Id: {photo.Id}): {ex.Message}");
+                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] StackTrace: {ex.StackTrace}");
+                        _logger.LogError(ex, $"Error syncing display photo - Id: {photo.Id}");
+                        // Hata durumunda IsSentToServer flag'ini geri al
+                        photo.IsSentToServer = false;
+                    }
                 }
-                else
-                {
-                    _logger.LogWarning("Database Sync Failed > MemberDisplayPhoto");
-                }
+                
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tamamlandı - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ GENEL HATA: {ex.Message}");
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] StackTrace: {ex.StackTrace}");
+                _logger.LogError(ex, "Error occurred while syncing display photos");
             }
         }
 
@@ -252,13 +567,14 @@ namespace MerchPlusMAUI.Services
         {
             try
             {
-                var jsonString = JsonSerializer.Serialize(data, _jsonOptions);
+                // System.Text.Json.JsonSerializer kullanıyoruz (belirsizliği önlemek için tam namespace)
+                var jsonString = System.Text.Json.JsonSerializer.Serialize(data, _jsonOptions);
                 var content = new StringContent(jsonString);
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                     
                 var response = await client.PostAsync(endpoint, content);
                 var responseString = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<JsonElement>(responseString);
+                return System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseString);
             }
             catch (Exception ex)
             {
@@ -341,7 +657,8 @@ namespace MerchPlusMAUI.Services
 				};
 
                 // Server'a gönder
-                var json = JsonSerializer.Serialize(syncData, _jsonOptions);
+                // System.Text.Json.JsonSerializer kullanıyoruz (belirsizliği önlemek için tam namespace)
+                var json = System.Text.Json.JsonSerializer.Serialize(syncData, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync("api/MemberRoute/Sync", content);

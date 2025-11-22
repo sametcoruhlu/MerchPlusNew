@@ -863,27 +863,17 @@ namespace MerchPlusMAUI.Views
                     
                     _logger.LogInformation($"Route güncelleniyor - ID: {route.Id}, ExitOn: {route.ExitOn}, IsSentToServer: {route.IsSentToServer}");
                     
+                    // entMemberRoute entity'sinde PrimaryKey tanımlı olmayabilir, bu yüzden direkt SQL ile güncelle
                     try
                     {
-                        db.Update(route);
-                        _logger.LogInformation($"Store exit recorded successfully for {StoreName} at {DateTime.Now}");
+                        db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
+                            route.ExitOn, route.IsSentToServer, route.Id);
+                        _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
                     }
-                    catch (Exception updateEx)
+                    catch (Exception sqlEx)
                     {
-                        _logger.LogError(updateEx, $"Route güncelleme hatası - ID: {route.Id}");
-                        
-                        // Alternatif: SQL komutu ile güncelle
-                        try
-                        {
-                            db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
-                                route.ExitOn, route.IsSentToServer, route.Id);
-                            _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
-                        }
-                        catch (Exception sqlEx)
-                        {
-                            _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
-                            throw; // Hata fırlat
-                        }
+                        _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
+                        throw; // Hata fırlat
                     }
                     
                     // Çıkış istatistiklerini logla

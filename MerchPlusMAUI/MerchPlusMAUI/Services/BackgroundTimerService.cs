@@ -83,8 +83,9 @@ namespace MerchPlusMAUI.Services
                 {
                     _logger.LogInformation("Syncing coordinates...");
                     
-                    // Koordinat senkronizasyonu burada yapılabilir
-                    // Örnek: LocationService'den koordinatları al ve server'a gönder
+                    // DatabaseSyncService'in SyncCoordinates metodunu çağır
+                    // SyncData içinde SyncCoordinates çağrılıyor, ama burada da manuel çağıralım
+                    await _databaseSyncService.SyncData();
                     
                     GlobalVariables.LastCoordinateSync = DateTime.UtcNow;
                     _logger.LogInformation("Coordinates synced successfully");

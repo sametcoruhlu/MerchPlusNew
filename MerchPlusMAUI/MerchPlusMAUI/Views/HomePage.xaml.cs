@@ -891,6 +891,19 @@ namespace MerchPlusMAUI.Views
                         GlobalVariables.CurrentMember = returnObject["Content"]?.ToObject<entMember>();
                         _logger.LogInformation($"User found: {GlobalVariables.CurrentMember?.NameSurname}");
                         
+                        // CurrentMemberId'yi set et (LocationAgentService için)
+                        if (GlobalVariables.CurrentMember?.Id != null)
+                        {
+                            GlobalVariables.CurrentMemberId = GlobalVariables.CurrentMember.Id.ToString();
+                            _logger.LogInformation($"CurrentMemberId set to: {GlobalVariables.CurrentMemberId}");
+                            Console.WriteLine($"[HomePage] CurrentMemberId set to: '{GlobalVariables.CurrentMemberId}'");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("CurrentMember.Id is null, CurrentMemberId not set");
+                            Console.WriteLine($"[HomePage] UYARI: CurrentMember.Id is null!");
+                        }
+                        
                         // Cache user data for offline use
                         await CacheUserData(GlobalVariables.CurrentMember);
                     }
@@ -1627,7 +1640,7 @@ namespace MerchPlusMAUI.Views
                         // Process all results in a single transaction for better performance
                         await ProcessDataResults(db, results);
 
-                        MainThread.BeginInvokeOnMainThread(() => UpdateProgress(85, "Resimler indiriliyor..."));
+                        MainThread.BeginInvokeOnMainThread(() => UpdateProgress(85, "Veriler indiriliyor..."));
 
                         // Download images in parallel batches
                         await DownloadImagesInParallel(results);
@@ -1996,7 +2009,7 @@ namespace MerchPlusMAUI.Views
                     await Task.WhenAll(batch);
                     
                     var progress = 85 + (int)((double)(i + batchSize) / allImageTasks.Count * 10);
-                    MainThread.BeginInvokeOnMainThread(() => UpdateProgress(Math.Min(progress, 95), $"Resimler indiriliyor... ({Math.Min(i + batchSize, allImageTasks.Count)}/{allImageTasks.Count})"));
+                    MainThread.BeginInvokeOnMainThread(() => UpdateProgress(Math.Min(progress, 95), $"Veriler indiriliyor... ({Math.Min(i + batchSize, allImageTasks.Count)}/{allImageTasks.Count})"));
                 }
             }
 
@@ -2144,6 +2157,7 @@ namespace MerchPlusMAUI.Views
 
         /// <summary>
         /// Veritabanından son bilinen konum bilgisini yükler
+        /// LocationAgentService entMemberCoordinate kullanıyor, bu yüzden aynı entity'yi kullanıyoruz
         /// </summary>
         private async Task LoadLastKnownLocation()
         {
@@ -2152,19 +2166,19 @@ namespace MerchPlusMAUI.Views
                 _logger.LogInformation("=== SON BİLİNEN KONUM YÜKLENİYOR ===");
                 
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-                db.CreateTable<MemberCoordinate>();
+                db.CreateTable<MerchPlusMAUI.Models.entMemberCoordinate>();
                 
-                var lastCoordinate = db.Table<MemberCoordinate>()
-                    .OrderByDescending(c => c.LastUpdateTime)
-                    .FirstOrDefault();
+                // entMemberCoordinate tablosundan son kaydı al (LocationAgentService bu tabloyu kullanıyor)
+                var lastCoordinate = db.Query<MerchPlusMAUI.Models.entMemberCoordinate>(
+                    "SELECT * FROM entMemberCoordinate ORDER BY LastUpdateTime DESC LIMIT 1").FirstOrDefault();
                 
-                if (lastCoordinate != null)
+                if (lastCoordinate != null && lastCoordinate.Latitude.HasValue && lastCoordinate.Longitude.HasValue)
                 {
                     // GlobalVariables'a son konumu yükle
                     GlobalVariables.MemberLastCoordinate = new Location
                     {
-                        Latitude = lastCoordinate.Latitude,
-                        Longitude = lastCoordinate.Longitude
+                        Latitude = lastCoordinate.Latitude.Value,
+                        Longitude = lastCoordinate.Longitude.Value
                     };
                     
                     _logger.LogInformation($"Son konum yüklendi: Lat={lastCoordinate.Latitude}, Lon={lastCoordinate.Longitude}, LastUpdateTime={lastCoordinate.LastUpdateTime}");

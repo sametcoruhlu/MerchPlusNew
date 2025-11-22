@@ -13,6 +13,7 @@ using entMerchPlus;
 using MerchPlusMAUI.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 // Çakışmayı önlemek için alias tanımlıyoruz
 using MauiControls = Microsoft.Maui.Controls;
 using MauiShell = Microsoft.Maui.Controls.Shell;
@@ -327,8 +328,9 @@ namespace MerchPlusMAUI.Controls
                     });
                 }
 
-                // Sync photos (yeni projede ekstra)
-                var photos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
+                // Sync photos (yeni projede ekstra) - IsSentToServer=false olanları gönder
+                var photos = db.Table<MemberDisplayPhotos>().Where(p => p.IsSentToServer == false).ToList();
+                Console.WriteLine($"[CommonFooter] Gönderilmemiş fotoğraf sayısı: {photos.Count}");
                 if (photos.Any())
                 {
                     try
@@ -369,6 +371,18 @@ namespace MerchPlusMAUI.Controls
             
             if (response.IsSuccessStatusCode)
             {
+                // Silmeden önce son koordinat bilgisini GlobalVariables'a kaydet
+                var lastCoordinate = coordinates.OrderByDescending(c => c.LastUpdateTime ?? c.CreatedOn ?? DateTime.MinValue).FirstOrDefault();
+                if (lastCoordinate != null && lastCoordinate.Latitude.HasValue && lastCoordinate.Longitude.HasValue)
+                {
+                    GlobalVariables.MemberLastCoordinate = new Location
+                    {
+                        Latitude = lastCoordinate.Latitude.Value,
+                        Longitude = lastCoordinate.Longitude.Value
+                    };
+                    Console.WriteLine($"[CommonFooter] Son koordinat GlobalVariables'a kaydedildi: Lat={lastCoordinate.Latitude}, Lon={lastCoordinate.Longitude}");
+                }
+                
                 using var db = new SQLiteConnection(_dbPath);
                 db.DeleteAll<MerchPlusMAUI.Models.entMemberCoordinate>();
             }
@@ -387,9 +401,12 @@ namespace MerchPlusMAUI.Controls
                     "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
                     route.Id).ToList();
 
+                // Raf fotoğrafları - sadece gönderilmemiş olanları al (IsSentToServer=false)
                 var photoRows = db.Query<entMerchPlus.entMemberRoutePhoto>(
-                    "SELECT * FROM entMemberRoutePhoto WHERE MemberRouteId=?", 
-                    route.Id).ToList();
+                    "SELECT * FROM entMemberRoutePhoto WHERE MemberRouteId=? AND IsSentToServer=?", 
+                    route.Id, false).ToList();
+                
+                Console.WriteLine($"[CommonFooter] Route {route.Id} için {photoRows.Count} adet gönderilmemiş raf fotoğrafı bulundu");
 
                 var salesOrder = db.Query<entMerchPlus.entSalesOrder>(
                     "SELECT * FROM entSalesOrder WHERE MemberRouteId=?", 
@@ -454,6 +471,9 @@ namespace MerchPlusMAUI.Controls
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.Timeout = new TimeSpan(0, 10, 0); // 10 dakika timeout (eski projede olduğu gibi)
 
+                // DateTime alanlarını kontrol et ve null olanları düzelt (sunucu null DateTime kabul etmiyor)
+                FixDateTimeFields(syncData);
+
                 // Endpoint belirle (eski projede olduğu gibi)
                 var endpoint = salesOrder.Any()
                     ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
@@ -481,6 +501,16 @@ namespace MerchPlusMAUI.Controls
                             db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
                             db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                             db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                            
+                            // Raf fotoğrafları flag'lerini de güncelle (IsSentToServer=false olanları)
+                            if (photoRows.Any())
+                            {
+                                foreach (var photo in photoRows)
+                                {
+                                    db.Execute("UPDATE entMemberRoutePhoto SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                                    Console.WriteLine($"[CommonFooter] Raf fotoğrafı Id: {photo.Id} için IsSentToServer=true yapıldı");
+                                }
+                            }
                             
                             // SalesOrder ve SalesOrderDetail flag'lerini de güncelle
                             if (salesOrder.Any())
@@ -510,6 +540,16 @@ namespace MerchPlusMAUI.Controls
                         db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
                         db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                         db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                        
+                        // Raf fotoğrafları flag'lerini de güncelle
+                        if (photoRows.Any())
+                        {
+                            foreach (var photo in photoRows)
+                            {
+                                db.Execute("UPDATE entMemberRoutePhoto SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                            }
+                        }
+                        
                         return (true, string.Empty);
                     }
                 }
@@ -528,20 +568,220 @@ namespace MerchPlusMAUI.Controls
 
         private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
         {
-            using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            foreach (var photo in photos)
+            try
             {
-                var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
-                var content = new StringContent(jsonString);
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                
-                var response = await client.PostAsync("MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                Console.WriteLine("========================================");
+                Console.WriteLine("[CommonFooter - TEŞHİR FOTOĞRAFI SENKRONIZASYON] Başlatılıyor...");
+                Console.WriteLine($"Zaman: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine($"[CommonFooter] {photos.Count} adet fotoğraf gönderilecek");
 
-                if (response.IsSuccessStatusCode)
+                using var client = new HttpClient { BaseAddress = new Uri(GlobalVariables.APIPath2) };
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                foreach (var photo in photos)
                 {
-                    db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                    try
+                    {
+                        // DisplayPicturePath null/boş kontrolü
+                        if (string.IsNullOrEmpty(photo.DisplayPicturePath))
+                        {
+                            Console.WriteLine($"[CommonFooter] ❌ UYARI: Fotoğraf Id: {photo.Id} için DisplayPicturePath null veya boş, atlanıyor");
+                            System.Diagnostics.Debug.WriteLine($"CommonFooter: Display photo Id: {photo.Id} has null or empty DisplayPicturePath, skipping");
+                            continue; // Bu fotoğrafı atla, bir sonrakine geç
+                        }
+                        
+                        Console.WriteLine($"[CommonFooter] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                        
+                        var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
+                        var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                        
+                        var response = await client.PostAsync("MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        
+                        Console.WriteLine($"[CommonFooter] HTTP Status: {response.StatusCode}, Response: {responseString}");
+
+                        // Response kontrolü - DatabaseSyncService'deki gibi
+                        bool isSuccess = false;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
+                            if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
+                                responseString.Contains("ArgumentNullException", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Console.WriteLine($"[CommonFooter] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
+                                isSuccess = false;
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    var responseJson = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(responseString);
+                                    if (responseJson.TryGetProperty("Result", out var resultProperty))
+                                    {
+                                        var result = resultProperty.GetString();
+                                        Console.WriteLine($"[CommonFooter] Response Result: {result}");
+                                        isSuccess = result != "NOK";
+                                    }
+                                    else
+                                    {
+                                        // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                        Console.WriteLine($"[CommonFooter] UYARI: Response'da 'Result' key'i bulunamadı, hata mesajı da yok - başarılı sayılıyor");
+                                        isSuccess = true;
+                                    }
+                                }
+                                catch
+                                {
+                                    // JSON parse hatası, ama HTTP başarılı ve hata mesajı yok
+                                    isSuccess = true;
+                                }
+                            }
+                        }
+
+                        if (isSuccess)
+                        {
+                            // Başarılı - IsSentToServer flag'ini güncelle (Id ile)
+                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", true, photo.Id);
+                            Console.WriteLine($"[CommonFooter] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi ve IsSentToServer=true yapıldı");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[CommonFooter] ❌ Başarısız - Fotoğraf Id: {photo.Id} sunucuya gönderilemedi");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[CommonFooter] ❌ HATA (Fotoğraf Id: {photo.Id}): {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"CommonFooter: Error syncing display photo - Id: {photo.Id}, Error: {ex.Message}");
+                    }
+                }
+                
+                Console.WriteLine($"[CommonFooter - TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tamamlandı - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                Console.WriteLine("========================================");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CommonFooter] ❌ GENEL HATA: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"CommonFooter: Error occurred while syncing display photos: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+        /// Reflection kullanarak tüm DateTime property'lerini otomatik olarak kontrol eder
+        /// </summary>
+        private void FixDateTimeFields(MemberRouteSyncData syncData)
+        {
+            var now = DateTime.Now;
+
+            // MemberRoute DateTime alanlarını kontrol et (tüm DateTime property'leri)
+            if (syncData.MemberRoute != null)
+            {
+                FixDateTimeFieldsForEntity(syncData.MemberRoute, "MemberRoute", syncData.MemberRoute.Id);
+            }
+
+            // MemberRouteDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.MemberRouteDetail)
+            {
+                FixDateTimeFieldsForEntity(detail, "MemberRouteDetail", detail.Id);
+            }
+
+            // MemberRoutePhoto DateTime alanlarını kontrol et
+            foreach (var photo in syncData.MemberRoutePhoto)
+            {
+                FixDateTimeFieldsForEntity(photo, "MemberRoutePhoto", photo.Id);
+            }
+
+            // ProductExpiration DateTime alanlarını kontrol et
+            foreach (var expiration in syncData.ProductExpiration)
+            {
+                FixDateTimeFieldsForEntity(expiration, "ProductExpiration", expiration.Id);
+            }
+
+            // SalesOrder DateTime alanlarını kontrol et
+            foreach (var salesOrder in syncData.SalesOrder)
+            {
+                FixDateTimeFieldsForEntity(salesOrder, "SalesOrder", salesOrder.Id);
+            }
+
+            // SalesOrderDetail DateTime alanlarını kontrol et
+            foreach (var detail in syncData.SalesOrderDetail)
+            {
+                FixDateTimeFieldsForEntity(detail, "SalesOrderDetail", detail.Id);
+            }
+        }
+
+        /// <summary>
+        /// Bir entity'nin tüm DateTime ve DateTime? property'lerini kontrol eder ve null/default olanları düzeltir
+        /// </summary>
+        private void FixDateTimeFieldsForEntity<T>(T entity, string entityName, int? id = null)
+        {
+            if (entity == null) return;
+
+            var now = DateTime.Now;
+            var entityType = typeof(T);
+            
+            // Tüm DateTime ve DateTime? property'lerini bul
+            var dateTimeProperties = entityType.GetProperties()
+                .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
+                .Where(p => p.CanRead && p.CanWrite);
+
+            foreach (var prop in dateTimeProperties)
+            {
+                try
+                {
+                    var value = prop.GetValue(entity);
+                    
+                    // Null veya default(DateTime) kontrolü
+                    bool needsFix = false;
+                    if (value == null)
+                    {
+                        needsFix = true;
+                    }
+                    else if (value is DateTime dateTimeValue)
+                    {
+                        // DateTime.MinValue veya default(DateTime) kontrolü
+                        if (dateTimeValue == default(DateTime) || dateTimeValue == DateTime.MinValue || dateTimeValue.Year < 1900)
+                        {
+                            needsFix = true;
+                        }
+                    }
+                    else if (prop.PropertyType == typeof(DateTime?) && value != null)
+                    {
+                        // Nullable DateTime için - önce null kontrolü yapıldı, şimdi değer kontrolü
+                        if (value is DateTime nullableDateTimeValue)
+                        {
+                            if (nullableDateTimeValue == default(DateTime) || nullableDateTimeValue == DateTime.MinValue || nullableDateTimeValue.Year < 1900)
+                            {
+                                needsFix = true;
+                            }
+                        }
+                    }
+                    else if (prop.PropertyType == typeof(DateTime?) && value == null)
+                    {
+                        // Nullable DateTime ve null değer
+                        needsFix = true;
+                    }
+
+                    if (needsFix)
+                    {
+                        // DateTime? için null değilse DateTime.Now, null ise DateTime.Now
+                        if (prop.PropertyType == typeof(DateTime?))
+                        {
+                            prop.SetValue(entity, (DateTime?)now);
+                        }
+                        else
+                        {
+                            prop.SetValue(entity, now);
+                        }
+                        
+                        string idStr = id.HasValue ? $"[ID:{id.Value}]" : "";
+                        Console.WriteLine($"[CommonFooter] {entityName}{idStr}.{prop.Name} null/default, {now:yyyy-MM-dd HH:mm:ss} olarak set edildi");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[CommonFooter] {entityName}.{prop.Name} kontrol edilirken hata: {ex.Message}");
                 }
             }
         }
