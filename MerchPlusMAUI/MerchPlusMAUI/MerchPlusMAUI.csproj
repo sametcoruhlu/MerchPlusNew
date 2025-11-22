@@ -31,11 +31,16 @@
 		<AndroidProjectFolder Condition="$(TargetFramework.Contains('-android'))">Platforms\Android</AndroidProjectFolder>
 		<AndroidEnableDeployment Condition="$(TargetFramework.Contains('-android'))">true</AndroidEnableDeployment>
 		<AndroidEnableMultiDex Condition="$(TargetFramework.Contains('-android'))">true</AndroidEnableMultiDex>
-		<AndroidUseSharedRuntime Condition="$(TargetFramework.Contains('-android'))">true</AndroidUseSharedRuntime>
+		<!-- Release build için Fast Deployment kapatılmalı -->
+		<AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">true</AndroidUseSharedRuntime>
+		<AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">false</AndroidUseSharedRuntime>
 		<AndroidLinkMode Condition="$(TargetFramework.Contains('-android'))">None</AndroidLinkMode>
-		<EmbedAssembliesIntoApk Condition="$(TargetFramework.Contains('-android'))">false</EmbedAssembliesIntoApk>
+		<!-- Release build için tüm assembly'ler APK'ya gömülmeli -->
+		<EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">false</EmbedAssembliesIntoApk>
+		<EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</EmbedAssembliesIntoApk>
 		<AndroidCreatePackagePerAbi Condition="$(TargetFramework.Contains('-android'))">false</AndroidCreatePackagePerAbi>
-		<AndroidSupportedAbis Condition="$(TargetFramework.Contains('-android'))">arm64-v8a</AndroidSupportedAbis>
+		<!-- AndroidSupportedAbis artık desteklenmiyor, RuntimeIdentifiers kullanılıyor -->
+		<RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android'))">android-arm64</RuntimeIdentifiers>
 		<AndroidUseAapt2 Condition="$(TargetFramework.Contains('-android'))">true</AndroidUseAapt2>
 		<AndroidUseApkSigner Condition="$(TargetFramework.Contains('-android'))">true</AndroidUseApkSigner>
 		<AndroidDexTool Condition="$(TargetFramework.Contains('-android'))">d8</AndroidDexTool>
@@ -53,6 +58,24 @@
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
+		
+		<!-- Google Play için AAB (Android App Bundle) oluştur -->
+		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
+		<AndroidPackageFormat Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">apk</AndroidPackageFormat>
+		
+		<!-- Release build için kod küçültme (ProGuard/R8) -->
+		<AndroidEnableProguard Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidEnableProguard>
+		<AndroidLinkTool Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">r8</AndroidLinkTool>
+		
+		<!-- Signing için keystore ayarları (aşağıdaki değerleri kendi keystore bilgilerinizle değiştirin) -->
+		<!-- Keystore oluşturmak için: keytool -genkey -v -keystore merchplus-release.keystore -alias merchplus -keyalg RSA -keysize 2048 -validity 10000 -->
+		<AndroidKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidKeyStore>
+		<!-- Bu değerleri kendi keystore bilgilerinizle değiştirin -->
+		<!-- Keystore dosyası Platforms\Android\ klasöründe olmalı -->
+		<AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">$(MSBuildProjectDirectory)\Platforms\Android\merchplus-release.keystore</AndroidSigningKeyStore>
+		<AndroidSigningStorePass Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">!!19670261Ts61!!</AndroidSigningStorePass>
+		<AndroidSigningKeyAlias Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">merchplus</AndroidSigningKeyAlias>
+		<AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">!!19670261Ts61!!</AndroidSigningKeyPass> 
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
