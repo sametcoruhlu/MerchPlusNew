@@ -144,5 +144,30 @@
                     Margin="7,0,0,0"
                     Clicked="OnFinishClicked"/>
         </Grid>
+        
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="3"
+              x:Name="LoadingOverlay"
+              BackgroundColor="#80000000"
+              IsVisible="True">
+            <Frame BackgroundColor="White"
+                   CornerRadius="15"
+                   Padding="30"
+                   HasShadow="True"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <StackLayout Spacing="15" Orientation="Vertical">
+                    <ActivityIndicator x:Name="LoadingSpinner"
+                                       IsRunning="True"
+                                       Color="#DC3545"
+                                       WidthRequest="40"
+                                       HeightRequest="40" />
+                    <Label Text="Veriler yükleniyor..."
+                           FontSize="14"
+                           TextColor="#343A40"
+                           HorizontalOptions="Center" />
+                </StackLayout>
+            </Frame>
+        </Grid>
     </Grid>
 </ContentPage>

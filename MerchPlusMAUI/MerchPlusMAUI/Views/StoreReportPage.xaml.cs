@@ -111,7 +111,8 @@ namespace MerchPlusMAUI.Views
         {
             base.OnAppearing();
             
-            this.Opacity = 0;
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
             
             Console.WriteLine("=== StoreReportPage OnAppearing ===");
             
@@ -131,22 +132,12 @@ namespace MerchPlusMAUI.Views
                 {
                     Console.WriteLine($"Parameters received - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                     
-                    _ = Task.Run(async () =>
-                    {
-                        await Task.Delay(100);
-                        await MainThread.InvokeOnMainThreadAsync(async () =>
-                        {
-                            await this.FadeTo(1, 300, Easing.CubicOut);
-                        });
-                    });
-                    
                     await InitializeReportAsync();
                     _isInitialized = true;
                 }
                 else
                 {
                     Console.WriteLine("ERROR: Navigation parameters not received!");
-                    await this.FadeTo(1, 200);
                     await DisplayAlert("Hata", "Mağaza bilgileri alınamadı.", "Tamam");
                 }
             }
@@ -155,7 +146,6 @@ namespace MerchPlusMAUI.Views
                 // Sayfa zaten initialize edilmiş, verileri yenile
                 Console.WriteLine("Page already initialized, refreshing data...");
                 await RefreshReportDataAsync();
-                await this.FadeTo(1, 200, Easing.CubicOut);
             }
         }
 

@@ -40,11 +40,36 @@ namespace MerchPlusMAUI.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+            
             System.Diagnostics.Debug.WriteLine("AboutMePage açıldı!");
             System.Diagnostics.Debug.WriteLine("AboutMePage Content Loaded");
             
+            // Loading overlay'i göster
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = true;
+            }
+            
             // Her sayfa açılışında verileri yeniden yükle
             await LoadDataAsync();
+            
+            // Veriler yüklendikten sonra loading overlay'i gizle
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = false;
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
 
         private async Task LoadDataAsync()

@@ -149,8 +149,8 @@ namespace MerchPlusMAUI.Views
         {
             base.OnAppearing();
             
-            // Sayfa animasyonu için başlangıçta görünmez yap
-            this.Opacity = 0;
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
             
             Console.WriteLine("=== StoreProductsPage OnAppearing ===");
             System.Diagnostics.Debug.WriteLine("=== StoreProductsPage OnAppearing ===");
@@ -173,23 +173,12 @@ namespace MerchPlusMAUI.Views
                     Console.WriteLine($"Parameters received - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                     Console.WriteLine("Initializing StoreProductsPage...");
                     
-                    // Güzel bir fade-in animasyonu
-                    _ = Task.Run(async () =>
-                    {
-                        await Task.Delay(100); // Kısa bir gecikme
-                        await MainThread.InvokeOnMainThreadAsync(async () =>
-                        {
-                            await this.FadeTo(1, 300, Easing.CubicOut); // Smooth fade-in
-                        });
-                    });
-                    
                     await InitializePageAsync();
                     _isInitialized = true;
                 }
                 else
                 {
                     Console.WriteLine("ERROR: Navigation parameters not received after waiting!");
-                    await this.FadeTo(1, 200); // Hata durumunda da görünür yap
                     await ShowErrorAndNavigateBack("Mağaza bilgileri alınamadı. Lütfen tekrar deneyin.");
                 }
             }
@@ -198,7 +187,6 @@ namespace MerchPlusMAUI.Views
                 // Zaten initialize edilmiş, ama ürünleri yeniden yükle (veri girişi yapılmış olabilir)
                 Console.WriteLine("StoreProductsPage: Already initialized, refreshing products...");
                 await LoadProductsFromDatabaseAsync();
-                await this.FadeTo(1, 200, Easing.CubicOut);
             }
         }
 

@@ -238,6 +238,9 @@ namespace MerchPlusMAUI.Views
         {
             base.OnAppearing();
             
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+            
             Console.WriteLine("=== ExpirationDatePage OnAppearing ===");
             System.Diagnostics.Debug.WriteLine("=== ExpirationDatePage OnAppearing ===");
             
@@ -269,6 +272,14 @@ namespace MerchPlusMAUI.Views
                     await Shell.Current.GoToAsync("..");
                 }
             }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
         #endregion
 

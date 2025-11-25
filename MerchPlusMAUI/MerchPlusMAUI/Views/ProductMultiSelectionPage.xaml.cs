@@ -25,8 +25,19 @@ namespace MerchPlusMAUI.Views
             _selectedProducts = currentlySelected ?? new List<entCustomerProduct>();
             _onProductsSelected = onProductsSelected;
 
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+
             LoadProducts(availableProducts);
             ProductsCollectionView.ItemsSource = _productItems;
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
 
         private void LoadProducts(List<entCustomerProduct> availableProducts)

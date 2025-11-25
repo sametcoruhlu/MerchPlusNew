@@ -69,8 +69,21 @@ namespace MerchPlusMAUI.Views
             _dbPath = GlobalVariables.DatabasePath; // GlobalVariables'daki veritabanı yolunu kullan
             BindingContext = this;
             
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+            
             LoadActivityTypes();
             SetupEventHandlers();
+            
+            // Loading overlay'i hemen göster (sayfa render edilmeden önce)
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                }
+            });
             
             System.Diagnostics.Debug.WriteLine("MerchDataEntryPage Constructor: Tamamlandı");
         }
@@ -78,6 +91,9 @@ namespace MerchPlusMAUI.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
             
             System.Diagnostics.Debug.WriteLine("=== MerchDataEntryPage OnAppearing ===");
             
@@ -90,8 +106,11 @@ namespace MerchPlusMAUI.Views
                 System.Diagnostics.Debug.WriteLine($"LoadingOverlay found: {_loadingOverlay != null}");
                 System.Diagnostics.Debug.WriteLine($"MainContent found: {_mainContent != null}");
                 
-                // Sayfa yüklendiğinde loading overlay'i göster
-                ShowLoadingOverlay();
+                // Loading overlay'i hemen göster (sayfa render edilmeden önce)
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = true;
+                }
                 
                 // Veri yükleme işlemini başlat
                 await LoadProductDataAsync();
@@ -102,6 +121,14 @@ namespace MerchPlusMAUI.Views
                 _logger?.LogError(ex, "Error in OnAppearing");
                 HideLoadingOverlay();
             }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
 
         private void LoadActivityTypes()
@@ -474,15 +501,19 @@ namespace MerchPlusMAUI.Views
                 // Note: These properties might have different names in the actual entity
                 // We'll use the properties that exist in the entMemberRouteDetail class
                 
-                // Set default values first (will be overridden if existing data is found)
-                System.Diagnostics.Debug.WriteLine("Setting default values...");
-                FaceCountEntry.Text = "0";
-                ShelfIndexEntry.Text = "0";
-                ShelfStockEntry.Text = "0";
-                ShelfPrice1Entry.Text = "0";
-                ShelfPrice2Entry.Text = "00";
-                WarehouseStockEntry.Text = "0";
+                // Initialize all fields as empty so placeholders are shown
+                // Only set values if existing data is found
+                System.Diagnostics.Debug.WriteLine("Initializing fields with empty values (placeholders will be shown)...");
+                FaceCountEntry.Text = string.Empty;
+                ShelfIndexEntry.Text = string.Empty;
+                ShelfStockEntry.Text = string.Empty;
+                ShelfPrice1Entry.Text = string.Empty;
+                ShelfPrice2Entry.Text = string.Empty;
+                WarehouseStockEntry.Text = string.Empty;
                 NotesEditor.Text = string.Empty;
+                DiscountPrice1Entry.Text = string.Empty;
+                DiscountPrice2Entry.Text = string.Empty;
+                ActivityTypePicker.SelectedIndex = -1;
 
                 // Try to load existing data if the properties exist
                 try
@@ -497,7 +528,8 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("FaceCount is null or empty");
+                        FaceCountEntry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("FaceCount is null or empty - showing placeholder");
                     }
                     
                     if (_currentMemberRouteDetail.ShelfIndex.HasValue)
@@ -507,7 +539,8 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("ShelfIndex is null or empty");
+                        ShelfIndexEntry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("ShelfIndex is null or empty - showing placeholder");
                     }
                     
                     if (_currentMemberRouteDetail.ShelfStock.HasValue)
@@ -517,7 +550,8 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("ShelfStock is null or empty");
+                        ShelfStockEntry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("ShelfStock is null or empty - showing placeholder");
                     }
                     
                     if (_currentMemberRouteDetail.ShelfPrice.HasValue)
@@ -529,7 +563,9 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("ShelfPrice is null or empty");
+                        ShelfPrice1Entry.Text = string.Empty;
+                        ShelfPrice2Entry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("ShelfPrice is null or empty - showing placeholder");
                     }
                     
                     if (_currentMemberRouteDetail.WarehouseStock.HasValue)
@@ -539,7 +575,8 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("WarehouseStock is null or empty");
+                        WarehouseStockEntry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("WarehouseStock is null or empty - showing placeholder");
                     }
                     
                     if (!string.IsNullOrEmpty(_currentMemberRouteDetail.Notes))
@@ -549,7 +586,8 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("Notes is null or empty");
+                        NotesEditor.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("Notes is null or empty - showing placeholder");
                     }
                     
                     if (!string.IsNullOrEmpty(_currentMemberRouteDetail.ActivityTypeName))
@@ -563,12 +601,14 @@ namespace MerchPlusMAUI.Views
                         }
                         else
                         {
-                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName not found in picker: {_currentMemberRouteDetail.ActivityTypeName}");
+                            ActivityTypePicker.SelectedIndex = -1;
+                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName not found in picker: {_currentMemberRouteDetail.ActivityTypeName} - showing placeholder");
                         }
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("ActivityTypeName is null or empty");
+                        ActivityTypePicker.SelectedIndex = -1;
+                        System.Diagnostics.Debug.WriteLine("ActivityTypeName is null or empty - showing placeholder");
                     }
                     
                     if (_currentMemberRouteDetail.DiscountedPrice.HasValue)
@@ -580,7 +620,9 @@ namespace MerchPlusMAUI.Views
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine("DiscountedPrice is null or empty");
+                        DiscountPrice1Entry.Text = string.Empty;
+                        DiscountPrice2Entry.Text = string.Empty;
+                        System.Diagnostics.Debug.WriteLine("DiscountedPrice is null or empty - showing placeholder");
                     }
                     
                     System.Diagnostics.Debug.WriteLine("=== Existing data loading completed ===");
@@ -589,25 +631,6 @@ namespace MerchPlusMAUI.Views
                 {
                     System.Diagnostics.Debug.WriteLine($"Error loading existing data: {ex.Message}");
                     _logger?.LogWarning(ex, "Some properties might not exist in entMemberRouteDetail");
-                }
-
-                // Load product image
-                if (product.Count > 0)
-                {
-                    var customerProductPicture = db.Query<entCustomerProductPicture>("SELECT * FROM entCustomerProductPicture WHERE CustomerProductId=?", product[0].Id);
-                    if (customerProductPicture.Count > 0 && !string.IsNullOrEmpty(customerProductPicture[0].CustomerProductPictureBase64))
-                    {
-                        try
-                        {
-                            byte[] imageArray = Convert.FromBase64String(customerProductPicture[0].CustomerProductPictureBase64);
-                            CustomerProductPhotoImage.Source = ImageSource.FromStream(() => new MemoryStream(imageArray));
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger?.LogWarning(ex, "Could not load product image");
-                            CustomerProductPhotoImage.Source = "dotnet_bot.png";
-                        }
-                    }
                 }
 
                 // Product data yüklendikten sonra field visibility'yi yükle

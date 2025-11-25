@@ -7,13 +7,13 @@
     xmlns:views="clr-namespace:MerchPlusMAUI.Views"
     Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False"
-    Shell.PresentationMode="ModalAnimated"
+    Shell.PresentationMode="Animated"
     Title="MerchPlus">
 
     <Shell.Resources>
         <ResourceDictionary>
             <Style TargetType="Shell">
-                <Setter Property="Shell.BackgroundColor" Value="Transparent"/>
+                <Setter Property="Shell.BackgroundColor" Value="#F8F9FA"/>
                 <Setter Property="Shell.FlyoutBackgroundColor" Value="Transparent"/>
                 <Setter Property="Shell.TitleColor" Value="Transparent"/>
                 <Setter Property="Shell.DisabledColor" Value="Transparent"/>

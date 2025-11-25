@@ -164,6 +164,10 @@ namespace MerchPlusMAUI.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+            
             Console.WriteLine("[SalesOrderPage] OnAppearing called");
 
             if (!_isInitialized)
@@ -178,6 +182,14 @@ namespace MerchPlusMAUI.Views
                 Console.WriteLine("[SalesOrderPage] Reappearing - refreshing preview");
                 await RefreshOrderPreviewAsync();
             }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
         #endregion
 

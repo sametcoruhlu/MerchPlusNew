@@ -25,9 +25,19 @@ namespace MerchPlusMAUI.Views
             // Navigation parametreleri OnNavigatedTo'da alınacak
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+
+            // Loading overlay'i göster
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = true;
+            }
             
             try
             {
@@ -56,6 +66,22 @@ namespace MerchPlusMAUI.Views
                 System.Diagnostics.Debug.WriteLine($"StoreEntryPhotoPage: Parameter loading error: {ex.Message}");
                 _logger?.LogError(ex, "Error loading navigation parameters");
             }
+            finally
+            {
+                // Veriler yüklendikten sonra loading overlay'i gizle
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                }
+            }
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
         }
 
         private async void OnTakePhotoClicked(object sender, EventArgs e)

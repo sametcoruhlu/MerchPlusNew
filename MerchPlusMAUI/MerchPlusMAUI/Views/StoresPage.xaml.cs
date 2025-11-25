@@ -51,6 +51,9 @@ namespace MerchPlusMAUI.Views
                 _logger = logger;
                 _dbPath = GlobalVariables.DatabasePath;
 
+                // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+                this.Opacity = 1;
+
                 RefreshCommand = new Command(async () => 
                 {
                     if (!_isLoading)
@@ -59,6 +62,17 @@ namespace MerchPlusMAUI.Views
                     }
                 });
                 BindingContext = this;
+                
+                // Loading overlay'i hemen göster (sayfa render edilmeden önce)
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = true;
+                    }
+                });
+                
                 System.Diagnostics.Debug.WriteLine("StoresPage: Constructor completed");
             }
             catch (Exception ex)
@@ -68,19 +82,42 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+            
+            // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
+            this.Opacity = 1;
+            
             System.Diagnostics.Debug.WriteLine($"StoresPage: OnAppearing called, StoreType = {StoreType}");
             UpdatePageTitle();
             
+            // Loading overlay'i hemen göster (sayfa render edilmeden önce)
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = true;
+            }
+            
             // Floating back button'u göster
             FloatingBack?.Show();
+            
+            // Verileri yükle
+            await LoadStoresAsync();
+            
+            // Veriler yüklendikten sonra loading overlay'i gizle
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = false;
+            }
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
+            
+            // Sayfa kapanırken fade-out
+            _ = this.FadeTo(0, 150, Easing.CubicIn);
             
             // Floating back button'u gizle
             FloatingBack?.Hide();
@@ -251,6 +288,13 @@ namespace MerchPlusMAUI.Views
                 _isLoading = false;
                 IsRefreshing = false;
                 OnPropertyChanged(nameof(IsRefreshing));
+                
+                // Loading overlay'i gizle
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                }
             }
         }
 

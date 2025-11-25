@@ -3,14 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
              x:Class="MerchPlusMAUI.Views.MerchDataEntryPage"
-             Title="Ürün Veri Girişi">
+             Title="Ürün Veri Girişi"
+             BackgroundColor="#F8F9FA">
     
-    <Grid RowDefinitions="70,*,75">
+    <Grid RowDefinitions="70,*,75" BackgroundColor="#F8F9FA">
         <!-- Header -->
         <controls:CommonHeader Grid.Row="0" />
 
         <!-- Main Content -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" BackgroundColor="#F8F9FA">
             <!-- Loading Overlay -->
             <Grid x:Name="LoadingOverlay" 
                   BackgroundColor="#80000000" 
@@ -43,7 +44,7 @@
                        CornerRadius="12" 
                        HasShadow="True"
                        BorderColor="#E9ECEF">
-                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                    <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
                         <!-- Store Name -->
                         <Label Grid.Row="0"
                                x:Name="RetailShopNameLabel"
@@ -53,23 +54,8 @@
                                HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"/>
                         
-                        <!-- Product Image -->
-                        <Frame Grid.Row="1"
-                               BackgroundColor="#F0F0F0" 
-                               HeightRequest="80" 
-                               CornerRadius="6" 
-                               Padding="10"
-                               HasShadow="False"
-                               HorizontalOptions="Center">
-                            <Image x:Name="CustomerProductPhotoImage"
-                                   Source="dotnet_bot.png"
-                                   Aspect="AspectFit"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"/>
-                        </Frame>
-                        
                         <!-- Product Name -->
-                        <Label Grid.Row="2"
+                        <Label Grid.Row="1"
                                x:Name="CustomerProductNameLabel"
                                Text="Ürün Adı"
                                FontSize="16"
