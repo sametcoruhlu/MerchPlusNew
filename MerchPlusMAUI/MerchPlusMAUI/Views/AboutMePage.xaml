@@ -246,14 +246,5 @@
                 </StackLayout>
             </Frame>
         </Grid>
-        
-        <!-- Floating Back Button Overlay (hidden on main pages) -->
-        <controls:FloatingBackButton Grid.Row="0" Grid.RowSpan="3" 
-                                     x:Name="FloatingBack"
-                                     HorizontalOptions="Start"
-                                     VerticalOptions="End"
-                                     Margin="20,0,0,80"
-                                     IsVisible="False"/>
-        
     </Grid>
 </ContentPage> 

@@ -99,9 +99,6 @@ namespace MerchPlusMAUI.Views
                 loadingOverlay.IsVisible = true;
             }
             
-            // Floating back button'u göster
-            FloatingBack?.Show();
-            
             // Verileri yükle
             await LoadStoresAsync();
             
@@ -118,9 +115,6 @@ namespace MerchPlusMAUI.Views
             
             // Sayfa kapanırken fade-out
             _ = this.FadeTo(0, 150, Easing.CubicIn);
-            
-            // Floating back button'u gizle
-            FloatingBack?.Hide();
         }
 
         private void UpdatePageTitle()

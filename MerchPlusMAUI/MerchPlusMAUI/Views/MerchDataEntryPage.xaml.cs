@@ -1105,6 +1105,56 @@ namespace MerchPlusMAUI.Views
             }
         }
 
+        // Geri butonu için override
+        protected override bool OnBackButtonPressed()
+        {
+            System.Diagnostics.Debug.WriteLine("=== MerchDataEntryPage Hardware Back Button Pressed ===");
+            
+            // StoreProductsPage'e geri dön - parametrelerle birlikte
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    if (_currentMemberRouteId.HasValue)
+                    {
+                        var parameters = new Dictionary<string, object>
+                        {
+                            ["entMemberRouteId"] = _currentMemberRouteId.Value.ToString(),
+                            ["StoreName"] = _currentStoreName ?? "Mağaza"
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Navigating to StoreProductsPage with parameters:");
+                        System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {parameters["entMemberRouteId"]}");
+                        System.Diagnostics.Debug.WriteLine($"    StoreName: {parameters["StoreName"]}");
+                        
+                        await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("OnBackButtonPressed: WARNING - Cannot get MemberRouteId, navigating without parameters");
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Error navigating back: {ex.Message}");
+                    _logger?.LogError(ex, "Error navigating back from MerchDataEntryPage");
+                    // Fallback: StoresPage'e git
+                    try
+                    {
+                        await Shell.Current.GoToAsync("///StoresPage");
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Fallback navigation error: {fallbackEx.Message}");
+                    }
+                }
+            });
+            
+            return true; // Event'i handle et
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

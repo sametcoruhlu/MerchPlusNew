@@ -752,6 +752,57 @@ namespace MerchPlusMAUI.Views
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        // Geri butonu için override
+        protected override bool OnBackButtonPressed()
+        {
+            System.Diagnostics.Debug.WriteLine("=== ExpirationDatePage Hardware Back Button Pressed ===");
+            Console.WriteLine("=== ExpirationDatePage Hardware Back Button Pressed ===");
+            
+            // StoreProductsPage'e geri dön - parametrelerle birlikte
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(EntMemberRouteId))
+                    {
+                        var parameters = new Dictionary<string, object>
+                        {
+                            ["entMemberRouteId"] = EntMemberRouteId,
+                            ["StoreName"] = StoreName ?? "Mağaza"
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Navigating to StoreProductsPage with parameters:");
+                        System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {EntMemberRouteId}");
+                        System.Diagnostics.Debug.WriteLine($"    StoreName: {StoreName}");
+                        
+                        await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("OnBackButtonPressed: WARNING - Cannot get EntMemberRouteId, navigating without parameters");
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Error navigating back: {ex.Message}");
+                    _logger?.LogError(ex, "Error navigating back from ExpirationDatePage");
+                    // Fallback: StoresPage'e git
+                    try
+                    {
+                        await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Fallback navigation error: {fallbackEx.Message}");
+                    }
+                }
+            });
+            
+            return true; // Event'i handle et
+        }
         #endregion
     }
 

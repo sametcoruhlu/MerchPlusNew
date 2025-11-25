@@ -300,8 +300,5 @@
                 </StackLayout>
             </Frame>
         </Grid>
-
-        <!-- Floating Back Button -->
-        <controls:FloatingBackButton Grid.RowSpan="3" />
     </Grid>
 </ContentPage> 

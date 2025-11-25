@@ -2,6 +2,7 @@ using SQLite;
 using Microsoft.Extensions.Logging;
 using entMerchPlus;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -14,7 +15,7 @@ namespace MerchPlusMAUI.Views
 {
     [QueryProperty(nameof(EntMemberRouteId), "entMemberRouteId")]
     [QueryProperty(nameof(StoreName), "StoreName")]
-    public partial class StoreProductsPage : ContentPage, INotifyPropertyChanged
+    public partial class StoreProductsPage : ContentPage, INotifyPropertyChanged, IQueryAttributable
     {
         #region Fields
         private readonly ILogger<StoreProductsPage> _logger;
@@ -154,6 +155,7 @@ namespace MerchPlusMAUI.Views
             
             Console.WriteLine("=== StoreProductsPage OnAppearing ===");
             System.Diagnostics.Debug.WriteLine("=== StoreProductsPage OnAppearing ===");
+            Console.WriteLine($"Current EntMemberRouteId: '{EntMemberRouteId}', StoreName: '{StoreName}'");
             
             if (!_isInitialized)
             {
@@ -184,9 +186,29 @@ namespace MerchPlusMAUI.Views
             }
             else
             {
-                // Zaten initialize edilmiş, ama ürünleri yeniden yükle (veri girişi yapılmış olabilir)
-                Console.WriteLine("StoreProductsPage: Already initialized, refreshing products...");
-                await LoadProductsFromDatabaseAsync();
+                // Zaten initialize edilmiş, ama parametrelerin set edilmesini bekle (SalesOrderPage'den geri dönüldüğünde)
+                Console.WriteLine("StoreProductsPage: Already initialized, waiting for parameters to be set...");
+                
+                // Parametrelerin set edilmesini bekle (maksimum 500ms)
+                int attempts = 0;
+                while (string.IsNullOrEmpty(EntMemberRouteId) && attempts < 10)
+                {
+                    await Task.Delay(50);
+                    attempts++;
+                    Console.WriteLine($"Waiting for parameters attempt {attempts}/10 - EntMemberRouteId: '{EntMemberRouteId}'");
+                }
+                
+                if (!string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine($"Parameters received - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
+                    Console.WriteLine("Refreshing products...");
+                    await LoadProductsFromDatabaseAsync();
+                }
+                else
+                {
+                    Console.WriteLine("WARNING: Parameters not received, but page is initialized. Attempting to load products anyway...");
+                    await LoadProductsFromDatabaseAsync();
+                }
             }
         }
 
@@ -206,36 +228,89 @@ namespace MerchPlusMAUI.Views
             Console.WriteLine("=== Hardware Back Button Pressed ===");
             System.Diagnostics.Debug.WriteLine("=== Hardware Back Button Pressed ===");
             
-            // StoreReportPage'e geri dön
-            MainThread.BeginInvokeOnMainThread(async () =>
+            // Shell navigation stack kontrolü
+            if (Shell.Current != null)
             {
-                try
+                var navigationStack = Shell.Current.Navigation.NavigationStack;
+                var modalStack = Shell.Current.Navigation.ModalStack;
+                
+                Console.WriteLine($"NavigationStack count: {navigationStack.Count}, ModalStack count: {modalStack.Count}");
+                
+                // Eğer navigation stack'te birden fazla sayfa varsa normal geri git
+                if (navigationStack.Count > 1)
                 {
-                    // StoreReportPage'e absolute routing ile git
-                    var parameters = new Dictionary<string, object>
+                    MainThread.BeginInvokeOnMainThread(async () =>
                     {
-                        ["entMemberRouteId"] = EntMemberRouteId,
-                        ["StoreName"] = StoreName
-                    };
-                    
-                    await Shell.Current.GoToAsync("///StoreReportPage", parameters);
+                        try
+                        {
+                            await Shell.Current.Navigation.PopAsync();
+                            Console.WriteLine("PopAsync executed successfully");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"PopAsync error: {ex.Message}");
+                            // Fallback: Shell GoToAsync ile geri git
+                            try
+                            {
+                                await Shell.Current.GoToAsync("..");
+                            }
+                            catch (Exception fallbackEx)
+                            {
+                                Console.WriteLine($"GoToAsync fallback error: {fallbackEx.Message}");
+                            }
+                        }
+                    });
+                    return true; // Event'i handle et
                 }
-                catch (Exception ex)
+                
+                // Modal stack kontrolü
+                if (modalStack.Count > 0)
                 {
-                    Console.WriteLine($"Error in back navigation: {ex.Message}");
-                    // Fallback: StoresPage'e git
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        try
+                        {
+                            await Shell.Current.Navigation.PopModalAsync();
+                            Console.WriteLine("PopModalAsync executed successfully");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"PopModalAsync error: {ex.Message}");
+                        }
+                    });
+                    return true; // Event'i handle et
+                }
+                
+                // Navigation stack boşsa StoresPage'e git - StoreType parametresi ile
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
                     try
                     {
-                        await Shell.Current.GoToAsync("///StoresPage");
+                        // StoresPage'e explicit navigation - StoreType=All ile (tüm mağazaları göster)
+                        await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
+                        Console.WriteLine("Navigated to StoresPage with StoreType=All");
+                        System.Diagnostics.Debug.WriteLine("Navigated to StoresPage with StoreType=All");
                     }
-                    catch (Exception fallbackEx)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"Fallback navigation error: {fallbackEx.Message}");
+                        Console.WriteLine($"Error navigating to StoresPage: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Error navigating to StoresPage: {ex.Message}");
+                        // Fallback: AboutMePage'e git
+                        try
+                        {
+                            await Shell.Current.GoToAsync("///AboutMePage");
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            Console.WriteLine($"Fallback navigation error: {fallbackEx.Message}");
+                        }
                     }
-                }
-            });
+                });
+                return true; // Event'i handle et
+            }
             
-            return true; // Event'i handle et
+            // Shell.Current null ise default davranışı kullan
+            return false; // Event'i handle etme, default davranışı kullan
         }
 
         private async Task InitializePageAsync()
@@ -305,6 +380,30 @@ namespace MerchPlusMAUI.Views
                 await ShowErrorAndNavigateBack($"Sayfa yüklenirken hata oluştu: {ex.Message}");
             }
         }
+        // IQueryAttributable implementation
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            Console.WriteLine("=== StoreProductsPage ApplyQueryAttributes ===");
+            System.Diagnostics.Debug.WriteLine("=== StoreProductsPage ApplyQueryAttributes ===");
+            
+            foreach (var kvp in query)
+            {
+                Console.WriteLine($"  {kvp.Key} = '{kvp.Value}'");
+                System.Diagnostics.Debug.WriteLine($"  {kvp.Key} = '{kvp.Value}'");
+            }
+            
+            if (query.ContainsKey("entMemberRouteId"))
+            {
+                EntMemberRouteId = query["entMemberRouteId"]?.ToString() ?? string.Empty;
+                Console.WriteLine($"Set EntMemberRouteId from query: '{EntMemberRouteId}'");
+            }
+            
+            if (query.ContainsKey("StoreName"))
+            {
+                StoreName = query["StoreName"]?.ToString() ?? string.Empty;
+                Console.WriteLine($"Set StoreName from query: '{StoreName}'");
+            }
+        }
         #endregion
 
         #region Database Operations - Android OnResume database logic
@@ -313,6 +412,17 @@ namespace MerchPlusMAUI.Views
             try
             {
                 Console.WriteLine("=== Loading Products ===");
+                Console.WriteLine($"EntMemberRouteId: '{EntMemberRouteId}'");
+                
+                // EntMemberRouteId boşsa hata göster
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    Console.WriteLine("ERROR: EntMemberRouteId is empty, cannot load products");
+                    _logger.LogWarning("EntMemberRouteId is empty, cannot load products");
+                    await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı. Lütfen tekrar deneyin.", "Tamam");
+                    return;
+                }
+                
                 IsLoading = true;
                 
                 // Database işlemlerini background thread'de yap ama daha verimli
@@ -320,7 +430,12 @@ namespace MerchPlusMAUI.Views
                 {
                     using var db = new SQLiteConnection(_dbPath);
                     
-                    var memberRouteId = Convert.ToInt32(EntMemberRouteId);
+                    if (!int.TryParse(EntMemberRouteId, out int memberRouteId))
+                    {
+                        Console.WriteLine($"ERROR: Cannot parse EntMemberRouteId '{EntMemberRouteId}' to int");
+                        return new List<entMemberRouteDetail>();
+                    }
+                    
                     Console.WriteLine($"Querying products for MemberRouteId: {memberRouteId}");
                     
                     // Tüm ürünleri göster (veri girişi yapılmış veya yapılmamış)

@@ -36,17 +36,11 @@ namespace MerchPlusMAUI.Views
             base.OnAppearing();
             System.Diagnostics.Debug.WriteLine("NotificationsPage açıldı!");
             LoadNotifications();
-            
-            // Floating back button'u göster
-            FloatingBack?.Show();
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            
-            // Floating back button'u gizle
-            FloatingBack?.Hide();
         }
 
         private void LoadNotifications()

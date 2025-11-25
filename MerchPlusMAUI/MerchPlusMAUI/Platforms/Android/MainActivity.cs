@@ -230,11 +230,78 @@ namespace MerchPlusMAUI
                     
                     // Diğer sayfalarda Shell navigation ile geri git
                     System.Diagnostics.Debug.WriteLine("Secondary page detected, navigating back");
+                    
+                    // Navigation stack kontrolü
+                    var navigationStack = Shell.Current.Navigation.NavigationStack;
+                    var modalStack = Shell.Current.Navigation.ModalStack;
+                    
+                    System.Diagnostics.Debug.WriteLine($"NavigationStack count: {navigationStack.Count}, ModalStack count: {modalStack.Count}");
+                    
+                    // Eğer navigation stack'te birden fazla sayfa varsa geri git
+                    if (navigationStack.Count > 1)
+                    {
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            try
+                            {
+                                await Shell.Current.Navigation.PopAsync();
+                                System.Diagnostics.Debug.WriteLine("PopAsync executed successfully");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"PopAsync error: {ex.Message}");
+                                // Fallback: Shell GoToAsync ile geri git
+                                try
+                                {
+                                    await Shell.Current.GoToAsync("..");
+                                }
+                                catch (Exception fallbackEx)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"GoToAsync fallback error: {fallbackEx.Message}");
+                                    base.OnBackPressed();
+                                }
+                            }
+                        });
+                        return;
+                    }
+                    
+                    // Modal stack kontrolü
+                    if (modalStack.Count > 0)
+                    {
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            try
+                            {
+                                await Shell.Current.Navigation.PopModalAsync();
+                                System.Diagnostics.Debug.WriteLine("PopModalAsync executed successfully");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"PopModalAsync error: {ex.Message}");
+                                base.OnBackPressed();
+                            }
+                        });
+                        return;
+                    }
+                    
+                    // Navigation stack boşsa sayfa tipine göre explicit navigation yap
                     MainThread.BeginInvokeOnMainThread(async () =>
                     {
                         try
                         {
-                            await Shell.Current.GoToAsync("..");
+                            // Sayfa tipine göre önceki sayfaya git (parametrelerle birlikte)
+                            var navigationResult = await GetPreviousPageNavigationAsync(pageName, currentPage);
+                            
+                            if (navigationResult.Success)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Navigation to {navigationResult.Route} executed successfully");
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"Navigation failed: {navigationResult.Error}");
+                                // Fallback: Ana sayfaya git
+                                await Shell.Current.GoToAsync("///AboutMePage");
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -262,6 +329,122 @@ namespace MerchPlusMAUI
             {
                 System.Diagnostics.Debug.WriteLine($"OnBackPressed error: {ex.Message}");
                 base.OnBackPressed();
+            }
+        }
+
+        private async Task<(bool Success, string Route, string Error)> GetPreviousPageNavigationAsync(string currentPageName, Microsoft.Maui.Controls.Page currentPage)
+        {
+            try
+            {
+                // Sayfa tipine göre önceki sayfaya git (parametrelerle birlikte)
+                switch (currentPageName)
+                {
+                    case "StoreProductsPage":
+                        // StoresPage'e StoreType=All parametresi ile git
+                        await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
+                        System.Diagnostics.Debug.WriteLine("Navigated to StoresPage with StoreType=All");
+                        return (true, "///StoresPage?StoreType=All", null);
+                        
+                    case "MerchDataEntryPage":
+                        // StoreProductsPage'e geri dön - parametrelerle birlikte
+                        if (currentPage is MerchPlusMAUI.Views.MerchDataEntryPage merchDataEntryPage)
+                        {
+                            var entMemberRouteId = merchDataEntryPage.EntMemberRouteId;
+                            var storeName = merchDataEntryPage.StoreName;
+                            
+                            if (!string.IsNullOrEmpty(entMemberRouteId))
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    ["entMemberRouteId"] = entMemberRouteId,
+                                    ["StoreName"] = storeName ?? "Mağaza"
+                                };
+                                
+                                System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage: Navigating to StoreProductsPage with parameters:");
+                                System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {entMemberRouteId}");
+                                System.Diagnostics.Debug.WriteLine($"    StoreName: {storeName}");
+                                
+                                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                return (true, "///StoreProductsPage", null);
+                            }
+                        }
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                        return (true, "///StoreProductsPage", null);
+                        
+                    case "SalesOrderPage":
+                        // StoreProductsPage'e geri dön - parametrelerle birlikte
+                        if (currentPage is MerchPlusMAUI.Views.SalesOrderPage salesOrderPage)
+                        {
+                            var salesEntMemberRouteId = salesOrderPage.EntMemberRouteId;
+                            var salesStoreName = salesOrderPage.StoreName;
+                            
+                            if (!string.IsNullOrEmpty(salesEntMemberRouteId))
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    ["entMemberRouteId"] = salesEntMemberRouteId,
+                                    ["StoreName"] = salesStoreName ?? "Mağaza"
+                                };
+                                
+                                System.Diagnostics.Debug.WriteLine($"SalesOrderPage: Navigating to StoreProductsPage with parameters:");
+                                System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {salesEntMemberRouteId}");
+                                System.Diagnostics.Debug.WriteLine($"    StoreName: {salesStoreName}");
+                                
+                                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                return (true, "///StoreProductsPage", null);
+                            }
+                        }
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                        return (true, "///StoreProductsPage", null);
+                    case "ExpirationDatePage":
+                        // StoreProductsPage'e geri dön - parametrelerle birlikte
+                        if (currentPage is MerchPlusMAUI.Views.ExpirationDatePage expirationDatePage)
+                        {
+                            var expEntMemberRouteId = expirationDatePage.EntMemberRouteId;
+                            var expStoreName = expirationDatePage.StoreName;
+                            
+                            if (!string.IsNullOrEmpty(expEntMemberRouteId))
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    ["entMemberRouteId"] = expEntMemberRouteId,
+                                    ["StoreName"] = expStoreName ?? "Mağaza"
+                                };
+                                
+                                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                return (true, "///StoreProductsPage", null);
+                            }
+                        }
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                        return (true, "///StoreProductsPage", null);
+                        
+                    case "StoreReportPage":
+                        return (true, "///StoreProductsPage", null);
+                    case "StoreDisplayPhotoPage":
+                        return (true, "///StoreVitrinePhotoPage", null);
+                    case "StoreVitrinePhotoPage":
+                        return (true, "///StoreProductsPage", null);
+                    case "StoreEntryPhotoPage":
+                        return (true, "///StoreProductsPage", null);
+                    case "StoresPage":
+                        // AboutMePage'e geri dön
+                        await Shell.Current.GoToAsync("///AboutMePage");
+                        System.Diagnostics.Debug.WriteLine("Navigated to AboutMePage");
+                        return (true, "///AboutMePage", null);
+                    case "NotificationsPage":
+                    case "LocationsPage":
+                    case "VisitPage":
+                        return (true, "///AboutMePage", null);
+                    default:
+                        return (true, "///AboutMePage", null);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPreviousPageNavigationAsync error: {ex.Message}");
+                return (false, null, ex.Message);
             }
         }
 

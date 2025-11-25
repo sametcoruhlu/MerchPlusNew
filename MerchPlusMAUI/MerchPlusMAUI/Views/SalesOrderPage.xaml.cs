@@ -354,30 +354,63 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
-                Console.WriteLine($"[SalesOrderPage] Back button tapped. NavigationStack={Shell.Current.Navigation.NavigationStack.Count}, ModalStack={Shell.Current.Navigation.ModalStack.Count}");
+                Console.WriteLine($"[SalesOrderPage] Back button tapped. EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
+                Console.WriteLine($"[SalesOrderPage] NavigationStack={Shell.Current.Navigation.NavigationStack.Count}, ModalStack={Shell.Current.Navigation.ModalStack.Count}");
 
-                if (Shell.Current.Navigation.NavigationStack.Count > 1)
+                // StoreProductsPage'e geri dön - parametrelerle birlikte
+                if (!string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    await Shell.Current.Navigation.PopAsync();
-                    Console.WriteLine("[SalesOrderPage] PopAsync executed");
-                    return;
+                    var parameters = new Dictionary<string, object>
+                    {
+                        ["entMemberRouteId"] = EntMemberRouteId,
+                        ["StoreName"] = StoreName ?? "Mağaza"
+                    };
+                    
+                    Console.WriteLine($"[SalesOrderPage] Navigating to StoreProductsPage with parameters:");
+                    Console.WriteLine($"[SalesOrderPage]     entMemberRouteId: {EntMemberRouteId}");
+                    Console.WriteLine($"[SalesOrderPage]     StoreName: {StoreName}");
+                    
+                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') with parameters executed");
                 }
-
-                if (Shell.Current.Navigation.ModalStack.Count > 0)
+                else
                 {
-                    await Shell.Current.Navigation.PopModalAsync();
-                    Console.WriteLine("[SalesOrderPage] PopModalAsync executed");
-                    return;
-                }
+                    Console.WriteLine("[SalesOrderPage] WARNING - EntMemberRouteId is empty, trying navigation stack");
+                    
+                    if (Shell.Current.Navigation.NavigationStack.Count > 1)
+                    {
+                        await Shell.Current.Navigation.PopAsync();
+                        Console.WriteLine("[SalesOrderPage] PopAsync executed");
+                        return;
+                    }
 
-                Console.WriteLine("[SalesOrderPage] No entries in stack, navigating back to StoreProductsPage explicitly");
-                await Shell.Current.GoToAsync("///StoreProductsPage");
-                Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') executed");
+                    if (Shell.Current.Navigation.ModalStack.Count > 0)
+                    {
+                        await Shell.Current.Navigation.PopModalAsync();
+                        Console.WriteLine("[SalesOrderPage] PopModalAsync executed");
+                        return;
+                    }
+
+                    Console.WriteLine("[SalesOrderPage] No entries in stack and no parameters, navigating to StoreProductsPage without parameters");
+                    await Shell.Current.GoToAsync("///StoreProductsPage");
+                    Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') without parameters executed");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "SalesOrderPage back navigation error");
                 Console.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
+                
+                // Fallback: StoresPage'e git
+                try
+                {
+                    await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"[SalesOrderPage] Fallback navigation error: {fallbackEx.Message}");
+                }
             }
         }
 
@@ -641,6 +674,57 @@ namespace MerchPlusMAUI.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+        // Geri butonu için override
+        protected override bool OnBackButtonPressed()
+        {
+            System.Diagnostics.Debug.WriteLine("=== SalesOrderPage Hardware Back Button Pressed ===");
+            Console.WriteLine("=== SalesOrderPage Hardware Back Button Pressed ===");
+            
+            // StoreProductsPage'e geri dön - parametrelerle birlikte
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(EntMemberRouteId))
+                    {
+                        var parameters = new Dictionary<string, object>
+                        {
+                            ["entMemberRouteId"] = EntMemberRouteId,
+                            ["StoreName"] = StoreName ?? "Mağaza"
+                        };
+                        
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Navigating to StoreProductsPage with parameters:");
+                        System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {EntMemberRouteId}");
+                        System.Diagnostics.Debug.WriteLine($"    StoreName: {StoreName}");
+                        
+                        await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("OnBackButtonPressed: WARNING - Cannot get EntMemberRouteId, navigating without parameters");
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Error navigating back: {ex.Message}");
+                    _logger?.LogError(ex, "Error navigating back from SalesOrderPage");
+                    // Fallback: StoresPage'e git
+                    try
+                    {
+                        await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Fallback navigation error: {fallbackEx.Message}");
+                    }
+                }
+            });
+            
+            return true; // Event'i handle et
+        }
     }
 }
 
