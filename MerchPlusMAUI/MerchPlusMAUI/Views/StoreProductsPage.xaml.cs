@@ -195,7 +195,9 @@ namespace MerchPlusMAUI.Views
             }
             else
             {
-                // Zaten initialize edilmiş, sadece fade-in yap
+                // Zaten initialize edilmiş, ama ürünleri yeniden yükle (veri girişi yapılmış olabilir)
+                Console.WriteLine("StoreProductsPage: Already initialized, refreshing products...");
+                await LoadProductsFromDatabaseAsync();
                 await this.FadeTo(1, 200, Easing.CubicOut);
             }
         }
@@ -333,9 +335,10 @@ namespace MerchPlusMAUI.Views
                     var memberRouteId = Convert.ToInt32(EntMemberRouteId);
                     Console.WriteLine($"Querying products for MemberRouteId: {memberRouteId}");
                     
-                    // Orijinal yöntemle veri oku (daha önce çalışıyordu)
+                    // Tüm ürünleri göster (veri girişi yapılmış veya yapılmamış)
+                    // CreatedOn IS NULL filtresi kaldırıldı - kullanıcı veri girişi yaptıktan sonra da ürünü görebilmeli
                     var listOfMemberRouteDetail = db.Query<entMemberRouteDetail>(
-                        "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=? AND CreatedOn IS NULL", 
+                        "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
                         memberRouteId);
                     
                     Console.WriteLine($"Found {listOfMemberRouteDetail?.Count ?? 0} products");

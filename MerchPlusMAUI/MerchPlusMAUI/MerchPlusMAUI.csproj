@@ -59,17 +59,19 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		
-		<!-- Google Play için AAB (Android App Bundle) oluştur -->
-		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
+		<!-- APK formatı (AAB yerine) -->
+		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">apk</AndroidPackageFormat>
 		<AndroidPackageFormat Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">apk</AndroidPackageFormat>
 		
-		<!-- Release build için kod küçültme (ProGuard/R8) -->
-		<AndroidEnableProguard Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidEnableProguard>
-		<AndroidLinkTool Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">r8</AndroidLinkTool>
+		<!-- ProGuard/R8 tamamen kapatıldı - uygulama çökmesini önlemek için -->
+		<!-- İleride gerekirse ProGuard kuralları eklenebilir -->
+		<AndroidEnableProguard Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">false</AndroidEnableProguard>
+		<!-- AndroidLinkTool kaldırıldı - R8'i tamamen devre dışı bırakmak için -->
 		
 		<!-- Signing için keystore ayarları (aşağıdaki değerleri kendi keystore bilgilerinizle değiştirin) -->
 		<!-- Keystore oluşturmak için: keytool -genkey -v -keystore merchplus-release.keystore -alias merchplus -keyalg RSA -keysize 2048 -validity 10000 -->
-		<AndroidKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidKeyStore>
+		<!-- Geçici olarak imzalama kapatıldı - test için -->
+		<AndroidKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">false</AndroidKeyStore>
 		<!-- Bu değerleri kendi keystore bilgilerinizle değiştirin -->
 		<!-- Keystore dosyası Platforms\Android\ klasöründe olmalı -->
 		<AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">$(MSBuildProjectDirectory)\Platforms\Android\merchplus-release.keystore</AndroidSigningKeyStore>

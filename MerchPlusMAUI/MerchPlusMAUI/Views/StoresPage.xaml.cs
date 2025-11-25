@@ -462,14 +462,18 @@ namespace MerchPlusMAUI.Views
                 _logger?.LogInformation($"GlobalVariables.MemberLastCoordinate.Longitude: {GlobalVariables.MemberLastCoordinate.Longitude}");
                 
                 // Veritabanından son konum bilgisini kontrol et
+                // LocationAgentService'deki gibi Id'ye göre sıralama yap (AutoIncrement olduğu için en son eklenen en yüksek Id'ye sahip)
                 using var dbCheck = new SQLiteConnection(_dbPath);
-                var lastCoordinate = dbCheck.Table<MemberCoordinate>()
-                    .OrderByDescending(c => c.LastUpdateTime)
-                    .FirstOrDefault();
+                dbCheck.CreateTable<MerchPlusMAUI.Models.entMemberCoordinate>();
+                
+                // entMemberCoordinate tablosundan son kaydı al (Id'ye göre - en son eklenen)
+                var lastCoordinate = dbCheck.Query<MerchPlusMAUI.Models.entMemberCoordinate>(
+                    "SELECT * FROM entMemberCoordinate ORDER BY Id DESC LIMIT 1").FirstOrDefault();
                 
                 if (lastCoordinate != null)
                 {
-                    _logger?.LogInformation($"Veritabanından son konum - Latitude: {lastCoordinate.Latitude}, Longitude: {lastCoordinate.Longitude}, LastUpdateTime: {lastCoordinate.LastUpdateTime}");
+                    var timeInfo = lastCoordinate.LastUpdateTime ?? lastCoordinate.CreatedOn;
+                    _logger?.LogInformation($"Veritabanından son konum - Latitude: {lastCoordinate.Latitude}, Longitude: {lastCoordinate.Longitude}, Time: {timeInfo}");
                 }
                 else
                 {
