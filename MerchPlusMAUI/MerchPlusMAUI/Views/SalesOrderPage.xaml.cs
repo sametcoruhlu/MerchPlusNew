@@ -188,8 +188,7 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
         #endregion
 
@@ -354,6 +353,7 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                IsBusy = true; // Loading overlay göster (IsBusy binding ile)
                 Console.WriteLine($"[SalesOrderPage] Back button tapped. EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
                 Console.WriteLine($"[SalesOrderPage] NavigationStack={Shell.Current.Navigation.NavigationStack.Count}, ModalStack={Shell.Current.Navigation.ModalStack.Count}");
 
@@ -381,6 +381,7 @@ namespace MerchPlusMAUI.Views
                     {
                         await Shell.Current.Navigation.PopAsync();
                         Console.WriteLine("[SalesOrderPage] PopAsync executed");
+                        IsBusy = false;
                         return;
                     }
 
@@ -388,6 +389,7 @@ namespace MerchPlusMAUI.Views
                     {
                         await Shell.Current.Navigation.PopModalAsync();
                         Console.WriteLine("[SalesOrderPage] PopModalAsync executed");
+                        IsBusy = false;
                         return;
                     }
 
@@ -398,6 +400,7 @@ namespace MerchPlusMAUI.Views
             }
             catch (Exception ex)
             {
+                IsBusy = false;
                 _logger.LogError(ex, "SalesOrderPage back navigation error");
                 Console.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
@@ -416,14 +419,26 @@ namespace MerchPlusMAUI.Views
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
-            if (OrderPreviewItems.Count == 0)
+            try
             {
-                await DisplayAlert("Bilgi", "Kaydedilecek sipariş kalemi bulunmuyor.", "Tamam");
-                return;
-            }
+                IsBusy = true; // Loading overlay göster
+                
+                if (OrderPreviewItems.Count == 0)
+                {
+                    IsBusy = false;
+                    await DisplayAlert("Bilgi", "Kaydedilecek sipariş kalemi bulunmuyor.", "Tamam");
+                    return;
+                }
 
-            await DisplayAlert("Sipariş Kaydedildi", "Sipariş kalemleri başarıyla kaydedildi.", "Tamam");
-            await Shell.Current.GoToAsync("..");
+                await DisplayAlert("Sipariş Kaydedildi", "Sipariş kalemleri başarıyla kaydedildi.", "Tamam");
+                await Shell.Current.GoToAsync("..");
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                _logger?.LogError(ex, "Error in OnSaveClicked");
+                await DisplayAlert("Hata", "Sipariş kaydedilirken hata oluştu.", "Tamam");
+            }
         }
         #endregion
 

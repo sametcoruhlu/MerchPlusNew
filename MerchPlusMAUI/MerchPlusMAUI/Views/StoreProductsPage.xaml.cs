@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.ApplicationModel;
 using System.Linq;
 using System.Globalization;
 using MerchPlusMAUI.Services;
@@ -181,7 +182,9 @@ namespace MerchPlusMAUI.Views
                 else
                 {
                     Console.WriteLine("ERROR: Navigation parameters not received after waiting!");
+                    HideLoadingOverlay();
                     await ShowErrorAndNavigateBack("Mağaza bilgileri alınamadı. Lütfen tekrar deneyin.");
+                    return;
                 }
             }
             else
@@ -210,6 +213,9 @@ namespace MerchPlusMAUI.Views
                     await LoadProductsFromDatabaseAsync();
                 }
             }
+            
+            // Veri yüklendikten sonra loading overlay'i gizle
+            HideLoadingOverlay();
         }
 
         protected override void OnDisappearing()
@@ -218,8 +224,7 @@ namespace MerchPlusMAUI.Views
             Console.WriteLine("=== StoreProductsPage OnDisappearing ===");
             System.Diagnostics.Debug.WriteLine("=== StoreProductsPage OnDisappearing ===");
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
 
         // Geri butonu için override
@@ -654,6 +659,7 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                ShowLoadingOverlay();
                 _logger.LogInformation($"Take photo clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // StoreVitrinePhotoPage'e navigate et (Android kodundaki gibi entMemberRouteId parametresi ile)
@@ -672,6 +678,7 @@ namespace MerchPlusMAUI.Views
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnTakePhotoClicked");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Fotoğraf çekme işleminde hata oluştu.", "Tamam");
             }
         }
@@ -681,11 +688,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                ShowLoadingOverlay();
                 _logger.LogInformation($"Sales order clicked - EntMemberRouteId: {EntMemberRouteId}");
                 Console.WriteLine($"[StoreProductsPage] OnSalesOrderClicked - EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
                 
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
+                    HideLoadingOverlay();
                     await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
                     return;
                 }
@@ -707,6 +716,7 @@ namespace MerchPlusMAUI.Views
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnSalesOrderClicked");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Sipariş işleminde hata oluştu.", "Tamam");
             }
         }
@@ -716,11 +726,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                ShowLoadingOverlay();
                 _logger.LogInformation($"Expiration date clicked - EntMemberRouteId: {EntMemberRouteId}");
                 Console.WriteLine($"[StoreProductsPage] OnExpirationDateClicked - EntMemberRouteId='{EntMemberRouteId}'");
                 
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
+                    HideLoadingOverlay();
                     await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
                     return;
                 }
@@ -742,6 +754,7 @@ namespace MerchPlusMAUI.Views
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnExpirationDateClicked");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "SKT işleminde hata oluştu.", "Tamam");
             }
         }
@@ -751,6 +764,7 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                ShowLoadingOverlay();
                 _logger.LogInformation($"Report clicked - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                 
                 // EntMemberRouteId ve StoreName kontrolü
@@ -770,6 +784,7 @@ namespace MerchPlusMAUI.Views
                     else
                     {
                         _logger.LogError("GlobalVariables.CurrentMemberRoute is also null");
+                        HideLoadingOverlay();
                         await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
                         return;
                     }
@@ -794,6 +809,7 @@ namespace MerchPlusMAUI.Views
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnReportClicked");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Rapor sayfasına geçiş yapılırken hata oluştu.", "Tamam");
             }
         }
@@ -803,12 +819,14 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                ShowLoadingOverlay();
                 _logger.LogInformation($"Exit shop clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // EntMemberRouteId null kontrolü
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
                     _logger.LogError("EntMemberRouteId is null or empty in OnExitShopClickedAsync");
+                    HideLoadingOverlay();
                     await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
                     return;
                 }
@@ -817,15 +835,18 @@ namespace MerchPlusMAUI.Views
                 var canExit = await ValidateExitShop();
                 if (!canExit)
                 {
+                    HideLoadingOverlay();
                     return; // Çıkış validasyonu başarısız
                 }
 
                 // Çıkış işlemini tamamla
                 await CompleteExitShop();
+                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnExitShopClicked");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
             }
         }
@@ -1291,6 +1312,32 @@ namespace MerchPlusMAUI.Views
                     
                     // Temizle
                     mainGrid.Children.Remove(toastFrame);
+                }
+            });
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    Console.WriteLine("StoreProductsPage: Loading overlay shown");
+                }
+            });
+        }
+
+        private void HideLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    Console.WriteLine("StoreProductsPage: Loading overlay hidden");
                 }
             });
         }

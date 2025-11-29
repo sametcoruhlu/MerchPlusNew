@@ -2,6 +2,7 @@ using SQLite;
 using Microsoft.Extensions.Logging;
 using entMerchPlus;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.Maui.Graphics;
@@ -93,28 +94,47 @@ namespace MerchPlusMAUI.Views
             UpdatePageTitle();
             
             // Loading overlay'i hemen göster (sayfa render edilmeden önce)
-            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-            if (loadingOverlay != null)
-            {
-                loadingOverlay.IsVisible = true;
-            }
+            ShowLoadingOverlay();
             
             // Verileri yükle
             await LoadStoresAsync();
             
             // Veriler yüklendikten sonra loading overlay'i gizle
-            if (loadingOverlay != null)
-            {
-                loadingOverlay.IsVisible = false;
-            }
+            HideLoadingOverlay();
         }
 
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
+            HideLoadingOverlay();
+        }
+
+        private void ShowLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    System.Diagnostics.Debug.WriteLine("StoresPage: Loading overlay shown");
+                }
+            });
+        }
+
+        private void HideLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    System.Diagnostics.Debug.WriteLine("StoresPage: Loading overlay hidden");
+                }
+            });
         }
 
         private void UpdatePageTitle()
@@ -379,6 +399,9 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters (Tap): entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
                     _logger?.LogInformation($"Navigating to StoreProductsPage via tap with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
+                    // Loading overlay göster
+                    ShowLoadingOverlay();
+                    
                     Console.WriteLine("Starting navigation...");
                     await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     Console.WriteLine("Navigation completed (Tap)");
@@ -462,6 +485,9 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
                     _logger?.LogInformation($"Navigating to StoreProductsPage with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
+                    // Loading overlay göster
+                    ShowLoadingOverlay();
+                    
                     // Navigation yap
                     await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     System.Diagnostics.Debug.WriteLine("Navigation completed");

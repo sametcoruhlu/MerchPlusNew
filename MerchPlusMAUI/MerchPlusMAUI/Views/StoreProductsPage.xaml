@@ -10,6 +10,26 @@
         <!-- Header -->
         <controls:CommonHeader Grid.Row="0" />
 
+        <!-- Loading Overlay -->
+        <Grid x:Name="LoadingOverlay" 
+              Grid.Row="1"
+              BackgroundColor="#80000000" 
+              IsVisible="False">
+            <StackLayout HorizontalOptions="Center" 
+                         VerticalOptions="Center" 
+                         Spacing="20">
+                <ActivityIndicator x:Name="LoadingSpinner" 
+                                   IsRunning="True" 
+                                   Color="White" 
+                                   WidthRequest="50" 
+                                   HeightRequest="50"/>
+                <Label Text="Ürünler yükleniyor..." 
+                       TextColor="White" 
+                       FontSize="16" 
+                       HorizontalOptions="Center"/>
+            </StackLayout>
+        </Grid>
+
         <!-- Main Content - Product List -->
         <Grid Grid.Row="1" RowDefinitions="Auto,*">
             <!-- Store Info Card -->

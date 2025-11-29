@@ -127,8 +127,8 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
+            HideLoadingOverlay();
         }
 
         private void LoadActivityTypes()
@@ -680,6 +680,7 @@ namespace MerchPlusMAUI.Views
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
+            ShowLoadingOverlay();
             System.Diagnostics.Debug.WriteLine("OnSaveClicked: Kaydet butonuna tıklandı");
             string errorMessage = string.Empty;
 
@@ -852,6 +853,7 @@ namespace MerchPlusMAUI.Views
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Validasyon hataları var, kullanıcıya gösteriliyor: {errorMessage}");
+                HideLoadingOverlay();
                 await DisplayAlert("Eksikleriniz var...", 
                     "Aşağıda listelenen sorunları düzelttikten sonra tekrar deneyin.\r\n\r\n" + errorMessage, 
                     "TAMAM");
@@ -1026,12 +1028,17 @@ namespace MerchPlusMAUI.Views
                 _logger?.LogError(ex, "Error saving data");
                 await DisplayAlert("Hata", "Veriler kaydedilirken hata oluştu.", "Tamam");
             }
+            finally
+            {
+                HideLoadingOverlay();
+            }
         }
 
         private async void OnExitClicked(object sender, EventArgs e)
         {
             try
             {
+                ShowLoadingOverlay();
                 System.Diagnostics.Debug.WriteLine("OnExitClicked: Çıkış butonuna tıklandı");
                 
                 // Navigation flag'ini set et
