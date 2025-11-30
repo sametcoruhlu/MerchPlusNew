@@ -55,21 +55,58 @@ namespace MerchPlusMAUI.Controls
             UpdateButtonText();
         }
 
-        // Buton metnini güncelle (eski projede olduğu gibi - "Veri Gönder (X mağaza)")
-        private void UpdateButtonText()
+        // Buton metnini güncelle ve badge göster (eski projede olduğu gibi - badge ile sayı göster)
+        public void UpdateButtonText()
         {
             try
             {
                 using var db = new SQLiteConnection(_dbPath);
-                var remainingRoutes = db.Table<entMemberRoute>().Where(r => r.IsSentToServer != true).ToList();
+                
+                // Gönderilmemiş route sayısı
+                var remainingRoutes = db.Table<entMemberRoute>().Where(r => r.IsSentToServer != true).Count();
+                
+                // Gönderilmemiş route photo sayısı
+                var remainingPhotos = db.Table<entMemberRoutePhoto>().Where(p => p.IsSentToServer != true).Count();
+                
+                // Gönderilmemiş display photo sayısı
+                var remainingDisplayPhotos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer).Count();
+                
+                // Gönderilmemiş coordinate sayısı
+                // Not: entMemberCoordinate'da IsSentToServer property'si yok, gönderilenler silindiği için tüm koordinatlar gönderilmemiş sayılır
+                var remainingCoordinates = db.Table<MerchPlusMAUI.Models.entMemberCoordinate>().Count();
+                
+                // Toplam güncelleme sayısı
+                int totalUpdates = remainingRoutes + remainingPhotos + remainingDisplayPhotos + remainingCoordinates;
                 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     if (UpdateButtonLabel != null)
                     {
-                        UpdateButtonLabel.Text = remainingRoutes.Count > 0 
-                            ? $"Güncelle ({remainingRoutes.Count} mağaza)" 
-                            : "Güncelle";
+                        UpdateButtonLabel.Text = "Güncelle";
+                    }
+                    
+                    // Badge'i göster/gizle
+                    if (UpdateBadge != null && UpdateBadgeLabel != null)
+                    {
+                        if (totalUpdates > 0)
+                        {
+                            UpdateBadge.IsVisible = true;
+                            UpdateBadgeLabel.Text = totalUpdates > 99 ? "99+" : totalUpdates.ToString();
+                            
+                            // Badge boyutunu sayıya göre ayarla
+                            if (totalUpdates > 9)
+                            {
+                                UpdateBadge.WidthRequest = 24;
+                            }
+                            else
+                            {
+                                UpdateBadge.WidthRequest = 20;
+                            }
+                        }
+                        else
+                        {
+                            UpdateBadge.IsVisible = false;
+                        }
                     }
                 });
             }
@@ -136,12 +173,20 @@ namespace MerchPlusMAUI.Controls
                 {
                     try
                     {
+                        // Başlangıç mesajı göster
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                        {
+                            await MauiShell.Current.DisplayAlert("Bilgi", 
+                                "Veriler sunucuya gönderiliyor. Lütfen bekleyin...", 
+                                "Tamam");
+                        });
+
                         // Buton durumunu güncelle (eski projede olduğu gibi)
                         await MainThread.InvokeOnMainThreadAsync(() =>
                         {
                             if (UpdateButtonLabel != null)
                             {
-                                UpdateButtonLabel.Text = "Lütfen Bekleyin";
+                                UpdateButtonLabel.Text = "Gönderiliyor...";
                             }
                             if (UpdateButtonGrid != null)
                             {
@@ -154,7 +199,7 @@ namespace MerchPlusMAUI.Controls
                         string resultMessage = await SyncData();
                         _isBusy = false;
 
-                        // Buton durumunu geri yükle
+                        // Buton durumunu geri yükle ve badge'i güncelle
                         await MainThread.InvokeOnMainThreadAsync(async () =>
                         {
                             if (UpdateButtonLabel != null)
@@ -166,8 +211,21 @@ namespace MerchPlusMAUI.Controls
                                 UpdateButtonGrid.IsEnabled = true;
                             }
 
-                            // Sonuç mesajını göster (eski projede olduğu gibi)
-                            await MauiShell.Current.DisplayAlert("İşlem Tamamlandı", resultMessage, "Tamam");
+                            // Badge'i güncelle (güncellenecek bir şey kalmamışsa badge gizlenecek)
+                            UpdateButtonText();
+
+                            // Sonuç mesajını göster - daha kullanıcı dostu
+                            string displayMessage = resultMessage;
+                            if (resultMessage.Contains("Gönderilecek veri bulunamadı"))
+                            {
+                                displayMessage = "Güncellenecek veri bulunamadı. Tüm veriler zaten sunucuya gönderilmiş.";
+                            }
+                            else
+                            {
+                                displayMessage = "✅ Güncelleme tamamlandı!\n\n" + resultMessage;
+                            }
+                            
+                            await MauiShell.Current.DisplayAlert("Güncelleme Tamamlandı", displayMessage, "Tamam");
                         });
                     }
                     catch (Exception ex)
@@ -175,7 +233,7 @@ namespace MerchPlusMAUI.Controls
                         _isBusy = false;
                         System.Diagnostics.Debug.WriteLine($"Veri senkronizasyon hatası: {ex.Message}");
                         
-                        // Buton durumunu geri yükle
+                        // Buton durumunu geri yükle ve badge'i güncelle
                         await MainThread.InvokeOnMainThreadAsync(async () =>
                         {
                             if (UpdateButtonLabel != null)
@@ -186,6 +244,9 @@ namespace MerchPlusMAUI.Controls
                             {
                                 UpdateButtonGrid.IsEnabled = true;
                             }
+
+                            // Badge'i güncelle
+                            UpdateButtonText();
 
                             await MauiShell.Current.DisplayAlert("Hata", 
                                 $"Veriler gönderilirken bir hata oluştu: {ex.Message}", 
@@ -347,6 +408,11 @@ namespace MerchPlusMAUI.Controls
                 if (string.IsNullOrEmpty(message))
                 {
                     message = "Gönderilecek veri bulunamadı.";
+                }
+                else
+                {
+                    // Mesajı daha okunabilir hale getir
+                    message = "✅ " + message.TrimEnd('\r', '\n');
                 }
             }
             catch (Exception ex)

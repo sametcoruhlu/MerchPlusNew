@@ -228,7 +228,7 @@
         </Grid>
         
         <!-- Footer -->
-        <controls:CommonFooter Grid.Row="2"/>
+        <controls:CommonFooter Grid.Row="2" x:Name="CommonFooter"/>
         
         <!-- Loading Overlay -->
         <Grid Grid.RowSpan="3"

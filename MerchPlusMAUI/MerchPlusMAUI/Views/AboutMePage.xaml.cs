@@ -80,12 +80,33 @@ namespace MerchPlusMAUI.Views
                 // İstatistikleri hesapla
                 CalculateAndUpdateStatistics();
                 
+                // CommonFooter'daki badge'i güncelle
+                UpdateFooterBadge();
+                
                 System.Diagnostics.Debug.WriteLine("AboutMePage: Veri yükleme tamamlandı.");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"AboutMePage: Veri yükleme hatası: {ex.Message}");
                 _logger?.LogError(ex, "AboutMePage veri yükleme hatası");
+            }
+        }
+
+        // CommonFooter'daki badge'i güncelle
+        private void UpdateFooterBadge()
+        {
+            try
+            {
+                // CommonFooter'ı bul
+                var footer = this.FindByName<Controls.CommonFooter>("CommonFooter");
+                if (footer != null)
+                {
+                    footer.UpdateButtonText();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Footer badge güncelleme hatası: {ex.Message}");
             }
         }
 
@@ -142,6 +163,9 @@ namespace MerchPlusMAUI.Views
                 {
                     // Trigger immediate sync
                     await SyncData();
+                    
+                    // CommonFooter'daki badge'i güncelle
+                    UpdateFooterBadge();
                 }
             }
             catch (Exception ex)

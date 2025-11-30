@@ -84,12 +84,39 @@
               HorizontalOptions="Center"
               VerticalOptions="Center"
               x:Name="UpdateButtonGrid">
-            <Label Grid.Row="0"
-                   Text="&#xe863;"
-                   FontFamily="MaterialIcons"
-                   TextColor="White"
-                   FontSize="24"
-                   HorizontalOptions="Center"/>
+            <Grid Grid.Row="0"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Text="&#xe863;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+                <!-- Badge - Güncelleme sayısı -->
+                <Frame x:Name="UpdateBadge"
+                       BackgroundColor="#FF4444"
+                       CornerRadius="10"
+                       Padding="0"
+                       WidthRequest="20"
+                       HeightRequest="20"
+                       HasShadow="False"
+                       BorderColor="Transparent"
+                       HorizontalOptions="End"
+                       VerticalOptions="Start"
+                       Margin="12,-8,0,0"
+                       IsVisible="False">
+                    <Label x:Name="UpdateBadgeLabel"
+                           Text="0"
+                           FontSize="10"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"/>
+                </Frame>
+            </Grid>
             <Label Grid.Row="1"
                    x:Name="UpdateButtonLabel"
                    Text="Güncelle"
