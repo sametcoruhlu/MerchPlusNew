@@ -119,6 +119,7 @@ namespace MerchPlusMAUI.Views
                 if (loadingOverlay != null)
                 {
                     loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
                     System.Diagnostics.Debug.WriteLine("StoresPage: Loading overlay shown");
                 }
             });
@@ -132,6 +133,7 @@ namespace MerchPlusMAUI.Views
                 if (loadingOverlay != null)
                 {
                     loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true; // Tıklamalara izin ver
                     System.Diagnostics.Debug.WriteLine("StoresPage: Loading overlay hidden");
                 }
             });
@@ -399,13 +401,19 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters (Tap): entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
                     _logger?.LogInformation($"Navigating to StoreProductsPage via tap with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
-                    // Loading overlay göster
+                    // Loading overlay göster (hemen görünsün)
                     ShowLoadingOverlay();
+                    
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
                     
                     Console.WriteLine("Starting navigation...");
                     await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     Console.WriteLine("Navigation completed (Tap)");
                     System.Diagnostics.Debug.WriteLine("Navigation completed (Tap)");
+                    
+                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                    HideLoadingOverlay();
                 }
                 else
                 {
@@ -485,12 +493,18 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
                     _logger?.LogInformation($"Navigating to StoreProductsPage with parameters: entMemberRouteId={selectedStore.MemberRouteId}, StoreName={selectedStore.StoreName}");
 
-                    // Loading overlay göster
+                    // Loading overlay göster (hemen görünsün)
                     ShowLoadingOverlay();
+                    
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
                     
                     // Navigation yap
                     await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
                     System.Diagnostics.Debug.WriteLine("Navigation completed");
+                    
+                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                    HideLoadingOverlay();
                 }
                 catch (Exception ex)
                 {

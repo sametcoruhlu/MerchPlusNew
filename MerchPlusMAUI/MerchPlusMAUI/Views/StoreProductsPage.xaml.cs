@@ -97,12 +97,27 @@ namespace MerchPlusMAUI.Views
                 OnPropertyChanged();
             }
         }
+
+        private string _selectedTab = "Pending"; // "Pending" or "Completed"
+        public string SelectedTab
+        {
+            get => _selectedTab;
+            set
+            {
+                _selectedTab = value;
+                OnPropertyChanged();
+                UpdateTabAppearance();
+                FilterProductsByTab();
+            }
+        }
         #endregion
 
         #region Collections - Android ListView ve Adapter karşılıkları
         public ObservableCollection<entMemberRouteDetail> MemberRouteDetails { get; private set; } = new();
         public ObservableCollection<ProductViewModel> Products { get; private set; } = new();
         public ObservableCollection<ProductViewModel> FilteredProducts { get; private set; } = new();
+        public ObservableCollection<ProductViewModel> CompletedProducts { get; private set; } = new();
+        public ObservableCollection<ProductViewModel> PendingProducts { get; private set; } = new();
         #endregion
 
         #region Commands
@@ -153,6 +168,31 @@ namespace MerchPlusMAUI.Views
             
             // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
             this.Opacity = 1;
+            
+            // MainContent'i gizle, LoadingOverlay'i göster (sayfa ilk açıldığında bozuk görünmesin)
+            // Overlay'i hemen göster (await beklemeden)
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var mainContent = FindByName("MainContent") as Grid;
+                var loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                
+                if (mainContent != null)
+                {
+                    mainContent.IsVisible = false;
+                }
+                
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false;
+                }
+            });
+            
+            // Overlay'in render edilmesi için kısa bir delay
+            await Task.Delay(50);
+            
+            // Tab görünümünü başlangıçta güncelle
+            UpdateTabAppearance();
             
             Console.WriteLine("=== StoreProductsPage OnAppearing ===");
             System.Diagnostics.Debug.WriteLine("=== StoreProductsPage OnAppearing ===");
@@ -213,9 +253,6 @@ namespace MerchPlusMAUI.Views
                     await LoadProductsFromDatabaseAsync();
                 }
             }
-            
-            // Veri yüklendikten sonra loading overlay'i gizle
-            HideLoadingOverlay();
         }
 
         protected override void OnDisappearing()
@@ -291,15 +328,25 @@ namespace MerchPlusMAUI.Views
                 {
                     try
                     {
+                        // Loading overlay göster (hemen görünsün)
+                        ShowLoadingOverlay();
+                        
+                        // Kısa bir delay ekle ki overlay render edilsin
+                        await Task.Delay(50);
+                        
                         // StoresPage'e explicit navigation - StoreType=All ile (tüm mağazaları göster)
                         await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
                         Console.WriteLine("Navigated to StoresPage with StoreType=All");
                         System.Diagnostics.Debug.WriteLine("Navigated to StoresPage with StoreType=All");
+                        
+                        // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                        HideLoadingOverlay();
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error navigating to StoresPage: {ex.Message}");
                         System.Diagnostics.Debug.WriteLine($"Error navigating to StoresPage: {ex.Message}");
+                        HideLoadingOverlay();
                         // Fallback: AboutMePage'e git
                         try
                         {
@@ -382,6 +429,25 @@ namespace MerchPlusMAUI.Views
                 Console.WriteLine($"ERROR in InitializePageAsync: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 _logger.LogError(ex, "Error initializing StoreProductsPage");
+                
+                // Hata durumunda da MainContent'i göster, LoadingOverlay'i gizle
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    var mainContent = FindByName("MainContent") as Grid;
+                    var loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                    
+                    if (mainContent != null)
+                    {
+                        mainContent.IsVisible = true;
+                    }
+                    
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = false;
+                        loadingOverlay.InputTransparent = true;
+                    }
+                });
+                
                 await ShowErrorAndNavigateBack($"Sayfa yüklenirken hata oluştu: {ex.Message}");
             }
         }
@@ -419,6 +485,8 @@ namespace MerchPlusMAUI.Views
                 Console.WriteLine("=== Loading Products ===");
                 Console.WriteLine($"EntMemberRouteId: '{EntMemberRouteId}'");
                 
+                // Not: Loading overlay zaten OnAppearing'de gösterildi, burada tekrar göstermeye gerek yok
+                
                 // EntMemberRouteId boşsa hata göster
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
@@ -427,8 +495,6 @@ namespace MerchPlusMAUI.Views
                     await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı. Lütfen tekrar deneyin.", "Tamam");
                     return;
                 }
-                
-                IsLoading = true;
                 
                 // Database işlemlerini background thread'de yap ama daha verimli
                 var memberRouteDetails = await Task.Run(async () =>
@@ -494,8 +560,25 @@ namespace MerchPlusMAUI.Views
             }
             finally
             {
-                IsLoading = false;
                 Console.WriteLine("=== Product Loading Completed ===");
+                
+                // Veri yüklendikten sonra MainContent'i göster, LoadingOverlay'i gizle
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    var mainContent = FindByName("MainContent") as Grid;
+                    var loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                    
+                    if (mainContent != null)
+                    {
+                        mainContent.IsVisible = true;
+                    }
+                    
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = false;
+                        loadingOverlay.InputTransparent = true;
+                    }
+                });
             }
         }
 
@@ -510,6 +593,8 @@ namespace MerchPlusMAUI.Views
                 MemberRouteDetails.Clear();
                 Products.Clear();
                 FilteredProducts.Clear();
+                CompletedProducts.Clear();
+                PendingProducts.Clear();
 
                 if (memberRouteDetails == null || memberRouteDetails.Count == 0)
                 {
@@ -521,6 +606,8 @@ namespace MerchPlusMAUI.Views
 
                 int successCount = 0;
                 int failCount = 0;
+                int completedCount = 0;
+                int pendingCount = 0;
 
                 foreach (var detail in memberRouteDetails)
                 {
@@ -533,7 +620,23 @@ namespace MerchPlusMAUI.Views
                     {
                         Console.WriteLine($"  ✓ ProductViewModel created: {productViewModel.ProductName}");
                         Products.Add(productViewModel);
-                        FilteredProducts.Add(productViewModel);
+                        
+                        // Veri girişi yapılmış mı kontrol et (CreatedOn null değilse tamamlanmış demektir)
+                        bool isCompleted = detail.CreatedOn != null && detail.CreatedOn != default(DateTime);
+                        
+                        if (isCompleted)
+                        {
+                            CompletedProducts.Add(productViewModel);
+                            completedCount++;
+                            Console.WriteLine($"    → Tamamlanan ürün");
+                        }
+                        else
+                        {
+                            PendingProducts.Add(productViewModel);
+                            pendingCount++;
+                            Console.WriteLine($"    → Bekleyen ürün");
+                        }
+                        
                         successCount++;
                     }
                     else
@@ -544,17 +647,22 @@ namespace MerchPlusMAUI.Views
                 }
 
                 HasProducts = Products.Count > 0;
-                ProductCountText = $"{Products.Count} ürün listelendi";
+                UpdateProductCountText();
+                
+                // Seçili tab'a göre filtrele
+                FilterProductsByTab();
                 
                 Console.WriteLine($"UpdateProductCollections completed:");
                 Console.WriteLine($"  - Processed: {memberRouteDetails.Count} route details");
                 Console.WriteLine($"  - Success: {successCount} products");
                 Console.WriteLine($"  - Failed: {failCount} products");
                 Console.WriteLine($"  - Total products: {Products.Count}");
+                Console.WriteLine($"  - Completed: {completedCount} products");
+                Console.WriteLine($"  - Pending: {pendingCount} products");
                 Console.WriteLine($"  - HasProducts: {HasProducts}");
                 Console.WriteLine($"  - ProductCountText: {ProductCountText}");
                 
-                _logger.LogInformation($"Updated collections with {Products.Count} products");
+                _logger.LogInformation($"Updated collections with {Products.Count} products (Completed: {completedCount}, Pending: {pendingCount})");
             }
             catch (Exception ex)
             {
@@ -563,6 +671,123 @@ namespace MerchPlusMAUI.Views
                 _logger.LogError(ex, "Error updating product collections");
             }
         }
+        
+        private void UpdateProductCountText()
+        {
+            if (SelectedTab == "Pending")
+            {
+                ProductCountText = $"{PendingProducts.Count} bekleyen ürün";
+            }
+            else
+            {
+                ProductCountText = $"{CompletedProducts.Count} tamamlanan ürün";
+            }
+        }
+        
+        private void FilterProductsByTab()
+        {
+            FilteredProducts.Clear();
+            
+            var sourceCollection = SelectedTab == "Pending" ? PendingProducts : CompletedProducts;
+            
+            if (string.IsNullOrWhiteSpace(_currentSearchText))
+            {
+                // Arama yoksa, seçili tab'daki tüm ürünleri göster
+                foreach (var product in sourceCollection)
+                {
+                    FilteredProducts.Add(product);
+                }
+            }
+            else
+            {
+                // Arama varsa, seçili tab'daki ürünleri filtrele
+                var normalizedSearch = NormalizeForSearch(_currentSearchText);
+                foreach (var product in sourceCollection)
+                {
+                    var normalizedName = NormalizeForSearch(product.ProductName);
+                    var normalizedCode = NormalizeForSearch(product.ProductCode);
+                    
+                    if (normalizedName.Contains(normalizedSearch) || normalizedCode.Contains(normalizedSearch))
+                    {
+                        FilteredProducts.Add(product);
+                    }
+                }
+            }
+            
+            UpdateProductCountText();
+        }
+        
+        private void UpdateTabAppearance()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var pendingTabFrame = FindByName("PendingTabFrame") as Frame;
+                var pendingTabLabel = FindByName("PendingTabLabel") as Label;
+                var completedTabFrame = FindByName("CompletedTabFrame") as Frame;
+                var completedTabLabel = FindByName("CompletedTabLabel") as Label;
+                
+                if (SelectedTab == "Pending")
+                {
+                    // Bekleyen tab aktif - Sayfa temasına uygun mavi ton (#336699)
+                    if (pendingTabFrame != null)
+                    {
+                        pendingTabFrame.BackgroundColor = Microsoft.Maui.Graphics.Color.FromRgb(51, 102, 153); // #336699
+                    }
+                    if (pendingTabLabel != null)
+                    {
+                        pendingTabLabel.TextColor = Microsoft.Maui.Graphics.Colors.White;
+                        pendingTabLabel.FontAttributes = FontAttributes.Bold;
+                    }
+                    
+                    // Tamamlanan tab pasif
+                    if (completedTabFrame != null)
+                    {
+                        completedTabFrame.BackgroundColor = Microsoft.Maui.Graphics.Color.FromRgb(233, 236, 239); // #E9ECEF
+                    }
+                    if (completedTabLabel != null)
+                    {
+                        completedTabLabel.TextColor = Microsoft.Maui.Graphics.Color.FromRgb(108, 117, 125); // #6C757D
+                        completedTabLabel.FontAttributes = FontAttributes.None;
+                    }
+                }
+                else
+                {
+                    // Tamamlanan tab aktif - Sayfa temasına uygun mavi ton (#336699)
+                    if (completedTabFrame != null)
+                    {
+                        completedTabFrame.BackgroundColor = Microsoft.Maui.Graphics.Color.FromRgb(51, 102, 153); // #336699
+                    }
+                    if (completedTabLabel != null)
+                    {
+                        completedTabLabel.TextColor = Microsoft.Maui.Graphics.Colors.White;
+                        completedTabLabel.FontAttributes = FontAttributes.Bold;
+                    }
+                    
+                    // Bekleyen tab pasif
+                    if (pendingTabFrame != null)
+                    {
+                        pendingTabFrame.BackgroundColor = Microsoft.Maui.Graphics.Color.FromRgb(233, 236, 239); // #E9ECEF
+                    }
+                    if (pendingTabLabel != null)
+                    {
+                        pendingTabLabel.TextColor = Microsoft.Maui.Graphics.Color.FromRgb(108, 117, 125); // #6C757D
+                        pendingTabLabel.FontAttributes = FontAttributes.None;
+                    }
+                }
+            });
+        }
+        
+        private void OnPendingTabTapped(object sender, EventArgs e)
+        {
+            SelectedTab = "Pending";
+        }
+        
+        private void OnCompletedTabTapped(object sender, EventArgs e)
+        {
+            SelectedTab = "Completed";
+        }
+        
+        private string _currentSearchText = string.Empty;
 
         private ProductViewModel? CreateProductViewModel(entMemberRouteDetail routeDetail)
         {
@@ -659,7 +884,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 _logger.LogInformation($"Take photo clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // StoreVitrinePhotoPage'e navigate et (Android kodundaki gibi entMemberRouteId parametresi ile)
@@ -674,6 +904,8 @@ namespace MerchPlusMAUI.Views
                 }
                 
                 await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
@@ -688,7 +920,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 _logger.LogInformation($"Sales order clicked - EntMemberRouteId: {EntMemberRouteId}");
                 Console.WriteLine($"[StoreProductsPage] OnSalesOrderClicked - EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
                 
@@ -712,6 +949,8 @@ namespace MerchPlusMAUI.Views
                 }
 
                 await Shell.Current.GoToAsync("///SalesOrderPage", parameters);
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
@@ -726,7 +965,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 _logger.LogInformation($"Expiration date clicked - EntMemberRouteId: {EntMemberRouteId}");
                 Console.WriteLine($"[StoreProductsPage] OnExpirationDateClicked - EntMemberRouteId='{EntMemberRouteId}'");
                 
@@ -750,6 +994,8 @@ namespace MerchPlusMAUI.Views
                 }
 
                 await Shell.Current.GoToAsync("///ExpirationDatePage", parameters);
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
@@ -764,7 +1010,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 _logger.LogInformation($"Report clicked - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                 
                 // EntMemberRouteId ve StoreName kontrolü
@@ -805,6 +1056,8 @@ namespace MerchPlusMAUI.Views
                 };
 
                 await Shell.Current.GoToAsync("///StoreReportPage", parameters);
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
@@ -819,7 +1072,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 _logger.LogInformation($"Exit shop clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // EntMemberRouteId null kontrolü
@@ -1058,7 +1316,26 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
-                if (selectedProduct?.MemberRouteDetail == null) return;
+                if (selectedProduct?.MemberRouteDetail == null)
+                {
+                    return;
+                }
+
+                // Loading overlay'i hemen göster (kullanıcı tıkladığı anda görünsün)
+                // MainThread.BeginInvokeOnMainThread kullan ki hemen görünsün (await beklemeden)
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = true;
+                        loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                        Console.WriteLine("StoreProductsPage: Loading overlay shown (product selection)");
+                    }
+                });
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
 
                 _logger.LogInformation($"Product selected: {selectedProduct.ProductName} (RouteDetailId: {selectedProduct.RouteDetailId})");
                 System.Diagnostics.Debug.WriteLine($"Product selected: {selectedProduct.ProductName} (RouteDetailId: {selectedProduct.RouteDetailId})");
@@ -1076,15 +1353,19 @@ namespace MerchPlusMAUI.Views
 
                 System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteDetailId={memberRouteDetail.Id}");
                 _logger.LogInformation($"Navigating to MerchDataEntryPage with entMemberRouteDetailId={memberRouteDetail.Id}");
-
+                
                 // MerchDataEntryPage'e navigate et
                 await Shell.Current.GoToAsync("///MerchDataEntryPage", parameters);
+                
+                // Not: HideLoadingOverlay navigation'dan sonra çağrılmıyor çünkü sayfa değişti
+                // Hedef sayfa kendi overlay'ini yönetecek
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnProductSelected");
                 System.Diagnostics.Debug.WriteLine($"Error in OnProductSelected: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Ürün seçimi işleminde hata oluştu.", "Tamam");
             }
         }
@@ -1105,9 +1386,7 @@ namespace MerchPlusMAUI.Views
                     Console.WriteLine("Selection cleared in OnProductSelectionChanged");
                 }
 
-                // Güzel bir ripple effect simülasyonu
-                await ShowToast($"📦 {selectedProduct.ProductName} seçildi", 2000);
-                
+                // OnProductSelected loading overlay'i gösterecek
                 await OnProductSelected(selectedProduct);
             }
         }
@@ -1115,17 +1394,14 @@ namespace MerchPlusMAUI.Views
         // Yeni: Ürün kartlarına dokunma animasyonu için
         private async void OnProductCardTapped(object sender, EventArgs e)
         {
-            if (sender is Frame frame)
+            if (sender is Frame frame && frame.BindingContext is ProductViewModel product)
             {
-                // Dokunma animasyonu
-                await frame.ScaleTo(0.95, 50, Easing.CubicOut);
-                await frame.ScaleTo(1.0, 50, Easing.CubicOut);
+                // Kısa dokunma animasyonu
+                await frame.ScaleTo(0.95, 30, Easing.CubicOut);
+                await frame.ScaleTo(1.0, 30, Easing.CubicOut);
                 
-                // Ürün seçimi işlemi
-                if (frame.BindingContext is ProductViewModel product)
-                {
-                    await OnProductSelected(product);
-                }
+                // OnProductSelected loading overlay'i gösterecek
+                await OnProductSelected(product);
             }
         }
         #endregion
@@ -1158,41 +1434,11 @@ namespace MerchPlusMAUI.Views
             try
             {
                 var searchText = e.NewTextValue ?? string.Empty;
+                _currentSearchText = searchText;
                 IsSearchActive = !string.IsNullOrWhiteSpace(searchText);
                 
-                FilteredProducts.Clear();
-
-                // Arama kutusu boşsa tüm ürünleri göster
-                if (string.IsNullOrWhiteSpace(searchText))
-                {
-                    foreach (var product in Products)
-                    {
-                        FilteredProducts.Add(product);
-                    }
-                }
-                else
-                {
-                    // Arama metnini normalize et
-                    var normalizedSearchText = NormalizeForSearch(searchText);
-                    
-                    // Ürünleri filtrele - normalize edilmiş metinlerle karşılaştır
-                    foreach (var product in Products)
-                    {
-                        var productNameNormalized = NormalizeForSearch(product.ProductName ?? string.Empty);
-                        var productCodeNormalized = NormalizeForSearch(product.ProductCode ?? string.Empty);
-                        
-                        // Normalize edilmiş metinlerle eşleşme kontrolü
-                        if (productNameNormalized.Contains(normalizedSearchText) ||
-                            productCodeNormalized.Contains(normalizedSearchText))
-                        {
-                            FilteredProducts.Add(product);
-                        }
-                    }
-                }
-
-                ProductCountText = IsSearchActive 
-                    ? $"{FilteredProducts.Count} ürün bulundu" 
-                    : $"{Products.Count} ürün listelendi";
+                // Tab yapısıyla uyumlu filtreleme
+                FilterProductsByTab();
                 
                 Console.WriteLine($"Search text changed: '{searchText}' - Found {FilteredProducts.Count} products");
             }
@@ -1337,6 +1583,7 @@ namespace MerchPlusMAUI.Views
                 if (loadingOverlay != null)
                 {
                     loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true; // Tıklamalara izin ver
                     Console.WriteLine("StoreProductsPage: Loading overlay hidden");
                 }
             });

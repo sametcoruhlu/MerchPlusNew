@@ -100,8 +100,7 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
 
         private async void OnShelfPhotoClicked(object sender, EventArgs e)
@@ -226,6 +225,17 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Geri butonuna tıklandı");
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
                 
@@ -243,6 +253,11 @@ namespace MerchPlusMAUI.Views
                     else
                     {
                         System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
+                        if (loadingOverlay != null)
+                        {
+                            loadingOverlay.IsVisible = false;
+                            loadingOverlay.InputTransparent = true;
+                        }
                         await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
                         return;
                     }
@@ -257,11 +272,24 @@ namespace MerchPlusMAUI.Views
                 
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
                 await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Geri gitme hatası: {ex.Message}");
                 _logger?.LogError(ex, "Error navigating back");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }
@@ -270,6 +298,17 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Tamamla butonuna tıklandı");
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
                 
@@ -287,6 +326,11 @@ namespace MerchPlusMAUI.Views
                     else
                     {
                         System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
+                        if (loadingOverlay != null)
+                        {
+                            loadingOverlay.IsVisible = false;
+                            loadingOverlay.InputTransparent = true;
+                        }
                         await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
                         return;
                     }
@@ -301,11 +345,24 @@ namespace MerchPlusMAUI.Views
                 
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
                 await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Tamamla gitme hatası: {ex.Message}");
                 _logger?.LogError(ex, "Error navigating to StoreProductsPage");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }

@@ -131,6 +131,79 @@ namespace MerchPlusMAUI.Views
             HideLoadingOverlay();
         }
 
+        private void ShowLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                _mainContent = FindByName("MainContent") as ScrollView;
+                
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = true;
+                    _loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                    _loadingOverlay.Opacity = 1; // Opacity'yi açıkça 1 yap
+                    
+                    // Frame ve Label'ın opacity'sini de kontrol et
+                    if (_loadingOverlay.Children.Count > 0 && _loadingOverlay.Children[0] is Frame frame)
+                    {
+                        frame.Opacity = 1;
+                        if (frame.Content is StackLayout stackLayout && stackLayout.Children.Count > 1)
+                        {
+                            if (stackLayout.Children[1] is Label label)
+                            {
+                                label.Opacity = 1;
+                                // TextColor'u açıkça set et (koyu gri)
+                                label.TextColor = Microsoft.Maui.Graphics.Color.FromRgb(52, 58, 64);
+                            }
+                        }
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine("MerchDataEntryPage: Loading overlay shown");
+                }
+                
+                if (_mainContent != null)
+                {
+                    _mainContent.IsVisible = false;
+                }
+            });
+        }
+        
+        // Overlay'in görünürlüğünü kontrol et ve gerekirse tekrar göster
+        private void EnsureLoadingOverlayVisible()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (_loadingOverlay != null && !_loadingOverlay.IsVisible)
+                {
+                    _loadingOverlay.IsVisible = true;
+                    _loadingOverlay.InputTransparent = false;
+                    System.Diagnostics.Debug.WriteLine("MerchDataEntryPage: Loading overlay re-shown (EnsureLoadingOverlayVisible)");
+                }
+            });
+        }
+
+        private void HideLoadingOverlay()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _loadingOverlay = FindByName("LoadingOverlay") as Grid;
+                _mainContent = FindByName("MainContent") as ScrollView;
+                
+                if (_loadingOverlay != null)
+                {
+                    _loadingOverlay.IsVisible = false;
+                    _loadingOverlay.InputTransparent = true; // Tıklamalara izin ver
+                    System.Diagnostics.Debug.WriteLine("MerchDataEntryPage: Loading overlay hidden");
+                }
+                
+                if (_mainContent != null)
+                {
+                    _mainContent.IsVisible = true;
+                }
+            });
+        }
+
         private void LoadActivityTypes()
         {
             // Load activity types from resources (equivalent to Android Resource.Array.activitytypearray_array)
@@ -338,45 +411,6 @@ namespace MerchPlusMAUI.Views
             System.Diagnostics.Debug.WriteLine("HideAllFields: Tamamlandı");
         }
 
-        private void ShowLoadingOverlay()
-        {
-            try
-            {
-                if (_loadingOverlay != null)
-                {
-                    _loadingOverlay.IsVisible = true;
-                }
-                if (_mainContent != null)
-                {
-                    _mainContent.IsVisible = false;
-                }
-                System.Diagnostics.Debug.WriteLine("ShowLoadingOverlay: Loading overlay gösteriliyor");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"ShowLoadingOverlay error: {ex.Message}");
-            }
-        }
-
-        private void HideLoadingOverlay()
-        {
-            try
-            {
-                if (_loadingOverlay != null)
-                {
-                    _loadingOverlay.IsVisible = false;
-                }
-                if (_mainContent != null)
-                {
-                    _mainContent.IsVisible = true;
-                }
-                System.Diagnostics.Debug.WriteLine("HideLoadingOverlay: Loading overlay gizleniyor, ana içerik gösteriliyor");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"HideLoadingOverlay error: {ex.Message}");
-            }
-        }
 
         private async Task<bool> CheckTableExistsAsync(SQLiteConnection db, string tableName)
         {
@@ -1036,9 +1070,14 @@ namespace MerchPlusMAUI.Views
 
         private async void OnExitClicked(object sender, EventArgs e)
         {
+            // Loading overlay göster (hemen görünsün - metodun en başında, tüm işlemlerden önce)
+            ShowLoadingOverlay();
+            
+            // Overlay'in render edilmesi için kısa bir delay
+            await Task.Delay(100); // 100ms - overlay'in kesinlikle görünmesi için
+            
             try
             {
-                ShowLoadingOverlay();
                 System.Diagnostics.Debug.WriteLine("OnExitClicked: Çıkış butonuna tıklandı");
                 
                 // Navigation flag'ini set et
@@ -1058,20 +1097,25 @@ namespace MerchPlusMAUI.Views
                         _currentMemberRouteId = _currentMemberRouteDetail.MemberRouteId;
                         System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got MemberRouteId from _currentMemberRouteDetail: {_currentMemberRouteId}");
                         
-                        // StoreName'i de veritabanından al
+                        // StoreName'i de veritabanından al (async olarak, UI thread'i bloklamamak için)
+                        // Overlay görünür kalacak çünkü Task.Run background thread'de çalışıyor
                         if (string.IsNullOrEmpty(_currentStoreName))
                         {
-                            using var db = new SQLiteConnection(_dbPath);
-                            var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteId.Value);
-                            if (route.Count > 0 && route[0].RetailShopId.HasValue)
+                            System.Diagnostics.Debug.WriteLine("OnExitClicked: Fetching StoreName from database (overlay should remain visible)...");
+                            await Task.Run(() =>
                             {
-                                var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId.Value);
-                                if (retailShop.Count > 0)
+                                using var db = new SQLiteConnection(_dbPath);
+                                var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteId.Value);
+                                if (route.Count > 0 && route[0].RetailShopId.HasValue)
                                 {
-                                    _currentStoreName = retailShop[0].Name ?? string.Empty;
-                                    System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got StoreName from DB: {_currentStoreName}");
+                                    var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId.Value);
+                                    if (retailShop.Count > 0)
+                                    {
+                                        _currentStoreName = retailShop[0].Name ?? string.Empty;
+                                        System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got StoreName from DB: {_currentStoreName}");
+                                    }
                                 }
-                            }
+                            });
                         }
                     }
                 }
@@ -1090,12 +1134,17 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"    StoreName: {parameters["StoreName"]}");
                     
                     await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                    // Overlay'i gizleme - StoreProductsPage açılana kadar görünür kalacak
+                    // StoreProductsPage açıldığında kendi overlay'ini gösterecek ve bu sayfa arka planda kalacak
+                    System.Diagnostics.Debug.WriteLine("OnExitClicked: Navigation completed, overlay will remain visible until StoreProductsPage loads");
                 }
                 else
                 {
                     System.Diagnostics.Debug.WriteLine("OnExitClicked: WARNING - Cannot get MemberRouteId, navigating without parameters");
                     // Fallback: parametre olmadan git (eski davranış)
                     await Shell.Current.GoToAsync("//StoreProductsPage");
+                    // Overlay'i gizleme - StoreProductsPage açılana kadar görünür kalacak
+                    System.Diagnostics.Debug.WriteLine("OnExitClicked: Navigation completed, overlay will remain visible until StoreProductsPage loads");
                 }
             }
             catch (Exception ex)
@@ -1103,6 +1152,7 @@ namespace MerchPlusMAUI.Views
                 System.Diagnostics.Debug.WriteLine($"OnExitClicked: Genel hata: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"OnExitClicked: Stack trace: {ex.StackTrace}");
                 _logger?.LogError(ex, "Error navigating back");
+                HideLoadingOverlay();
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
             finally
@@ -1117,11 +1167,17 @@ namespace MerchPlusMAUI.Views
         {
             System.Diagnostics.Debug.WriteLine("=== MerchDataEntryPage Hardware Back Button Pressed ===");
             
+            // Loading overlay göster (hemen görünsün)
+            ShowLoadingOverlay();
+            
             // StoreProductsPage'e geri dön - parametrelerle birlikte
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
+                    
                     if (_currentMemberRouteId.HasValue)
                     {
                         var parameters = new Dictionary<string, object>
@@ -1135,18 +1191,23 @@ namespace MerchPlusMAUI.Views
                         System.Diagnostics.Debug.WriteLine($"    StoreName: {parameters["StoreName"]}");
                         
                         await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                        // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                        HideLoadingOverlay();
                     }
                     else
                     {
                         System.Diagnostics.Debug.WriteLine("OnBackButtonPressed: WARNING - Cannot get MemberRouteId, navigating without parameters");
                         // Fallback: parametre olmadan git
                         await Shell.Current.GoToAsync("///StoreProductsPage");
+                        // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                        HideLoadingOverlay();
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Error navigating back: {ex.Message}");
                     _logger?.LogError(ex, "Error navigating back from MerchDataEntryPage");
+                    HideLoadingOverlay();
                     // Fallback: StoresPage'e git
                     try
                     {

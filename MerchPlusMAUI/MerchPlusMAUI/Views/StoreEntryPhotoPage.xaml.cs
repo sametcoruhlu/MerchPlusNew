@@ -237,15 +237,39 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 System.Diagnostics.Debug.WriteLine("StoreEntryPhotoPage: Geri butonuna tıklandı");
                 
                 // StoreProductsPage'e geri dön
                 await Shell.Current.GoToAsync("//StoreProductsPage");
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreEntryPhotoPage: Geri gitme hatası: {ex.Message}");
                 _logger?.LogError(ex, "Error navigating back");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }
@@ -254,16 +278,40 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 System.Diagnostics.Debug.WriteLine("StoreEntryPhotoPage: Tamamla butonuna tıklandı");
 
                 // Android kodundaki gibi CustomerProductList sayfasına yönlendir
                 // StoreProductsPage'e geri dön
                 await Shell.Current.GoToAsync("//StoreProductsPage");
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreEntryPhotoPage: Tamamlama hatası: {ex.Message}");
                 _logger?.LogError(ex, "Error finishing photo capture");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
                 await DisplayAlert("Hata", "İşlem tamamlanırken hata oluştu.", "Tamam");
             }
         }

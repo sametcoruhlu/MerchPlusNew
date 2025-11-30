@@ -149,7 +149,8 @@
         <Grid Grid.RowSpan="4"
               x:Name="LoadingOverlay"
               BackgroundColor="#80000000"
-              IsVisible="True">
+              IsVisible="True"
+              InputTransparent="False">
             <Frame BackgroundColor="White"
                    CornerRadius="15"
                    Padding="30"
@@ -162,7 +163,7 @@
                                        Color="#DC3545"
                                        WidthRequest="40"
                                        HeightRequest="40" />
-                    <Label Text="Mağazalar yükleniyor..."
+                    <Label Text="Yükleniyor..."
                            FontSize="14"
                            TextColor="#343A40"
                            HorizontalOptions="Center" />

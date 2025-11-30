@@ -278,8 +278,7 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
         #endregion
 
@@ -759,11 +758,17 @@ namespace MerchPlusMAUI.Views
             System.Diagnostics.Debug.WriteLine("=== ExpirationDatePage Hardware Back Button Pressed ===");
             Console.WriteLine("=== ExpirationDatePage Hardware Back Button Pressed ===");
             
+            // Loading overlay göster (IsBusy binding ile)
+            IsBusy = true;
+            
             // StoreProductsPage'e geri dön - parametrelerle birlikte
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
+                    
                     if (!string.IsNullOrEmpty(EntMemberRouteId))
                     {
                         var parameters = new Dictionary<string, object>
@@ -777,18 +782,23 @@ namespace MerchPlusMAUI.Views
                         System.Diagnostics.Debug.WriteLine($"    StoreName: {StoreName}");
                         
                         await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                        // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                        IsBusy = false;
                     }
                     else
                     {
                         System.Diagnostics.Debug.WriteLine("OnBackButtonPressed: WARNING - Cannot get EntMemberRouteId, navigating without parameters");
                         // Fallback: parametre olmadan git
                         await Shell.Current.GoToAsync("///StoreProductsPage");
+                        // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                        IsBusy = false;
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"OnBackButtonPressed: Error navigating back: {ex.Message}");
                     _logger?.LogError(ex, "Error navigating back from ExpirationDatePage");
+                    IsBusy = false;
                     // Fallback: StoresPage'e git
                     try
                     {

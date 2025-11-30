@@ -12,25 +12,6 @@
 
         <!-- Main Content -->
         <Grid Grid.Row="1" BackgroundColor="#F8F9FA">
-            <!-- Loading Overlay -->
-            <Grid x:Name="LoadingOverlay" 
-                  BackgroundColor="#80000000" 
-                  IsVisible="True">
-                <StackLayout HorizontalOptions="Center" 
-                             VerticalOptions="Center" 
-                             Spacing="20">
-                    <ActivityIndicator x:Name="LoadingSpinner" 
-                                       IsRunning="True" 
-                                       Color="White" 
-                                       WidthRequest="50" 
-                                       HeightRequest="50"/>
-                    <Label Text="Alanlar yükleniyor..." 
-                           TextColor="White" 
-                           FontSize="16" 
-                           HorizontalOptions="Center"/>
-                </StackLayout>
-            </Grid>
-            
             <!-- Main Content -->
             <ScrollView x:Name="MainContent" 
                         Padding="15" 
@@ -264,6 +245,37 @@
                           Padding="20,15"
                           Clicked="OnSaveClicked"/>
             </Grid>
+        </Grid>
+        
+        <!-- Loading Overlay - Navigation için (en son eklenen, en üstte görünür) -->
+        <Grid x:Name="LoadingOverlay" 
+              Grid.RowSpan="3"
+              BackgroundColor="#80000000" 
+              IsVisible="False"
+              InputTransparent="False">
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="30" 
+                   HasShadow="True"
+                   HorizontalOptions="Center" 
+                   VerticalOptions="Center"
+                   Opacity="1">
+                <StackLayout Spacing="15" Orientation="Vertical">
+                    <ActivityIndicator x:Name="LoadingSpinner" 
+                                       IsRunning="True" 
+                                       Color="#DC3545" 
+                                       WidthRequest="40" 
+                                       HeightRequest="40"
+                                       Opacity="1"/>
+                    <Label Text="Yükleniyor..." 
+                           FontSize="14" 
+                           FontAttributes="None"
+                           TextColor="#343A40" 
+                           Opacity="1"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </StackLayout>
+            </Frame>
         </Grid>
     </Grid>
 </ContentPage> 

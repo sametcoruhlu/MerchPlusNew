@@ -96,8 +96,7 @@ namespace MerchPlusMAUI.Views
         {
             base.OnDisappearing();
             
-            // Sayfa kapanırken fade-out
-            _ = this.FadeTo(0, 150, Easing.CubicIn);
+            // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
 
         private async Task LoadDataAsync()
@@ -423,13 +422,33 @@ namespace MerchPlusMAUI.Views
                 
                 await DisplayAlert("Başarılı", "Teşhir fotoğrafları başarıyla kaydedildi.", "Tamam");
                 
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 // StoreVitrinePhotoPage'e geri dön
                 await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: OnSaveClicked error: {ex.Message}");
                 _logger?.LogError(ex, "Error saving photos");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null) loadingOverlay.IsVisible = false;
                 await DisplayAlert("Hata", "Fotoğraflar kaydedilirken hata oluştu.", "Tamam");
             }
         }
@@ -438,15 +457,39 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                }
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Geri butonuna tıklandı");
                 
                 // StoreVitrinePhotoPage'e geri dön
                 await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Geri gitme hatası: {ex.Message}");
                 _logger?.LogError(ex, "Error navigating back");
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }

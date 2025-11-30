@@ -133,7 +133,7 @@
                                        Color="#DC3545"
                                        WidthRequest="40"
                                        HeightRequest="40" />
-                    <Label Text="Veriler yükleniyor..."
+                    <Label Text="Yükleniyor..."
                            FontSize="14"
                            TextColor="#343A40"
                            HorizontalOptions="Center" />

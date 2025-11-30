@@ -353,7 +353,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 IsBusy = true; // Loading overlay göster (IsBusy binding ile)
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
+                
                 Console.WriteLine($"[SalesOrderPage] Back button tapped. EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
                 Console.WriteLine($"[SalesOrderPage] NavigationStack={Shell.Current.Navigation.NavigationStack.Count}, ModalStack={Shell.Current.Navigation.ModalStack.Count}");
 
@@ -372,6 +377,8 @@ namespace MerchPlusMAUI.Views
                     
                     await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
                     Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') with parameters executed");
+                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                    IsBusy = false;
                 }
                 else
                 {
@@ -396,6 +403,8 @@ namespace MerchPlusMAUI.Views
                     Console.WriteLine("[SalesOrderPage] No entries in stack and no parameters, navigating to StoreProductsPage without parameters");
                     await Shell.Current.GoToAsync("///StoreProductsPage");
                     Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') without parameters executed");
+                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                    IsBusy = false;
                 }
             }
             catch (Exception ex)
@@ -421,7 +430,11 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Loading overlay göster (hemen görünsün)
                 IsBusy = true; // Loading overlay göster
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(50);
                 
                 if (OrderPreviewItems.Count == 0)
                 {
@@ -432,6 +445,8 @@ namespace MerchPlusMAUI.Views
 
                 await DisplayAlert("Sipariş Kaydedildi", "Sipariş kalemleri başarıyla kaydedildi.", "Tamam");
                 await Shell.Current.GoToAsync("..");
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                IsBusy = false;
             }
             catch (Exception ex)
             {

@@ -10,28 +10,8 @@
         <!-- Header -->
         <controls:CommonHeader Grid.Row="0" />
 
-        <!-- Loading Overlay -->
-        <Grid x:Name="LoadingOverlay" 
-              Grid.Row="1"
-              BackgroundColor="#80000000" 
-              IsVisible="False">
-            <StackLayout HorizontalOptions="Center" 
-                         VerticalOptions="Center" 
-                         Spacing="20">
-                <ActivityIndicator x:Name="LoadingSpinner" 
-                                   IsRunning="True" 
-                                   Color="White" 
-                                   WidthRequest="50" 
-                                   HeightRequest="50"/>
-                <Label Text="Ürünler yükleniyor..." 
-                       TextColor="White" 
-                       FontSize="16" 
-                       HorizontalOptions="Center"/>
-            </StackLayout>
-        </Grid>
-
         <!-- Main Content - Product List -->
-        <Grid Grid.Row="1" RowDefinitions="Auto,*">
+        <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,*" x:Name="MainContent" IsVisible="False">
             <!-- Store Info Card -->
             <Frame Grid.Row="0" 
                    BackgroundColor="White" 
@@ -67,8 +47,54 @@
                 </StackLayout>
             </Frame>
 
+            <!-- Tab Buttons -->
+            <Grid Grid.Row="1" 
+                  ColumnDefinitions="*,*" 
+                  Margin="15,5,15,5"
+                  ColumnSpacing="10">
+                <!-- Bekleyen Tab -->
+                <Frame Grid.Column="0"
+                       x:Name="PendingTabFrame"
+                       BackgroundColor="#336699"
+                       CornerRadius="10"
+                       Padding="15"
+                       HasShadow="True">
+                    <Label x:Name="PendingTabLabel"
+                           Text="⏳ Bekleyen"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPendingTabTapped"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Frame>
+                
+                <!-- Tamamlanan Tab -->
+                <Frame Grid.Column="1"
+                       x:Name="CompletedTabFrame"
+                       BackgroundColor="#E9ECEF"
+                       CornerRadius="10"
+                       Padding="15"
+                       HasShadow="True">
+                    <Label x:Name="CompletedTabLabel"
+                           Text="✅ Tamamlanan"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="#6C757D"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCompletedTabTapped"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </Frame>
+            </Grid>
+
             <!-- Search Bar -->
-            <Frame Grid.Row="0" 
+            <Frame Grid.Row="2" 
                    BackgroundColor="White" 
                    Margin="15,0,15,10" 
                    CornerRadius="10" 
@@ -87,7 +113,7 @@
 
             <!-- Product List -->
             <CollectionView x:Name="ProductsCollectionView" 
-                            Grid.Row="1"
+                            Grid.Row="3"
                             ItemsSource="{Binding FilteredProducts}"
                             BackgroundColor="Transparent"
                             Margin="15,0,15,10"
@@ -298,10 +324,12 @@
             </Grid>
         </Grid>
 
-        <!-- Loading Indicator with Background -->
-        <Grid Grid.RowSpan="3" 
-              IsVisible="{Binding IsLoading}" 
-              BackgroundColor="#80000000">
+        <!-- Loading Overlay - Navigation ve veri yükleme için (en son eklenen, en üstte görünür) -->
+        <Grid x:Name="LoadingOverlay" 
+              Grid.RowSpan="3"
+              BackgroundColor="#80000000" 
+              IsVisible="False"
+              InputTransparent="False">
             <Frame BackgroundColor="White" 
                    CornerRadius="15" 
                    Padding="30" 
@@ -309,11 +337,12 @@
                    HorizontalOptions="Center" 
                    VerticalOptions="Center">
                 <StackLayout Spacing="15" Orientation="Vertical">
-                    <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                    <ActivityIndicator x:Name="LoadingSpinner" 
+                                       IsRunning="True" 
                                        Color="#DC3545" 
                                        WidthRequest="40" 
                                        HeightRequest="40"/>
-                    <Label Text="Ürünler yükleniyor..." 
+                    <Label Text="Yükleniyor..." 
                            FontSize="14" 
                            TextColor="#343A40" 
                            HorizontalOptions="Center"/>
