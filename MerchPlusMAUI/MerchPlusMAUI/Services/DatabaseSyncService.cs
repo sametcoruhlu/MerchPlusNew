@@ -279,48 +279,117 @@ namespace MerchPlusMAUI.Services
 
         private async Task SyncMemberRoutes()
         {
-            _logger.LogInformation("Synchronizing data with Server > MemberRoute!");
-
-            using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-            var routes = db.Query<entMemberRoute>("SELECT * from entMemberRoute WHERE IsSentToServer=0 or IsSentToServer is null");
-
-            foreach (var route in routes)
+            try
             {
-                var syncData = new MemberRouteSyncData
-                {
-                    MemberRoute = route,
-                    MemberRouteDetail = db.Query<entMemberRouteDetail>("SELECT * from entMemberRouteDetail WHERE MemberRouteId=?", route.Id).ToList(),
-                    MemberRoutePhoto = db.Query<entMemberRoutePhoto>("SELECT * from entMemberRoutePhoto WHERE MemberRouteId=?", route.Id).ToList(),
-                    SalesOrder = db.Query<SalesOrder>("SELECT * FROM entSalesOrder WHERE MemberRouteId=?", route.Id).ToList(),
-                    ProductExpiration = db.Query<ProductExpiration>("SELECT * FROM entProductExpiration WHERE MemberRouteId=?", route.Id).ToList()
-                };
+                _logger.LogInformation("Synchronizing data with Server > MemberRoute!");
 
-                if (syncData.SalesOrder.Any())
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                var routes = db.Query<entMemberRoute>("SELECT * from entMemberRoute WHERE IsSentToServer=0 or IsSentToServer is null");
+
+                if (routes == null || !routes.Any())
                 {
-                    syncData.SalesOrderDetail = db.Query<SalesOrderDetail>(
-                        "SELECT * FROM entSalesOrderDetail WHERE SalesOrderId=?", 
-                        syncData.SalesOrder.First().Id).ToList();
+                    _logger.LogInformation("No MemberRoutes to sync");
+                    return;
                 }
 
-                // DateTime alanlarını kontrol et ve null olanları düzelt (sunucu null DateTime kabul etmiyor)
-                FixDateTimeFields(syncData);
+                _logger.LogInformation($"Found {routes.Count()} MemberRoute(s) to sync");
 
-                var endpoint = syncData.SalesOrder.Any() 
-                    ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
-                    : "MemberRouteController/CompleteMemberRouteWiselyFromJsonArray";
-
-                var response = await PostToApi(_httpClient, endpoint, syncData);
-
-                if (response?.GetProperty("Result").GetString() != "NOK")
+                foreach (var route in routes)
                 {
-                    db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
-                    db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
-                    db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                    try
+                    {
+                        _logger.LogInformation($"Syncing MemberRoute ID: {route.Id}");
+
+                        var syncData = new MemberRouteSyncData
+                        {
+                            MemberRoute = route,
+                            MemberRouteDetail = db.Query<entMemberRouteDetail>("SELECT * from entMemberRouteDetail WHERE MemberRouteId=?", route.Id).ToList(),
+                            MemberRoutePhoto = db.Query<entMemberRoutePhoto>("SELECT * from entMemberRoutePhoto WHERE MemberRouteId=?", route.Id).ToList(),
+                            SalesOrder = db.Query<SalesOrder>("SELECT * FROM entSalesOrder WHERE MemberRouteId=?", route.Id).ToList(),
+                            ProductExpiration = db.Query<ProductExpiration>("SELECT * FROM entProductExpiration WHERE MemberRouteId=?", route.Id).ToList()
+                        };
+
+                        if (syncData.SalesOrder.Any())
+                        {
+                            syncData.SalesOrderDetail = db.Query<SalesOrderDetail>(
+                                "SELECT * FROM entSalesOrderDetail WHERE SalesOrderId=?", 
+                                syncData.SalesOrder.First().Id).ToList();
+                        }
+
+                        // DateTime alanlarını kontrol et ve null olanları düzelt (sunucu null DateTime kabul etmiyor)
+                        FixDateTimeFields(syncData);
+
+                        var endpoint = syncData.SalesOrder.Any() 
+                            ? "MemberRouteController/CompleteMemberRouteWiselyFromJsonArrayWithSalesOrder"
+                            : "MemberRouteController/CompleteMemberRouteWiselyFromJsonArray";
+
+                        // JSON serialize et ve sunucuya gönder
+                        var json = Newtonsoft.Json.JsonConvert.SerializeObject(syncData, new Newtonsoft.Json.JsonSerializerSettings
+                        {
+                            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                            DateFormatString = "yyyy-MM-dd HH:mm:ss"
+                        });
+                        
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var httpResponse = await _httpClient.PostAsync($"api/{endpoint}", content);
+                        
+                        string responseContent = string.Empty;
+                        if (httpResponse.Content != null)
+                        {
+                            responseContent = await httpResponse.Content.ReadAsStringAsync();
+                        }
+
+                        if (httpResponse.IsSuccessStatusCode)
+                        {
+                            // Response'u parse et
+                            JObject responseJson = null;
+                            try
+                            {
+                                responseJson = JObject.Parse(responseContent);
+                            }
+                            catch (Exception parseEx)
+                            {
+                                _logger.LogWarning($"Failed to parse response JSON for MemberRoute {route.Id}: {parseEx.Message}");
+                                _logger.LogWarning($"Response content: {responseContent}");
+                                continue;
+                            }
+
+                            // Result kontrolü
+                            var result = responseJson?["Result"]?.ToString();
+                            
+                            if (result != "NOK")
+                            {
+                                // Başarılı - flag'leri güncelle
+                                db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
+                                db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                                db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                                
+                                _logger.LogInformation($"Successfully synced MemberRoute {route.Id} to server");
+                            }
+                            else
+                            {
+                                // Sunucu NOK döndü
+                                var errorMessage = responseJson?["Message"]?.ToString() ?? responseJson?["ErrorMessage"]?.ToString() ?? "Unknown error";
+                                _logger.LogWarning($"Database Sync Failed > MemberRoute ID: {route.Id}, Error: {errorMessage}");
+                                _logger.LogWarning($"Response content: {responseContent}");
+                            }
+                        }
+                        else
+                        {
+                            // HTTP hatası
+                            _logger.LogWarning($"Database Sync Failed > MemberRoute ID: {route.Id}, HTTP Status: {httpResponse.StatusCode}");
+                            _logger.LogWarning($"Response content: {responseContent}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error syncing MemberRoute {route.Id} to server");
+                    }
                 }
-                else
-                {
-                    _logger.LogWarning("Database Sync Failed > MemberRoute");
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SyncMemberRoutes");
             }
         }
 
@@ -472,17 +541,30 @@ namespace MerchPlusMAUI.Services
                         
                         Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
                         
-                        var response = await PostToApi(_httpClient2, "MemberDisplayPhotosController/InsertMemberDisplayPhotos", photo);
-
-                        // Response null kontrolü ve TryGetProperty kullan (KeyNotFoundException'ı önlemek için)
-                        bool isSuccess = false;
-                        string responseString = string.Empty;
-                        
-                        if (response.HasValue)
+                        // JSON serialize et ve sunucuya gönder
+                        var json = Newtonsoft.Json.JsonConvert.SerializeObject(photo, new Newtonsoft.Json.JsonSerializerSettings
                         {
-                            responseString = response.Value.ToString();
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response içeriği: {responseString}");
-                            
+                            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                            DateFormatString = "yyyy-MM-dd HH:mm:ss"
+                        });
+                        
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var httpResponse = await _httpClient2.PostAsync($"api/MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                        
+                        string responseString = string.Empty;
+                        if (httpResponse.Content != null)
+                        {
+                            responseString = await httpResponse.Content.ReadAsStringAsync();
+                        }
+                        
+                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response içeriği: {responseString}");
+                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] HTTP Status: {httpResponse.StatusCode}");
+
+                        // Response kontrolü
+                        bool isSuccess = false;
+                        
+                        if (httpResponse.IsSuccessStatusCode)
+                        {
                             // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
                             if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
                                 responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
@@ -491,23 +573,38 @@ namespace MerchPlusMAUI.Services
                                 Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
                                 isSuccess = false;
                             }
-                            else if (response.Value.TryGetProperty("Result", out var resultProperty))
-                            {
-                                var result = resultProperty.GetString();
-                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response Result: {result}");
-                                isSuccess = result != "NOK";
-                            }
                             else
                             {
-                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response'da 'Result' key'i bulunamadı");
-                                // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
-                                isSuccess = true;
+                                // Response'u parse et
+                                try
+                                {
+                                    var responseJson = JObject.Parse(responseString);
+                                    var result = responseJson?["Result"]?.ToString();
+                                    
+                                    if (result != null)
+                                    {
+                                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response Result: {result}");
+                                        isSuccess = result != "NOK";
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response'da 'Result' key'i bulunamadı");
+                                        // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                        isSuccess = true;
+                                    }
+                                }
+                                catch (Exception parseEx)
+                                {
+                                    Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response parse edilemedi: {parseEx.Message}");
+                                    // Parse edilemezse ama HTTP başarılıysa, başarılı say
+                                    isSuccess = true;
+                                }
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response null geldi");
-                            _logger.LogWarning("Database Sync Failed > MemberDisplayPhoto - Response is null");
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HTTP hatası: {httpResponse.StatusCode}");
+                            _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}, HTTP Status: {httpResponse.StatusCode}");
                             isSuccess = false;
                         }
 

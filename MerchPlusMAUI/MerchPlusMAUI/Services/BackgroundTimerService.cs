@@ -53,8 +53,8 @@ namespace MerchPlusMAUI.Services
             {
                 _logger.LogInformation("Background timer work started at: {Time}", DateTimeOffset.Now);
 
-                // 1. Gönderilmemiş verileri senkronize et
-                await _databaseSyncService.SyncPendingDataToServer();
+                // 1. Tüm gönderilmemiş verileri senkronize et (5 dakikada bir)
+                await _databaseSyncService.SyncData();
 
                 // 2. Koordinat senkronizasyonu (eğer gerekirse)
                 await SyncCoordinatesIfNeeded();

@@ -20,6 +20,7 @@ namespace MerchPlusMAUI.Views
     {
         #region Fields
         private readonly ILogger<StoreProductsPage> _logger;
+        private readonly DatabaseSyncService? _databaseSyncService;
         private readonly string _dbPath;
         private bool _isLoading = false;
         private bool _isInitialized = false;
@@ -129,10 +130,11 @@ namespace MerchPlusMAUI.Views
         #endregion
 
         #region Constructor - Android OnCreate karşılığı
-        public StoreProductsPage(ILogger<StoreProductsPage> logger)
+        public StoreProductsPage(ILogger<StoreProductsPage> logger, DatabaseSyncService? databaseSyncService = null)
         {
             InitializeComponent();
             _logger = logger;
+            _databaseSyncService = databaseSyncService;
             _dbPath = GlobalVariables.DatabasePath;
             
             InitializeCommands();
@@ -143,8 +145,8 @@ namespace MerchPlusMAUI.Views
         }
 
         // Alternative constructor for direct parameter passing
-        public StoreProductsPage(ILogger<StoreProductsPage> logger, string entMemberRouteId, string storeName) 
-            : this(logger)
+        public StoreProductsPage(ILogger<StoreProductsPage> logger, string entMemberRouteId, string storeName, DatabaseSyncService? databaseSyncService = null) 
+            : this(logger, databaseSyncService)
         {
             Console.WriteLine($"Alternative constructor called with EntMemberRouteId: {entMemberRouteId}, StoreName: {storeName}");
             EntMemberRouteId = entMemberRouteId;
@@ -1072,19 +1074,12 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
-                // Loading overlay göster (hemen görünsün)
-                ShowLoadingOverlay();
-                
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(50);
-                
                 _logger.LogInformation($"Exit shop clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // EntMemberRouteId null kontrolü
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
                     _logger.LogError("EntMemberRouteId is null or empty in OnExitShopClickedAsync");
-                    HideLoadingOverlay();
                     await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
                     return;
                 }
@@ -1093,19 +1088,26 @@ namespace MerchPlusMAUI.Views
                 var canExit = await ValidateExitShop();
                 if (!canExit)
                 {
-                    HideLoadingOverlay();
                     return; // Çıkış validasyonu başarısız
                 }
 
+                // Loading overlay göster (hemen görünsün)
+                ShowLoadingOverlay();
+                
+                // Kısa bir delay ekle ki overlay render edilsin
+                await Task.Delay(100);
+                
                 // Çıkış işlemini tamamla
                 await CompleteExitShop();
-                HideLoadingOverlay();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnExitShopClicked");
-                HideLoadingOverlay();
-                await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
+                });
             }
         }
 
@@ -1224,89 +1226,152 @@ namespace MerchPlusMAUI.Views
                 _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ BAŞLADI ===");
                 _logger.LogInformation($"EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
                 
-                using var db = new SQLiteConnection(_dbPath);
-                
-                // EntMemberRouteId null kontrolü
-                if (string.IsNullOrEmpty(EntMemberRouteId))
+                // Database işlemlerini background thread'de yap
+                await Task.Run(() =>
                 {
-                    _logger.LogError("EntMemberRouteId is null or empty in CompleteExitShop");
-                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı.", "Tamam");
-                    return;
+                    using var db = new SQLiteConnection(_dbPath);
+                    
+                    // EntMemberRouteId null kontrolü
+                    if (string.IsNullOrEmpty(EntMemberRouteId))
+                    {
+                        _logger.LogError("EntMemberRouteId is null or empty in CompleteExitShop");
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            HideLoadingOverlay();
+                            await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı.", "Tamam");
+                        });
+                        return;
+                    }
+                    
+                    // Route'u güncelle
+                    var routeId = int.Parse(EntMemberRouteId);
+                    var route = db.Table<entMemberRoute>()
+                        .FirstOrDefault(r => r.Id == routeId);
+                    
+                    if (route != null)
+                    {
+                        // Çıkış tarihini kaydet
+                        route.ExitOn = DateTime.Now;
+                        route.IsSentToServer = false; // Server'a gönderilmemiş olarak işaretle
+                        
+                        _logger.LogInformation($"Route güncelleniyor - ID: {route.Id}, ExitOn: {route.ExitOn}, IsSentToServer: {route.IsSentToServer}");
+                        
+                        // entMemberRoute entity'sinde PrimaryKey tanımlı olmayabilir, bu yüzden direkt SQL ile güncelle
+                        try
+                        {
+                            db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
+                                route.ExitOn, route.IsSentToServer, route.Id);
+                            _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                        }
+                        catch (Exception sqlEx)
+                        {
+                            _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
+                            throw; // Hata fırlat
+                        }
+                        
+                        // Çıkış istatistiklerini logla
+                        _logger.LogInformation($"=== ÇIKIŞ İSTATİSTİKLERİ ===");
+                        _logger.LogInformation($"Giriş Zamanı: {route.EntryOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
+                        _logger.LogInformation($"Çıkış Zamanı: {route.ExitOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
+                        
+                        if (route.EntryOn.HasValue && route.ExitOn.HasValue)
+                        {
+                            var duration = route.ExitOn.Value - route.EntryOn.Value;
+                            _logger.LogInformation($"Mağazada Geçirilen Süre: {duration.Hours} saat {duration.Minutes} dakika");
+                        }
+                        
+                        // Fotoğraf sayısını kontrol et
+                        var photoCount = db.Table<entMemberRoutePhoto>()
+                            .Where(p => p.MemberRouteId == routeId)
+                            .Count();
+                        _logger.LogInformation($"Çekilen Fotoğraf Sayısı: {photoCount}");
+                        
+                        // Ürün girişi sayısını kontrol et
+                        var productCount = db.Table<entMemberRouteDetail>()
+                            .Where(d => d.MemberRouteId == routeId && d.CreatedOn != null)
+                            .Count();
+                        _logger.LogInformation($"Girilen Ürün Sayısı: {productCount}");
+                    }
+                    else
+                    {
+                        _logger.LogError($"Route bulunamadı - EntMemberRouteId: {EntMemberRouteId}");
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            HideLoadingOverlay();
+                            await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                        });
+                        return;
+                    }
+
+                    _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ TAMAMLANDI ===");
+                });
+                
+                // Verileri sunucuya gönder (CommonFooter'daki SyncData metodunu kullan - güncelle butonu ile aynı mantık)
+                try
+                {
+                    _logger.LogInformation("Çıkış sonrası veriler sunucuya gönderiliyor...");
+                    
+                    // CommonFooter'daki SyncData metodunu kullan (güncelle butonu ile aynı mantık)
+                    var commonFooter = new Controls.CommonFooter();
+                    string syncResult = await commonFooter.SyncData();
+                    
+                    _logger.LogInformation($"Çıkış sonrası veriler gönderildi. Sonuç: {syncResult}");
+                    
+                    // Sonucu logla
+                    if (!string.IsNullOrEmpty(syncResult))
+                    {
+                        _logger.LogInformation($"Senkronizasyon detayları: {syncResult}");
+                    }
+                }
+                catch (Exception syncEx)
+                {
+                    _logger.LogError(syncEx, "Çıkış sonrası veri gönderme hatası");
+                    // Hata olsa bile çıkış işlemi tamamlandı, kullanıcıyı bilgilendir
                 }
                 
-                // Route'u güncelle
-                var routeId = int.Parse(EntMemberRouteId);
-                var route = db.Table<entMemberRoute>()
-                    .FirstOrDefault(r => r.Id == routeId);
-                
-                if (route != null)
+                // UI işlemlerini main thread'de yap
+                await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    // Çıkış tarihini kaydet
-                    route.ExitOn = DateTime.Now;
-                    route.IsSentToServer = false; // Server'a gönderilmemiş olarak işaretle
-                    
-                    _logger.LogInformation($"Route güncelleniyor - ID: {route.Id}, ExitOn: {route.ExitOn}, IsSentToServer: {route.IsSentToServer}");
-                    
-                    // entMemberRoute entity'sinde PrimaryKey tanımlı olmayabilir, bu yüzden direkt SQL ile güncelle
                     try
                     {
-                        db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
-                            route.ExitOn, route.IsSentToServer, route.Id);
-                        _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                        // Loading overlay'i gizle
+                        HideLoadingOverlay();
+                        
+                        // Başarı mesajı göster
+                        await DisplayAlert("Başarılı", 
+                            $"Mağazadan çıkış işlemi tamamlandı.\r\n\r\n" +
+                            $"Mağaza: {StoreName}\r\n" +
+                            $"Çıkış Zamanı: {DateTime.Now:dd.MM.yyyy HH:mm}\r\n\r\n" +
+                            $"Ana menüye yönlendiriliyorsunuz.", 
+                            "Tamam");
+                        
+                        // Ana menüye dön
+                        await Shell.Current.GoToAsync("///AboutMePage");
                     }
-                    catch (Exception sqlEx)
+                    catch (Exception uiEx)
                     {
-                        _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
-                        throw; // Hata fırlat
+                        _logger.LogError(uiEx, "UI işlemleri sırasında hata oluştu");
+                        HideLoadingOverlay();
+                        // Fallback: direkt navigation yap
+                        try
+                        {
+                            await Shell.Current.GoToAsync("///AboutMePage");
+                        }
+                        catch (Exception navEx)
+                        {
+                            _logger.LogError(navEx, "Navigation hatası");
+                        }
                     }
-                    
-                    // Çıkış istatistiklerini logla
-                    _logger.LogInformation($"=== ÇIKIŞ İSTATİSTİKLERİ ===");
-                    _logger.LogInformation($"Giriş Zamanı: {route.EntryOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
-                    _logger.LogInformation($"Çıkış Zamanı: {route.ExitOn?.ToString("dd.MM.yyyy HH:mm:ss")}");
-                    
-                    if (route.EntryOn.HasValue && route.ExitOn.HasValue)
-                    {
-                        var duration = route.ExitOn.Value - route.EntryOn.Value;
-                        _logger.LogInformation($"Mağazada Geçirilen Süre: {duration.Hours} saat {duration.Minutes} dakika");
-                    }
-                    
-                    // Fotoğraf sayısını kontrol et
-                    var photoCount = db.Table<entMemberRoutePhoto>()
-                        .Where(p => p.MemberRouteId == routeId)
-                        .Count();
-                    _logger.LogInformation($"Çekilen Fotoğraf Sayısı: {photoCount}");
-                    
-                    // Ürün girişi sayısını kontrol et
-                    var productCount = db.Table<entMemberRouteDetail>()
-                        .Where(d => d.MemberRouteId == routeId && d.CreatedOn != null)
-                        .Count();
-                    _logger.LogInformation($"Girilen Ürün Sayısı: {productCount}");
-                }
-                else
-                {
-                    _logger.LogError($"Route bulunamadı - EntMemberRouteId: {EntMemberRouteId}");
-                    await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
-                    return;
-                }
-
-                _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ TAMAMLANDI ===");
-                
-                // Başarı mesajı göster
-                await DisplayAlert("Başarılı", 
-                    $"Mağazadan çıkış işlemi tamamlandı.\r\n\r\n" +
-                    $"Mağaza: {StoreName}\r\n" +
-                    $"Çıkış Zamanı: {DateTime.Now:dd.MM.yyyy HH:mm}\r\n\r\n" +
-                    $"Ana menüye yönlendiriliyorsunuz.", 
-                    "Tamam");
-                
-                // Ana menüye dön
-                await Shell.Current.GoToAsync("///AboutMePage");
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Çıkış işlemi tamamlanırken hata oluştu");
-                await DisplayAlert("Hata", $"Çıkış işlemi tamamlanırken bir hata oluştu: {ex.Message}", "Tamam");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", $"Çıkış işlemi tamamlanırken bir hata oluştu: {ex.Message}", "Tamam");
+                });
             }
         }
         #endregion
@@ -1567,10 +1632,19 @@ namespace MerchPlusMAUI.Views
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                var mainContent = this.FindByName<Grid>("MainContent");
+                
                 if (loadingOverlay != null)
                 {
                     loadingOverlay.IsVisible = true;
+                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
+                    loadingOverlay.Opacity = 1; // Opacity'yi açıkça 1 yap
                     Console.WriteLine("StoreProductsPage: Loading overlay shown");
+                }
+                
+                if (mainContent != null)
+                {
+                    mainContent.IsVisible = false;
                 }
             });
         }
@@ -1580,11 +1654,18 @@ namespace MerchPlusMAUI.Views
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                var mainContent = this.FindByName<Grid>("MainContent");
+                
                 if (loadingOverlay != null)
                 {
                     loadingOverlay.IsVisible = false;
                     loadingOverlay.InputTransparent = true; // Tıklamalara izin ver
                     Console.WriteLine("StoreProductsPage: Loading overlay hidden");
+                }
+                
+                if (mainContent != null)
+                {
+                    mainContent.IsVisible = true;
                 }
             });
         }

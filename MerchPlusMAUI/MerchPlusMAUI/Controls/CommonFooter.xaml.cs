@@ -305,7 +305,7 @@ namespace MerchPlusMAUI.Controls
         }
         
         // Veri senkronizasyon metodu (eski projede olduğu gibi)
-        private async Task<string> SyncData()
+        public async Task<string> SyncData()
         {
             string message = string.Empty;
             using var db = new SQLiteConnection(_dbPath);
