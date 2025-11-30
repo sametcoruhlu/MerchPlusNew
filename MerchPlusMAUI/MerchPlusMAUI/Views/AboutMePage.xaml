@@ -52,102 +52,120 @@
                                     VerticalOptions="Center"/>
                         </Grid>
                         
-                        <!-- İçerik Alanı -->
+                        <!-- İçerik Alanı - Büyük Tıklanabilir Butonlar -->
                         <Grid Grid.Row="1" 
-                              ColumnSpacing="8" 
-                              RowSpacing="10">
+                              ColumnSpacing="10" 
+                              RowSpacing="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
 
-                            <!-- Headers - Tıklanabilir -->
+                            <!-- Planlanan Butonu -->
                             <Frame Grid.Column="0" 
-                                   BackgroundColor="#f0f0f0"
-                                   CornerRadius="8"
-                                   Padding="5,5" 
-                                   HasShadow="False"
-                                   BorderColor="LightGray">
-                                <Label Text="Planlanan"
-                                       FontSize="13"
-                                       LineBreakMode="NoWrap"
-                                       HorizontalOptions="Center"
-                                       HorizontalTextAlignment="Center"/>
+                                   x:Name="PlannedButtonFrame"
+                                   BackgroundColor="#E3F2FD"
+                                   CornerRadius="12"
+                                   Padding="12,18" 
+                                   HasShadow="True"
+                                   BorderColor="#BBDEFB">
+                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="📋"
+                                           FontSize="28"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                    <Label Text="Planlanan"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="#1976D2"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"/>
+                                    <Label x:Name="PlannedCountLabel"
+                                           Text="-"
+                                           FontSize="24"
+                                           FontAttributes="Bold"
+                                           TextColor="#1976D2"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"
+                                           MinimumWidthRequest="40"/>
+                                </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnPlannedTapped"/>
                                 </Frame.GestureRecognizers>
                             </Frame>
                             
+                            <!-- Tamamlanan Butonu -->
                             <Frame Grid.Column="1"
-                                   BackgroundColor="#f0f0f0"
-                                   CornerRadius="8"
-                                   Padding="5,5"
-                                   HasShadow="False"
-                                   BorderColor="LightGray">
-                                <Label Text="Tamamlanan"
-                                       FontSize="13"
-                                       LineBreakMode="NoWrap"
-                                       HorizontalOptions="Center"
-                                       HorizontalTextAlignment="Center"/>
+                                   x:Name="CompletedButtonFrame"
+                                   BackgroundColor="#E8F5E9"
+                                   CornerRadius="12"
+                                   Padding="12,18"
+                                   HasShadow="True"
+                                   BorderColor="#C8E6C9">
+                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="✅"
+                                           FontSize="28"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                    <Label Text="Tamamlanan"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="#388E3C"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"/>
+                                    <Label x:Name="CompletedCountLabel"
+                                           Text="-"
+                                           FontSize="24"
+                                           FontAttributes="Bold"
+                                           TextColor="#388E3C"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"
+                                           MinimumWidthRequest="40"/>
+                                </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnCompletedTapped"/>
                                 </Frame.GestureRecognizers>
                             </Frame>
                             
+                            <!-- Bekleyen Butonu -->
                             <Frame Grid.Column="2"
-                                   BackgroundColor="#f0f0f0"
-                                   CornerRadius="8"
-                                   Padding="5,5"
-                                   HasShadow="False"
-                                   BorderColor="LightGray">
-                                <Label Text="Bekleyen"
-                                       FontSize="13"
-                                       LineBreakMode="NoWrap"
-                                       HorizontalOptions="Center"
-                                       HorizontalTextAlignment="Center"/>
+                                   x:Name="PendingButtonFrame"
+                                   BackgroundColor="#FFF3E0"
+                                   CornerRadius="12"
+                                   Padding="12,18"
+                                   HasShadow="True"
+                                   BorderColor="#FFE0B2">
+                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                    <Label Text="⏳"
+                                           FontSize="28"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                    <Label Text="Bekleyen"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="#F57C00"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"/>
+                                    <Label x:Name="PendingCountLabel"
+                                           Text="-"
+                                           FontSize="24"
+                                           FontAttributes="Bold"
+                                           TextColor="#F57C00"
+                                           HorizontalOptions="Center"
+                                           HorizontalTextAlignment="Center"
+                                           LineBreakMode="NoWrap"
+                                           MinimumWidthRequest="40"/>
+                                </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnPendingTapped"/>
                                 </Frame.GestureRecognizers>
                             </Frame>
-
-                            <!-- Values -->
-                            <Label x:Name="PlannedCountLabel"
-                                   Text="-"
-                                   Grid.Row="1"
-                                   Grid.Column="0"
-                                   FontSize="32"
-                                   HorizontalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnPlannedTapped"/>
-                                </Label.GestureRecognizers>
-                            </Label>
-                            
-                            <Label x:Name="CompletedCountLabel"
-                                   Text="-"
-                                   Grid.Row="1"
-                                   Grid.Column="1"
-                                   FontSize="32"
-                                   HorizontalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnCompletedTapped"/>
-                                </Label.GestureRecognizers>
-                            </Label>
-                            
-                            <Label x:Name="PendingCountLabel"
-                                   Text="-"
-                                   Grid.Row="1"
-                                   Grid.Column="2"
-                                   FontSize="32"
-                                   HorizontalOptions="Center">
-                                <Label.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnPendingTapped"/>
-                                </Label.GestureRecognizers>
-                            </Label>
                         </Grid>
                     </Grid>
                 </Frame>

@@ -90,7 +90,18 @@ namespace MerchPlusMAUI.Views
             // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
             this.Opacity = 1;
             
-            System.Diagnostics.Debug.WriteLine($"StoresPage: OnAppearing called, StoreType = {StoreType}");
+            System.Diagnostics.Debug.WriteLine($"StoresPage: OnAppearing called, StoreType = '{StoreType}'");
+            
+            // StoreType'ın set edilmesini bekle (navigation parametreleri için)
+            int attempts = 0;
+            while (string.IsNullOrEmpty(StoreType) && attempts < 10)
+            {
+                await Task.Delay(50);
+                attempts++;
+                System.Diagnostics.Debug.WriteLine($"StoresPage: Waiting for StoreType (attempt {attempts}/10) - Current: '{StoreType}'");
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"StoresPage: StoreType after wait: '{StoreType}'");
             UpdatePageTitle();
             
             // Loading overlay'i hemen göster (sayfa render edilmeden önce)
@@ -146,7 +157,7 @@ namespace MerchPlusMAUI.Views
                 "Planned" => "Planlanan Mağazalar",
                 "Completed" => "Tamamlanan Mağazalar",
                 "Pending" => "Bekleyen Mağazalar",
-                "InProgress" => "Devam Eden Mağazalar",
+                "InProgress" => "Bekleyen Mağazalar", // Devam eden mağazalar için
                 "All" => "Tüm Mağazalar",
                 _ => "Tüm Mağazalar"
             };
@@ -166,7 +177,7 @@ namespace MerchPlusMAUI.Views
             try
             {
                 _isLoading = true;
-                System.Diagnostics.Debug.WriteLine($"StoresPage: Starting LoadStoresAsync with StoreType: {StoreType}");
+                System.Diagnostics.Debug.WriteLine($"StoresPage: Starting LoadStoresAsync with StoreType: '{StoreType}'");
                 IsRefreshing = true;
                 OnPropertyChanged(nameof(IsRefreshing));
 
@@ -176,22 +187,31 @@ namespace MerchPlusMAUI.Views
                 {
                     using var db = new SQLiteConnection(_dbPath);
                     System.Diagnostics.Debug.WriteLine($"StoresPage: Database connection opened");
+                    System.Diagnostics.Debug.WriteLine($"StoresPage: Filtering routes with StoreType: '{StoreType}'");
 
-                    var routes = StoreType switch
+                    // StoreType null veya boşsa default olarak "All" kullan
+                    var filterType = string.IsNullOrEmpty(StoreType) ? "All" : StoreType;
+                    System.Diagnostics.Debug.WriteLine($"StoresPage: Using filterType: '{filterType}'");
+
+                    var routes = filterType switch
                     {
                         "Completed" => db.Table<entMemberRoute>()
-                            .Where(r => r.ExitOn != null)
+                            // Tamamlanan: Giriş yapılmış VE çıkış yapılmış (EntryOn != null && ExitOn != null)
+                            .Where(r => r.EntryOn != null && r.ExitOn != null)
                             .ToList(),
 
                         "Pending" => db.Table<entMemberRoute>()
+                            // Bekleyen: Giriş yapılmış AMA çıkış yapılmamış (EntryOn != null && ExitOn == null)
                             .Where(r => r.EntryOn != null && r.ExitOn == null)
                             .ToList(),
 
                         "InProgress" => db.Table<entMemberRoute>()
+                            // InProgress: Bekleyen ile aynı (giriş yapılmış ama çıkış yapılmamış)
                             .Where(r => r.EntryOn != null && r.ExitOn == null)
                             .ToList(),
 
                         "Planned" => db.Table<entMemberRoute>()
+                            // Planlanan: Henüz giriş yapılmamış (EntryOn == null && ExitOn == null)
                             .Where(r => r.EntryOn == null && r.ExitOn == null)
                             .ToList(),
 
@@ -200,7 +220,7 @@ namespace MerchPlusMAUI.Views
                         _ => db.Table<entMemberRoute>().ToList()
                     };
 
-                    System.Diagnostics.Debug.WriteLine($"StoresPage: Found {routes.Count} routes for {StoreType}");
+                    System.Diagnostics.Debug.WriteLine($"StoresPage: Found {routes.Count} routes for filterType: '{filterType}'");
 
                     // Mağazaları al
                     var stores = new List<StoreViewModel>();

@@ -107,16 +107,10 @@ namespace MerchPlusMAUI.Views
                 // Tamamlanan mağaza sayısı (ExitOn is not null)
                 var completedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE ExitOn IS NOT NULL");
                 
-                // Bekleyen mağaza sayısı (EntryOn is not null but ExitOn is null) - currently in progress
-                var pendingInProgressCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL");
+                // Bekleyen mağaza sayısı (EntryOn is not null but ExitOn is null) - sadece devam eden mağazalar
+                var pendingCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL");
                 
-                // Henüz başlanmamış mağaza sayısı (EntryOn is null and ExitOn is null) - not started yet
-                var notStartedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NULL AND ExitOn IS NULL");
-                
-                // Bekleyen = devam eden + henüz başlanmamış
-                var pendingCount = pendingInProgressCount + notStartedCount;
-                
-                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistikler - Planlanan: {plannedCount}, Tamamlanan: {completedCount}, Bekleyen: {pendingCount} (Devam Eden: {pendingInProgressCount}, Başlanmamış: {notStartedCount})");
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistikler - Planlanan: {plannedCount}, Tamamlanan: {completedCount}, Bekleyen (Devam Eden): {pendingCount}");
                 
                 // UI'yi güncelle
                 PlannedCountLabel.Text = plannedCount.ToString();
@@ -963,7 +957,7 @@ namespace MerchPlusMAUI.Views
                 // Kısa bir delay ekle ki overlay render edilsin
                 await Task.Delay(50);
                 
-                // Tüm mağazaları göster (planlanan yerine "All" parametresi gönder)
+                // Planlanan mağazaları göster - TÜM mağazalar listelenecek
                 await Shell.Current.GoToAsync($"///StoresPage?StoreType=All");
                 
                 // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
@@ -1005,7 +999,7 @@ namespace MerchPlusMAUI.Views
                 // Kısa bir delay ekle ki overlay render edilsin
                 await Task.Delay(50);
                 
-                // Tamamlanan mağazaları göster (yeşil renklendirme ile)
+                // Tamamlanan mağazaları göster (giriş yapılmış VE çıkış yapılmış)
                 await Shell.Current.GoToAsync($"///StoresPage?StoreType=Completed");
                 
                 // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
@@ -1047,7 +1041,7 @@ namespace MerchPlusMAUI.Views
                 // Kısa bir delay ekle ki overlay render edilsin
                 await Task.Delay(50);
                 
-                // Giriş yapılan ama çıkış yapılmayan mağazaları göster
+                // Bekleyen mağazaları göster - sadece devam eden mağazalar (giriş yapılmış ama çıkış yapılmamış)
                 await Shell.Current.GoToAsync($"///StoresPage?StoreType=InProgress");
                 
                 // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
@@ -1059,7 +1053,7 @@ namespace MerchPlusMAUI.Views
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Devam eden mağazalar sayfasına yönlendirme hatası");
+                _logger?.LogError(ex, "Bekleyen mağazalar sayfasına yönlendirme hatası");
                 var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
                 if (loadingOverlay != null)
                 {
