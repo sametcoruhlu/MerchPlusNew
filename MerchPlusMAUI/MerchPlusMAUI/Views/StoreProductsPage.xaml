@@ -209,7 +209,7 @@
 
         <!-- Bottom Action Buttons -->
         <Grid Grid.Row="2" 
-              ColumnDefinitions="*,*,*,*,*"
+              ColumnDefinitions="*,*,*,*"
               BackgroundColor="{StaticResource Primary}"
               Padding="0,5">
             
@@ -279,30 +279,8 @@
                 </Grid.GestureRecognizers>
             </Grid>
 
-            <!-- Report Button -->
-            <Grid Grid.Column="3" 
-                  RowDefinitions="Auto,Auto" 
-                  RowSpacing="2"
-                  HorizontalOptions="Center"
-                  VerticalOptions="Center">
-                <Label Grid.Row="0"
-                       Text="&#xe24b;"
-                       FontFamily="MaterialIcons"
-                       TextColor="White"
-                       FontSize="24"
-                       HorizontalOptions="Center"/>
-                <Label Grid.Row="1"
-                       Text="Rapor"
-                       TextColor="White"
-                       FontSize="12"
-                       HorizontalOptions="Center"/>
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnReportClicked"/>
-                </Grid.GestureRecognizers>
-            </Grid>
-
             <!-- Exit Shop Button -->
-            <Grid Grid.Column="4" 
+            <Grid Grid.Column="3" 
                   RowDefinitions="Auto,Auto" 
                   RowSpacing="2"
                   HorizontalOptions="Center"

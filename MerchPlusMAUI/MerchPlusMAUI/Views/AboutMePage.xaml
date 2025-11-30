@@ -16,18 +16,19 @@
         <controls:CommonHeader Grid.Row="0"/>
         
         <!-- Content -->
-        <Grid Grid.Row="1" RowDefinitions="*,*,*" Padding="15,15,15,70" Margin="0" RowSpacing="10">
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" Padding="15,15,15,70" Margin="0" RowSpacing="10">
                 
                 <!-- 1. MAĞAZALAR KUTUSU -->
                 <Frame Grid.Row="0"
-                       Padding="10" 
+                       Padding="10,8" 
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
                        HasShadow="True"
-                       Margin="0">
-                    <Grid RowDefinitions="Auto,*">
+                       Margin="0"
+                       VerticalOptions="Start">
+                    <Grid RowDefinitions="Auto,Auto">
                         <!-- Başlık ve Info butonu -->
-                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,5">
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                             <Label Text="Mağazalar"
                                    Grid.Column="0"
                                    FontSize="18"
@@ -55,7 +56,10 @@
                         <!-- İçerik Alanı - Büyük Tıklanabilir Butonlar -->
                         <Grid Grid.Row="1" 
                               ColumnSpacing="10" 
-                              RowSpacing="0">
+                              RowSpacing="0"
+                              VerticalOptions="Center"
+                              HorizontalOptions="Center"
+                              Margin="0,5,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -67,16 +71,20 @@
                                    x:Name="PlannedButtonFrame"
                                    BackgroundColor="#E3F2FD"
                                    CornerRadius="12"
-                                   Padding="12,18" 
+                                   Padding="8,10" 
                                    HasShadow="True"
-                                   BorderColor="#BBDEFB">
-                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                   BorderColor="#BBDEFB"
+                                   HeightRequest="100"
+                                   WidthRequest="100"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center">
+                                <StackLayout Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="📋"
-                                           FontSize="28"
+                                           FontSize="22"
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center"/>
                                     <Label Text="Planlanan"
-                                           FontSize="13"
+                                           FontSize="11"
                                            FontAttributes="Bold"
                                            TextColor="#1976D2"
                                            HorizontalOptions="Center"
@@ -84,13 +92,13 @@
                                            LineBreakMode="NoWrap"/>
                                     <Label x:Name="PlannedCountLabel"
                                            Text="-"
-                                           FontSize="24"
+                                           FontSize="18"
                                            FontAttributes="Bold"
                                            TextColor="#1976D2"
                                            HorizontalOptions="Center"
                                            HorizontalTextAlignment="Center"
                                            LineBreakMode="NoWrap"
-                                           MinimumWidthRequest="40"/>
+                                           MinimumWidthRequest="30"/>
                                 </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnPlannedTapped"/>
@@ -102,16 +110,20 @@
                                    x:Name="CompletedButtonFrame"
                                    BackgroundColor="#E8F5E9"
                                    CornerRadius="12"
-                                   Padding="12,18"
+                                   Padding="8,10"
                                    HasShadow="True"
-                                   BorderColor="#C8E6C9">
-                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                   BorderColor="#C8E6C9"
+                                   HeightRequest="100"
+                                   WidthRequest="100"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center">
+                                <StackLayout Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="✅"
-                                           FontSize="28"
+                                           FontSize="22"
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center"/>
                                     <Label Text="Tamamlanan"
-                                           FontSize="13"
+                                           FontSize="11"
                                            FontAttributes="Bold"
                                            TextColor="#388E3C"
                                            HorizontalOptions="Center"
@@ -119,13 +131,13 @@
                                            LineBreakMode="NoWrap"/>
                                     <Label x:Name="CompletedCountLabel"
                                            Text="-"
-                                           FontSize="24"
+                                           FontSize="18"
                                            FontAttributes="Bold"
                                            TextColor="#388E3C"
                                            HorizontalOptions="Center"
                                            HorizontalTextAlignment="Center"
                                            LineBreakMode="NoWrap"
-                                           MinimumWidthRequest="40"/>
+                                           MinimumWidthRequest="30"/>
                                 </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnCompletedTapped"/>
@@ -137,16 +149,20 @@
                                    x:Name="PendingButtonFrame"
                                    BackgroundColor="#FFF3E0"
                                    CornerRadius="12"
-                                   Padding="12,18"
+                                   Padding="8,10"
                                    HasShadow="True"
-                                   BorderColor="#FFE0B2">
-                                <StackLayout Spacing="6" HorizontalOptions="Center" VerticalOptions="Center">
+                                   BorderColor="#FFE0B2"
+                                   HeightRequest="100"
+                                   WidthRequest="100"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center">
+                                <StackLayout Spacing="3" HorizontalOptions="Center" VerticalOptions="Center">
                                     <Label Text="⏳"
-                                           FontSize="28"
+                                           FontSize="22"
                                            HorizontalOptions="Center"
                                            VerticalOptions="Center"/>
                                     <Label Text="Bekleyen"
-                                           FontSize="13"
+                                           FontSize="11"
                                            FontAttributes="Bold"
                                            TextColor="#F57C00"
                                            HorizontalOptions="Center"
@@ -154,13 +170,13 @@
                                            LineBreakMode="NoWrap"/>
                                     <Label x:Name="PendingCountLabel"
                                            Text="-"
-                                           FontSize="24"
+                                           FontSize="18"
                                            FontAttributes="Bold"
                                            TextColor="#F57C00"
                                            HorizontalOptions="Center"
                                            HorizontalTextAlignment="Center"
                                            LineBreakMode="NoWrap"
-                                           MinimumWidthRequest="40"/>
+                                           MinimumWidthRequest="30"/>
                                 </StackLayout>
                                 <Frame.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnPendingTapped"/>
@@ -170,34 +186,8 @@
                     </Grid>
                 </Frame>
                 
-                <!-- 2. RAPOR KUTUSU -->
+                <!-- 2. YARIŞMALAR KUTUSU -->
                 <Frame Grid.Row="1"
-                       Padding="10" 
-                       CornerRadius="10" 
-                       BorderColor="#e0e0e0" 
-                       HasShadow="True"
-                       Margin="0">
-                    <Grid RowDefinitions="Auto,*">
-                        <!-- Başlık -->
-                        <Label Grid.Row="0"
-                               Text="Rapor"
-                               FontSize="18"
-                               FontAttributes="Bold"
-                               HorizontalOptions="Start"
-                               VerticalOptions="Center"
-                               Margin="0,0,0,5"/>
-                        
-                        <!-- Rapor İçeriği -->
-                        <ScrollView Grid.Row="1">
-                            <VerticalStackLayout x:Name="ReportContainer" Spacing="8">
-                                <!-- Rapor öğeleri kod tarafında doldurulacak -->
-                            </VerticalStackLayout>
-                        </ScrollView>
-                    </Grid>
-                </Frame>
-                
-                <!-- 3. YARIŞMALAR KUTUSU -->
-                <Frame Grid.Row="2"
                        Padding="10" 
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
