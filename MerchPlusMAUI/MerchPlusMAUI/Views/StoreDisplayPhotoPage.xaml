@@ -173,32 +173,16 @@
                Padding="20,15"
                CornerRadius="0"
                HasShadow="True">
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                
-                <!-- Geri Butonu -->
-                <Button Grid.Column="0"
-                        Text="Geri"
-                        BackgroundColor="#6C757D"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnBackClicked"/>
-                
-                <!-- Kaydet Butonu -->
-                <Button Grid.Column="1"
-                        x:Name="SaveButton"
-                        Text="Kaydet"
-                        BackgroundColor="#DC3545"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnSaveClicked"/>
-                        
-            </Grid>
+            <!-- Kaydet Butonu -->
+            <Button x:Name="SaveButton"
+                    Text="KAYDET"
+                    BackgroundColor="#DC3545"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    Clicked="OnSaveClicked"/>
         </Frame>
 
         <!-- Loading Overlay -->

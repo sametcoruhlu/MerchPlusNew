@@ -99,6 +99,78 @@ namespace MerchPlusMAUI.Views
             // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
         }
 
+        // Geri butonu için override
+        protected override bool OnBackButtonPressed()
+        {
+            System.Diagnostics.Debug.WriteLine("=== StoreDisplayPhotoPage Hardware Back Button Pressed ===");
+            
+            // Loading overlay göster (hemen görünsün)
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = true;
+                loadingOverlay.InputTransparent = false;
+            }
+            
+            // Bir önceki sayfaya geri dön
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
+                    
+                    await NavigateBackToPreviousPage();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Geri gitme hatası: {ex.Message}");
+                    _logger?.LogError(ex, "Error navigating back");
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = false;
+                        loadingOverlay.InputTransparent = true;
+                    }
+                }
+            });
+            
+            return true; // Event'i handle et
+        }
+
+        private async Task NavigateBackToPreviousPage()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Bir önceki sayfaya (StoreVitrinePhotoPage) geri dönülüyor");
+                
+                // StoreVitrinePhotoPage'e explicit navigation (MainActivity'deki kod da bu path'i kullanıyor)
+                await Shell.Current.GoToAsync("///StoreVitrinePhotoPage");
+                System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Navigation to StoreVitrinePhotoPage completed");
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: NavigateBackToPreviousPage hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Stack trace: {ex.StackTrace}");
+                _logger?.LogError(ex, "Error navigating back to previous page");
+                
+                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlay != null)
+                {
+                    loadingOverlay.IsVisible = false;
+                    loadingOverlay.InputTransparent = true;
+                }
+                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
+            }
+        }
+
         private async Task LoadDataAsync()
         {
             try
@@ -420,28 +492,11 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Sayfa temizlendi, yeni giriş için hazır");
                 });
                 
-                await DisplayAlert("Başarılı", "Teşhir fotoğrafları başarıyla kaydedildi.", "Tamam");
+                // Kaydedildi mesajını göster
+                await DisplayAlert("Başarılı", "Fotoğraflar kaydedildi.", "Tamam");
                 
-                // Loading overlay göster (hemen görünsün)
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = true;
-                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
-                }
-                
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(50);
-                
-                // StoreVitrinePhotoPage'e geri dön
-                await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
-                
-                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
+                // Tamam butonuna tıklandığında bir önceki sayfaya (StoreVitrinePhotoPage) geri dön
+                await NavigateBackToPreviousPage();
             }
             catch (Exception ex)
             {
@@ -453,45 +508,5 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async void OnBackClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                // Loading overlay göster (hemen görünsün)
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = true;
-                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
-                }
-                
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(50);
-                
-                System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Geri butonuna tıklandı");
-                
-                // StoreVitrinePhotoPage'e geri dön
-                await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
-                
-                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Geri gitme hatası: {ex.Message}");
-                _logger?.LogError(ex, "Error navigating back");
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
-                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
-            }
-        }
     }
 }

@@ -89,31 +89,15 @@
                Padding="20,15"
                CornerRadius="0"
                HasShadow="True">
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                
-                <!-- Geri Butonu -->
-                <Button Grid.Column="0"
-                        Text="Geri"
-                        BackgroundColor="#6C757D"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnBackClicked"/>
-                
-                <!-- Tamamla Butonu -->
-                <Button Grid.Column="1"
-                        Text="Tamamla"
-                        BackgroundColor="#DC3545"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnFinishClicked"/>
-                        
-            </Grid>
+            <!-- Kaydet Butonu -->
+            <Button Text="KAYDET"
+                    BackgroundColor="#DC3545"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    Clicked="OnSaveClicked"/>
         </Frame>
 
         <!-- Loading Overlay -->

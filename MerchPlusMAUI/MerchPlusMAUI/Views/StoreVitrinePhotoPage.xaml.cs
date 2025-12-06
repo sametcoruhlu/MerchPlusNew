@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using entMerchPlus;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MerchPlusMAUI.Views
 {
@@ -13,6 +14,10 @@ namespace MerchPlusMAUI.Views
         private string _entMemberRouteId;
         private string _storeName = "Mağaza";
         private readonly string _dbPath;
+        
+        // Public properties for MainActivity to access navigation parameters
+        public string EntMemberRouteId => _entMemberRouteId ?? string.Empty;
+        public string StoreName => _storeName ?? "Mağaza";
 
         public StoreVitrinePhotoPage(ILogger<StoreVitrinePhotoPage> logger)
         {
@@ -101,6 +106,106 @@ namespace MerchPlusMAUI.Views
             base.OnDisappearing();
             
             // FadeTo(0) kaldırıldı - Shell navigation kendi animasyonunu yönetiyor
+        }
+
+        // Geri butonu için override
+        protected override bool OnBackButtonPressed()
+        {
+            System.Diagnostics.Debug.WriteLine("=== StoreVitrinePhotoPage Hardware Back Button Pressed ===");
+            
+            // Loading overlay göster (hemen görünsün)
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = true;
+                loadingOverlay.InputTransparent = false;
+            }
+            
+            // StoreProductsPage'e geri dön - parametrelerle birlikte
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    // Kısa bir delay ekle ki overlay render edilsin
+                    await Task.Delay(50);
+                    
+                    await NavigateBackToStoreProductsPage();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Geri gitme hatası: {ex.Message}");
+                    _logger?.LogError(ex, "Error navigating back");
+                    if (loadingOverlay != null)
+                    {
+                        loadingOverlay.IsVisible = false;
+                        loadingOverlay.InputTransparent = true;
+                    }
+                }
+            });
+            
+            return true; // Event'i handle et
+        }
+
+        private async Task NavigateBackToStoreProductsPage()
+        {
+            Grid? loadingOverlayControl = null;
+            try
+            {
+                // EntMemberRouteId kontrolü
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: _entMemberRouteId is null or empty, trying to get from GlobalVariables");
+                    
+                    // GlobalVariables'dan tekrar al
+                    if (GlobalVariables.CurrentMemberRoute != null)
+                    {
+                        _entMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
+                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Got _entMemberRouteId from GlobalVariables: {_entMemberRouteId}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
+                        loadingOverlayControl = this.FindByName<Grid>("LoadingOverlay");
+                        if (loadingOverlayControl != null)
+                        {
+                            loadingOverlayControl.IsVisible = false;
+                            loadingOverlayControl.InputTransparent = true;
+                        }
+                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
+                        return;
+                    }
+                }
+                
+                // StoreProductsPage'e geri dön - navigation parametreleri ile
+                var navigationParameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = _entMemberRouteId,
+                    ["StoreName"] = _storeName
+                };
+                
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
+                await Shell.Current.GoToAsync("///StoreProductsPage", navigationParameters);
+                
+                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                loadingOverlayControl = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlayControl != null)
+                {
+                    loadingOverlayControl.IsVisible = false;
+                    loadingOverlayControl.InputTransparent = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: NavigateBackToStoreProductsPage hatası: {ex.Message}");
+                _logger?.LogError(ex, "Error navigating back to StoreProductsPage");
+                loadingOverlayControl = this.FindByName<Grid>("LoadingOverlay");
+                if (loadingOverlayControl != null)
+                {
+                    loadingOverlayControl.IsVisible = false;
+                    loadingOverlayControl.InputTransparent = true;
+                }
+                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
+            }
         }
 
         private async void OnShelfPhotoClicked(object sender, EventArgs e)
@@ -221,149 +326,24 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async void OnBackClicked(object sender, EventArgs e)
-        {
-            try
-            {
-                // Loading overlay göster (hemen görünsün)
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = true;
-                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
-                }
-                
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(50);
-                
-                System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Geri butonuna tıklandı");
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
-                
-                // EntMemberRouteId kontrolü
-                if (string.IsNullOrEmpty(_entMemberRouteId))
-                {
-                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: _entMemberRouteId is null or empty, trying to get from GlobalVariables");
-                    
-                    // GlobalVariables'dan tekrar al
-                    if (GlobalVariables.CurrentMemberRoute != null)
-                    {
-                        _entMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
-                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Got _entMemberRouteId from GlobalVariables: {_entMemberRouteId}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
-                        if (loadingOverlay != null)
-                        {
-                            loadingOverlay.IsVisible = false;
-                            loadingOverlay.InputTransparent = true;
-                        }
-                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
-                        return;
-                    }
-                }
-                
-                // StoreProductsPage'e geri dön - navigation parametreleri ile
-                var navigationParameters = new Dictionary<string, object>
-                {
-                    ["entMemberRouteId"] = _entMemberRouteId,
-                    ["StoreName"] = _storeName
-                };
-                
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
-                await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
-                
-                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Geri gitme hatası: {ex.Message}");
-                _logger?.LogError(ex, "Error navigating back");
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
-                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
-            }
-        }
 
-        private async void OnFinishClicked(object sender, EventArgs e)
+        private async void OnSaveClicked(object sender, EventArgs e)
         {
             try
             {
-                // Loading overlay göster (hemen görünsün)
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = true;
-                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
-                }
+                System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Kaydet butonuna tıklandı");
                 
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(50);
+                // Kaydedildi mesajını göster
+                await DisplayAlert("Başarılı", "Fotoğraflar kaydedildi.", "Tamam");
                 
-                System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Tamamla butonuna tıklandı");
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: _entMemberRouteId: {_entMemberRouteId}");
-                
-                // EntMemberRouteId kontrolü
-                if (string.IsNullOrEmpty(_entMemberRouteId))
-                {
-                    System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: _entMemberRouteId is null or empty, trying to get from GlobalVariables");
-                    
-                    // GlobalVariables'dan tekrar al
-                    if (GlobalVariables.CurrentMemberRoute != null)
-                    {
-                        _entMemberRouteId = GlobalVariables.CurrentMemberRoute.Id.ToString();
-                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Got _entMemberRouteId from GlobalVariables: {_entMemberRouteId}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: GlobalVariables.CurrentMemberRoute is also null");
-                        if (loadingOverlay != null)
-                        {
-                            loadingOverlay.IsVisible = false;
-                            loadingOverlay.InputTransparent = true;
-                        }
-                        await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
-                        return;
-                    }
-                }
-                
-                // StoreProductsPage'e geri dön - navigation parametreleri ile
-                var navigationParameters = new Dictionary<string, object>
-                {
-                    ["entMemberRouteId"] = _entMemberRouteId,
-                    ["StoreName"] = _storeName
-                };
-                
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters: entMemberRouteId={_entMemberRouteId}");
-                await Shell.Current.GoToAsync("//StoreProductsPage", navigationParameters);
-                
-                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
+                // Tamam butonuna tıklandığında ürün listeleme sayfasına geri dön
+                await NavigateBackToStoreProductsPage();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Tamamla gitme hatası: {ex.Message}");
-                _logger?.LogError(ex, "Error navigating to StoreProductsPage");
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true;
-                }
-                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
+                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Kaydet hatası: {ex.Message}");
+                _logger?.LogError(ex, "Error in OnSaveClicked");
+                await DisplayAlert("Hata", "İşlem sırasında hata oluştu.", "Tamam");
             }
         }
     }

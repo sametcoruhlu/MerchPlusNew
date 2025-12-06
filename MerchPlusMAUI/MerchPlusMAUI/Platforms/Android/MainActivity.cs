@@ -421,12 +421,41 @@ namespace MerchPlusMAUI
                         return (true, "///StoreProductsPage", null);
                         
                     case "StoreReportPage":
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
                         return (true, "///StoreProductsPage", null);
                     case "StoreDisplayPhotoPage":
+                        await Shell.Current.GoToAsync("///StoreVitrinePhotoPage");
+                        System.Diagnostics.Debug.WriteLine("Navigated to StoreVitrinePhotoPage");
                         return (true, "///StoreVitrinePhotoPage", null);
                     case "StoreVitrinePhotoPage":
+                        // StoreVitrinePhotoPage'den StoreProductsPage'e geri dön - parametrelerle
+                        if (currentPage is MerchPlusMAUI.Views.StoreVitrinePhotoPage storeVitrinePhotoPage)
+                        {
+                            var vitrineEntMemberRouteId = storeVitrinePhotoPage.EntMemberRouteId;
+                            var vitrineStoreName = storeVitrinePhotoPage.StoreName;
+                            
+                            if (!string.IsNullOrEmpty(vitrineEntMemberRouteId))
+                            {
+                                var parameters = new Dictionary<string, object>
+                                {
+                                    ["entMemberRouteId"] = vitrineEntMemberRouteId,
+                                    ["StoreName"] = vitrineStoreName ?? "Mağaza"
+                                };
+                                
+                                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Navigating to StoreProductsPage with parameters:");
+                                System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {vitrineEntMemberRouteId}");
+                                System.Diagnostics.Debug.WriteLine($"    StoreName: {vitrineStoreName}");
+                                
+                                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                                System.Diagnostics.Debug.WriteLine("Navigated to StoreProductsPage from StoreVitrinePhotoPage");
+                                return (true, "///StoreProductsPage", null);
+                            }
+                        }
+                        // Fallback: parametre olmadan git
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
                         return (true, "///StoreProductsPage", null);
                     case "StoreEntryPhotoPage":
+                        await Shell.Current.GoToAsync("///StoreProductsPage");
                         return (true, "///StoreProductsPage", null);
                     case "StoresPage":
                         // AboutMePage'e geri dön
