@@ -6,7 +6,7 @@
              MinimumHeightRequest="60"
              VerticalOptions="End">
 
-    <Grid ColumnDefinitions="*,*,*,*,*"
+    <Grid ColumnDefinitions="*,*,*,*"
           RowDefinitions="*"
           BackgroundColor="{StaticResource Primary}"
           Padding="0,5">
@@ -33,30 +33,8 @@
             </Grid.GestureRecognizers>
         </Grid>
 
-        <!-- Harita Butonu -->
-        <Grid Grid.Column="1" 
-              RowDefinitions="Auto,Auto" 
-              RowSpacing="2"
-              HorizontalOptions="Center"
-              VerticalOptions="Center">
-            <Label Grid.Row="0"
-                   Text="&#xe55b;"
-                   FontFamily="MaterialIcons"
-                   TextColor="White"
-                   FontSize="24"
-                   HorizontalOptions="Center"/>
-            <Label Grid.Row="1"
-                   Text="Harita"
-                   TextColor="White"
-                   FontSize="12"
-                   HorizontalOptions="Center"/>
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnMapClicked"/>
-            </Grid.GestureRecognizers>
-        </Grid>
-
         <!-- Görevler Butonu -->
-        <Grid Grid.Column="2" 
+        <Grid Grid.Column="1" 
               RowDefinitions="Auto,Auto" 
               RowSpacing="2"
               HorizontalOptions="Center"
@@ -78,7 +56,7 @@
         </Grid>
 
         <!-- Veritabanı Güncelle Butonu -->
-        <Grid Grid.Column="3" 
+        <Grid Grid.Column="2" 
               RowDefinitions="Auto,Auto" 
               RowSpacing="2"
               HorizontalOptions="Center"
@@ -129,7 +107,7 @@
         </Grid>
 
         <!-- Veritabanı Sil Butonu -->
-        <Grid Grid.Column="4" 
+        <Grid Grid.Column="3" 
               RowDefinitions="Auto,Auto" 
               RowSpacing="2"
               HorizontalOptions="Center"
