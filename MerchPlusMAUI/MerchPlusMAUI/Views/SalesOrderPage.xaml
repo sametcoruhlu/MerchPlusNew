@@ -55,7 +55,8 @@
                             <Picker ItemsSource="{Binding CustomerProducts}"
                                     ItemDisplayBinding="{Binding Name}"
                                     SelectedItem="{Binding SelectedProduct}"
-                                    Title="Ürün seçiniz" />
+                                    Title="Ürün Seçiniz"
+                                    SelectedIndex="-1" />
                             <Label Text="{Binding SelectedProduct.ProductBarcode, StringFormat='Barkod: {0}'}"
                                    IsVisible="{Binding HasSelectedProduct}"
                                    FontSize="13"

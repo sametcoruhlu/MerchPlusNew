@@ -303,8 +303,9 @@ namespace MerchPlusMAUI.Views
                 {
                     CustomerProducts.Add(product);
                 }
-                SelectedProduct = CustomerProducts.FirstOrDefault();
-                Console.WriteLine($"[SalesOrderPage] SelectedProduct.Id after init: {SelectedProduct?.Id}");
+                // Ürün seçimi başlangıçta null olsun - placeholder görünsün
+                SelectedProduct = null;
+                Console.WriteLine($"[SalesOrderPage] SelectedProduct set to null - placeholder will be shown");
 
                 PackageTypes.Clear();
                 Console.WriteLine($"[SalesOrderPage] Populating PackageTypes collection with {initData.PackageTypes.Count} rows");
@@ -312,8 +313,9 @@ namespace MerchPlusMAUI.Views
                 {
                     PackageTypes.Add(packageType);
                 }
-                SelectedPackageType = PackageTypes.FirstOrDefault();
-                Console.WriteLine($"[SalesOrderPage] SelectedPackageType.Id after init: {SelectedPackageType?.Id}");
+                // Paket tipi seçimi başlangıçta null olsun - placeholder görünsün
+                SelectedPackageType = null;
+                Console.WriteLine($"[SalesOrderPage] SelectedPackageType set to null - placeholder will be shown");
 
                 _currentSalesOrderId = initData.CurrentOrderId;
                 GlobalVariables.CurrentSalesOrderId = initData.CurrentOrderId != 0 ? initData.CurrentOrderId : initData.LastOrderId;
@@ -436,10 +438,18 @@ namespace MerchPlusMAUI.Views
                 // Kısa bir delay ekle ki overlay render edilsin
                 await Task.Delay(50);
                 
+                // Ürün seçimi kontrolü
+                if (SelectedProduct == null)
+                {
+                    IsBusy = false;
+                    await DisplayAlert("Uyarı", "Lütfen bir ürün seçiniz.", "Tamam");
+                    return;
+                }
+                
                 if (OrderPreviewItems.Count == 0)
                 {
                     IsBusy = false;
-                    await DisplayAlert("Bilgi", "Kaydedilecek sipariş kalemi bulunmuyor.", "Tamam");
+                    await DisplayAlert("Bilgi", "Kaydedilecek sipariş kalemi bulunmuyor. Lütfen önce ürünleri listeye ekleyiniz.", "Tamam");
                     return;
                 }
 
