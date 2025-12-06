@@ -218,33 +218,18 @@
             </ScrollView>
         </Grid>
 
-        <!-- Footer with Save and Exit Buttons -->
+        <!-- Footer with Save Button -->
         <Grid Grid.Row="2" 
               BackgroundColor="#F8F9FA" 
               Padding="15,10">
-            <Grid ColumnDefinitions="*,*" 
-                  ColumnSpacing="15">
-                
-                  <!-- Exit Button -->
-                  <Button Grid.Column="0"
-                          Text="ÇIKIŞ"
-                          BackgroundColor="#6C757D"
-                          TextColor="White"
-                          FontAttributes="Bold"
-                          CornerRadius="25"
-                          Padding="20,15"
-                          Clicked="OnExitClicked"/>
-                  
-                  <!-- Save Button -->
-                  <Button Grid.Column="1"
-                          Text="KAYDET"
-                          BackgroundColor="#DC3545"
-                          TextColor="White"
-                          FontAttributes="Bold"
-                          CornerRadius="25"
-                          Padding="20,15"
-                          Clicked="OnSaveClicked"/>
-            </Grid>
+            <!-- Save Button -->
+            <Button Text="KAYDET"
+                    BackgroundColor="#DC3545"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    Padding="20,15"
+                    Clicked="OnSaveClicked"/>
         </Grid>
         
         <!-- Loading Overlay - Navigation için (en son eklenen, en üstte görünür) -->

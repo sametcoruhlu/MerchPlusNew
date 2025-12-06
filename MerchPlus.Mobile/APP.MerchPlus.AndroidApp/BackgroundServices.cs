@@ -174,7 +174,7 @@ namespace APP.MerchPlus
                 try
                 {
                     var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-                    var rows = db.Query<entMemberRoute>("SELECT * from entMemberRoute WHERE IsSentToServer=0");
+                    var rows = db.Query<entMemberRoute>("SELECT * from entMemberRoute WHERE IsSentToServer=0 or IsSentToServer is null");
 
                     foreach (var memberRoute in rows)
                     {

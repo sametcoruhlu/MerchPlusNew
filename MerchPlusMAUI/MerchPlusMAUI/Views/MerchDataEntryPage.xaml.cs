@@ -1053,22 +1053,22 @@ namespace MerchPlusMAUI.Views
                     System.Diagnostics.Debug.WriteLine($"CreatedOn: {updatedRouteDetail[0].CreatedOn}");
                 }
 
+                HideLoadingOverlay();
                 await DisplayAlert("Başarılı", "Ürün verileri kaydedildi.", "Tamam");
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: Başarı mesajı gösterildi");
-                // Artık otomatik çıkış yapmıyoruz, kullanıcı çıkış butonunu kullanacak
+                
+                // Tamam butonuna tıklandığında ürünler sayfasına geri dön
+                await NavigateBackToStoreProductsPage();
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error saving data");
-                await DisplayAlert("Hata", "Veriler kaydedilirken hata oluştu.", "Tamam");
-            }
-            finally
-            {
                 HideLoadingOverlay();
+                await DisplayAlert("Hata", "Veriler kaydedilirken hata oluştu.", "Tamam");
             }
         }
 
-        private async void OnExitClicked(object sender, EventArgs e)
+        private async Task NavigateBackToStoreProductsPage()
         {
             // Loading overlay göster (hemen görünsün - metodun en başında, tüm işlemlerden önce)
             ShowLoadingOverlay();
@@ -1078,30 +1078,30 @@ namespace MerchPlusMAUI.Views
             
             try
             {
-                System.Diagnostics.Debug.WriteLine("OnExitClicked: Çıkış butonuna tıklandı");
+                System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: Ürünler sayfasına geri dönülüyor");
                 
                 // Navigation flag'ini set et
                 _isNavigatingAway = true;
                 
                 // Navigation stack'i kontrol et
-                System.Diagnostics.Debug.WriteLine($"OnExitClicked: Current navigation stack count: {Shell.Current.Navigation.NavigationStack.Count}");
+                System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Current navigation stack count: {Shell.Current.Navigation.NavigationStack.Count}");
                 
                 // MemberRouteId ve StoreName'i kontrol et
                 if (!_currentMemberRouteId.HasValue)
                 {
-                    System.Diagnostics.Debug.WriteLine("OnExitClicked: WARNING - _currentMemberRouteId is null, trying to get from _currentMemberRouteDetail");
+                    System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: WARNING - _currentMemberRouteId is null, trying to get from _currentMemberRouteDetail");
                     
                     // Eğer _currentMemberRouteId set edilmemişse, _currentMemberRouteDetail'den al
                     if (_currentMemberRouteDetail != null)
                     {
                         _currentMemberRouteId = _currentMemberRouteDetail.MemberRouteId;
-                        System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got MemberRouteId from _currentMemberRouteDetail: {_currentMemberRouteId}");
+                        System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Got MemberRouteId from _currentMemberRouteDetail: {_currentMemberRouteId}");
                         
                         // StoreName'i de veritabanından al (async olarak, UI thread'i bloklamamak için)
                         // Overlay görünür kalacak çünkü Task.Run background thread'de çalışıyor
                         if (string.IsNullOrEmpty(_currentStoreName))
                         {
-                            System.Diagnostics.Debug.WriteLine("OnExitClicked: Fetching StoreName from database (overlay should remain visible)...");
+                            System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: Fetching StoreName from database (overlay should remain visible)...");
                             await Task.Run(() =>
                             {
                                 using var db = new SQLiteConnection(_dbPath);
@@ -1112,7 +1112,7 @@ namespace MerchPlusMAUI.Views
                                     if (retailShop.Count > 0)
                                     {
                                         _currentStoreName = retailShop[0].Name ?? string.Empty;
-                                        System.Diagnostics.Debug.WriteLine($"OnExitClicked: Got StoreName from DB: {_currentStoreName}");
+                                        System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Got StoreName from DB: {_currentStoreName}");
                                     }
                                 }
                             });
@@ -1129,28 +1129,28 @@ namespace MerchPlusMAUI.Views
                         ["StoreName"] = _currentStoreName ?? "Mağaza"
                     };
                     
-                    System.Diagnostics.Debug.WriteLine($"OnExitClicked: Navigating to StoreProductsPage with parameters:");
+                    System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Navigating to StoreProductsPage with parameters:");
                     System.Diagnostics.Debug.WriteLine($"    entMemberRouteId: {parameters["entMemberRouteId"]}");
                     System.Diagnostics.Debug.WriteLine($"    StoreName: {parameters["StoreName"]}");
                     
                     await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
                     // Overlay'i gizleme - StoreProductsPage açılana kadar görünür kalacak
                     // StoreProductsPage açıldığında kendi overlay'ini gösterecek ve bu sayfa arka planda kalacak
-                    System.Diagnostics.Debug.WriteLine("OnExitClicked: Navigation completed, overlay will remain visible until StoreProductsPage loads");
+                    System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: Navigation completed, overlay will remain visible until StoreProductsPage loads");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("OnExitClicked: WARNING - Cannot get MemberRouteId, navigating without parameters");
+                    System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: WARNING - Cannot get MemberRouteId, navigating without parameters");
                     // Fallback: parametre olmadan git (eski davranış)
                     await Shell.Current.GoToAsync("//StoreProductsPage");
                     // Overlay'i gizleme - StoreProductsPage açılana kadar görünür kalacak
-                    System.Diagnostics.Debug.WriteLine("OnExitClicked: Navigation completed, overlay will remain visible until StoreProductsPage loads");
+                    System.Diagnostics.Debug.WriteLine("NavigateBackToStoreProductsPage: Navigation completed, overlay will remain visible until StoreProductsPage loads");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"OnExitClicked: Genel hata: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"OnExitClicked: Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Genel hata: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"NavigateBackToStoreProductsPage: Stack trace: {ex.StackTrace}");
                 _logger?.LogError(ex, "Error navigating back");
                 HideLoadingOverlay();
                 await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
@@ -1160,6 +1160,13 @@ namespace MerchPlusMAUI.Views
                 // Navigation flag'ini reset et
                 _isNavigatingAway = false;
             }
+        }
+
+        private async void OnExitClicked(object sender, EventArgs e)
+        {
+            // Bu metod artık kullanılmıyor, çıkış butonu kaldırıldı
+            // NavigateBackToStoreProductsPage metodunu kullanıyoruz
+            await NavigateBackToStoreProductsPage();
         }
 
         // Geri butonu için override

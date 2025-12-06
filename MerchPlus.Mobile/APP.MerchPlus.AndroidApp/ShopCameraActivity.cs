@@ -277,6 +277,9 @@ namespace APP.MerchPlus
                 }
             }
 
+            // Fotoğrafı galeriye kaydetme işlemi
+            SaveImageToGallery(bitmap);
+
             // Seçilen ürünlerin her biri için fotoğraf ekliyoruz
             foreach (var product in selectedProducts)
             {
@@ -300,6 +303,31 @@ namespace APP.MerchPlus
         private void UpdatePhotoListView()
         {
             photoListView.Adapter = new PhotoListAdapter(this, displayPhotoList);
+        }
+
+        private void SaveImageToGallery(Bitmap bitmap)
+        {
+            // Resmi galeriye kaydetmek için bir dosya oluşturuyoruz
+            string fileName = $"IMG_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+            Java.IO.File storageDir = new Java.IO.File(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures), "YourAppName");
+            if (!storageDir.Exists())
+            {
+                storageDir.Mkdirs();
+            }
+
+            Java.IO.File imageFile = new Java.IO.File(storageDir, fileName);
+
+            // Bitmap'i dosyaya kaydediyoruz
+            using (var stream = new FileStream(imageFile.AbsolutePath, FileMode.Create))
+            {
+                bitmap.Compress(Bitmap.CompressFormat.Jpeg, 100, stream);
+            }
+
+            // MediaStore'a resmi ekliyoruz
+            MediaScannerConnection.ScanFile(this, new string[] { imageFile.AbsolutePath }, null, null);
+
+            // Kullanıcıya bilgi veriyoruz
+            Toast.MakeText(this, "Fotoğraf galeriye kaydedildi.", ToastLength.Short).Show();
         }
 
         private void SaveButton_Click(object sender, EventArgs e)

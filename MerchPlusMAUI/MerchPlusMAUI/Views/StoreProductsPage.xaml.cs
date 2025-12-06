@@ -623,20 +623,66 @@ namespace MerchPlusMAUI.Views
                         Console.WriteLine($"  ✓ ProductViewModel created: {productViewModel.ProductName}");
                         Products.Add(productViewModel);
                         
-                        // Veri girişi yapılmış mı kontrol et (CreatedOn null değilse tamamlanmış demektir)
-                        bool isCompleted = detail.CreatedOn != null && detail.CreatedOn != default(DateTime);
+                        // Veri girişi yapılmış mı kontrol et (CreatedOn null değilse ve geçerli bir tarihse tamamlanmış demektir)
+                        // Reflection kullanarak CreatedOn property'sinin değerini güvenli bir şekilde kontrol ediyoruz
+                        bool isCompleted = false;
+                        DateTime? createdOnValue = null;
+                        
+                        try
+                        {
+                            var createdOnProp = detail.GetType().GetProperty("CreatedOn");
+                            if (createdOnProp != null)
+                            {
+                                var value = createdOnProp.GetValue(detail);
+                                
+                                // Property tipini kontrol et
+                                var propertyType = createdOnProp.PropertyType;
+                                bool isNullableDateTime = propertyType == typeof(DateTime?) || 
+                                                         (propertyType.IsGenericType && 
+                                                          propertyType.GetGenericTypeDefinition() == typeof(Nullable<>) &&
+                                                          propertyType.GetGenericArguments()[0] == typeof(DateTime));
+                                
+                                if (value != null)
+                                {
+                                    if (value is DateTime dt)
+                                    {
+                                        // DateTime veya boxed DateTime? değeri
+                                        createdOnValue = dt;
+                                    }
+                                }
+                                else if (isNullableDateTime)
+                                {
+                                    // Nullable DateTime? ve null değer
+                                    createdOnValue = null;
+                                }
+                                
+                                // Geçerli bir tarih kontrolü yap (DateTime.MinValue veya default değerden büyükse tamamlanmıştır)
+                                if (createdOnValue.HasValue)
+                                {
+                                    var dtValue = createdOnValue.Value;
+                                    // DateTime.MinValue (0001-01-01) veya default(DateTime) değilse ve mantıklı bir tarihse (örn. 1900'den sonra) tamamlanmıştır
+                                    isCompleted = dtValue != default(DateTime) && dtValue.Year > 1900;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"    ⚠ ERROR checking CreatedOn: {ex.Message}");
+                            // Hata durumunda bekleyen olarak işaretle
+                            isCompleted = false;
+                        }
                         
                         if (isCompleted)
                         {
                             CompletedProducts.Add(productViewModel);
                             completedCount++;
-                            Console.WriteLine($"    → Tamamlanan ürün");
+                            Console.WriteLine($"    → Tamamlanan ürün (CreatedOn: {createdOnValue})");
                         }
                         else
                         {
                             PendingProducts.Add(productViewModel);
                             pendingCount++;
-                            Console.WriteLine($"    → Bekleyen ürün");
+                            Console.WriteLine($"    → Bekleyen ürün (CreatedOn: {createdOnValue?.ToString() ?? "null/default"})");
                         }
                         
                         successCount++;

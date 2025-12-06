@@ -112,6 +112,7 @@ namespace APP.MerchPlus
                     insEntMemberRoute.EntryCoordinateY = Convert.ToDecimal(retailShop[0].CoordinateY);
 
                     db.Execute("UPDATE entMemberRoute SET EntryOn=?, EntryCoordinateX=?, EntryCoordinateY=? WHERE Id=?", DateTime.Now, Convert.ToDecimal(retailShop[0].CoordinateX), Convert.ToDecimal(retailShop[0].CoordinateY), insEntMemberRoute.Id);
+                    var denemeee = db.Query<entMemberRoute>("SELECT * from entMemberRoute WHERE Id=?", insEntMemberRoute.Id);
 
                     #region There is entry picture, just forward to product selection
                     var customerProductListActivity = new Intent(this, typeof(CustomerProductList));

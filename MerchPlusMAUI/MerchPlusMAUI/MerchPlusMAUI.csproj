@@ -59,9 +59,13 @@
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 		
-		<!-- APK formatı (AAB yerine) -->
-		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">apk</AndroidPackageFormat>
+		<!-- Package formatı: Release için AAB (Google Play Store), Debug için APK -->
+		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
 		<AndroidPackageFormat Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">apk</AndroidPackageFormat>
+		
+		<!-- Native debug symbols - Google Play Store için gerekli -->
+		<AndroidNativeDebugSymbols Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidNativeDebugSymbols>
+		<AndroidCreateDebugSymbols Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidCreateDebugSymbols>
 		
 		<!-- ProGuard/R8 tamamen kapatıldı - uygulama çökmesini önlemek için -->
 		<!-- İleride gerekirse ProGuard kuralları eklenebilir -->
@@ -85,6 +89,8 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<!-- Target SDK Version 35 (Android 15) - Google Play Store gereksinimi -->
+		<TargetSdkVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">35</TargetSdkVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
