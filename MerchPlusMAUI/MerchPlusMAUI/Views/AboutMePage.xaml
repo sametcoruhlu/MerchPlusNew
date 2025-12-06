@@ -192,7 +192,8 @@
                        CornerRadius="10" 
                        BorderColor="#e0e0e0" 
                        HasShadow="True"
-                       Margin="0">
+                       Margin="0"
+                       IsVisible="False">
                     <Grid RowDefinitions="Auto,*">
                         <!-- Başlık -->
                         <Label Grid.Row="0"
