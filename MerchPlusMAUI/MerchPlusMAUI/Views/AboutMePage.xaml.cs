@@ -124,10 +124,11 @@ namespace MerchPlusMAUI.Views
                 // Tamamlanan mağaza sayısı (ExitOn is not null)
                 var completedCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE ExitOn IS NOT NULL");
                 
-                // Bekleyen mağaza sayısı (EntryOn is not null but ExitOn is null) - sadece devam eden mağazalar
-                var pendingCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL");
+                // Bekleyen mağaza sayısı (ExitOn IS NULL - tamamlanmamış tüm mağazalar)
+                // Bu, Planlanan (henüz başlamamış) + Giriş yapılmış ama çıkış yapılmamış mağazaları içerir
+                var pendingCount = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRoute WHERE ExitOn IS NULL");
                 
-                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistikler - Planlanan: {plannedCount}, Tamamlanan: {completedCount}, Bekleyen (Devam Eden): {pendingCount}");
+                System.Diagnostics.Debug.WriteLine($"AboutMePage: İstatistikler - Planlanan: {plannedCount}, Tamamlanan: {completedCount}, Bekleyen (Tamamlanmamış): {pendingCount}");
                 
                 // UI'yi güncelle
                 PlannedCountLabel.Text = plannedCount.ToString();
@@ -775,7 +776,7 @@ namespace MerchPlusMAUI.Views
             }
         }
         
-        // Bekleyen tab'ına tıklandığında
+        // Bekleyen butonuna tıklandığında
         private async void OnPendingTapped(object sender, EventArgs e)
         {
             try
@@ -791,8 +792,8 @@ namespace MerchPlusMAUI.Views
                 // Kısa bir delay ekle ki overlay render edilsin
                 await Task.Delay(50);
                 
-                // Bekleyen mağazaları göster - sadece devam eden mağazalar (giriş yapılmış ama çıkış yapılmamış)
-                await Shell.Current.GoToAsync($"///StoresPage?StoreType=InProgress");
+                // Bekleyen mağazaları göster - tamamlanmamış tüm mağazalar (ExitOn IS NULL)
+                await Shell.Current.GoToAsync($"///StoresPage?StoreType=Pending");
                 
                 // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
                 if (loadingOverlay != null)

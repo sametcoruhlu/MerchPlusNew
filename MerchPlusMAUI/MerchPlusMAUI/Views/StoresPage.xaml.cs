@@ -201,13 +201,14 @@ namespace MerchPlusMAUI.Views
                             .ToList(),
 
                         "Pending" => db.Table<entMemberRoute>()
-                            // Bekleyen: Giriş yapılmış AMA çıkış yapılmamış (EntryOn != null && ExitOn == null)
-                            .Where(r => r.EntryOn != null && r.ExitOn == null)
+                            // Bekleyen: Tamamlanmamış tüm mağazalar (ExitOn IS NULL)
+                            // Bu, Planlanan (henüz başlamamış) + Giriş yapılmış ama çıkış yapılmamış mağazaları içerir
+                            .Where(r => r.ExitOn == null)
                             .ToList(),
 
                         "InProgress" => db.Table<entMemberRoute>()
-                            // InProgress: Bekleyen ile aynı (giriş yapılmış ama çıkış yapılmamış)
-                            .Where(r => r.EntryOn != null && r.ExitOn == null)
+                            // InProgress: Bekleyen ile aynı (tamamlanmamış tüm mağazalar - ExitOn IS NULL)
+                            .Where(r => r.ExitOn == null)
                             .ToList(),
 
                         "Planned" => db.Table<entMemberRoute>()
