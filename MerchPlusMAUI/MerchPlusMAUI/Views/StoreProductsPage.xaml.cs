@@ -1456,14 +1456,35 @@ namespace MerchPlusMAUI.Views
 
                 System.Diagnostics.Debug.WriteLine($"MemberRouteDetail: Id={memberRouteDetail.Id}, CustomerProductId={memberRouteDetail.CustomerProductId}, MemberRouteId={memberRouteDetail.MemberRouteId}");
 
+                // Ürünün tamamlanıp tamamlanmadığını kontrol et
+                bool isCompleted = false;
+                try
+                {
+                    var createdOnProp = memberRouteDetail.GetType().GetProperty("CreatedOn");
+                    if (createdOnProp != null)
+                    {
+                        var value = createdOnProp.GetValue(memberRouteDetail);
+                        if (value != null && value is DateTime dt)
+                        {
+                            // Geçerli bir tarih kontrolü yap (1900'den sonra olmalı)
+                            isCompleted = dt != default(DateTime) && dt.Year > 1900;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"⚠ ERROR checking CreatedOn in OnProductSelected: {ex.Message}");
+                }
+
                 // Android: merchDataEntryActivity.PutExtra("entMemberRouteDetailId", Convert.ToString(insEntMemberRouteDetail.Id));
                 var parameters = new Dictionary<string, object>
                 {
-                    ["entMemberRouteDetailId"] = memberRouteDetail.Id.ToString()
+                    ["entMemberRouteDetailId"] = memberRouteDetail.Id.ToString(),
+                    ["isCompleted"] = isCompleted.ToString()
                 };
 
-                System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteDetailId={memberRouteDetail.Id}");
-                _logger.LogInformation($"Navigating to MerchDataEntryPage with entMemberRouteDetailId={memberRouteDetail.Id}");
+                System.Diagnostics.Debug.WriteLine($"Navigation parameters: entMemberRouteDetailId={memberRouteDetail.Id}, isCompleted={isCompleted}");
+                _logger.LogInformation($"Navigating to MerchDataEntryPage with entMemberRouteDetailId={memberRouteDetail.Id}, isCompleted={isCompleted}");
                 
                 // MerchDataEntryPage'e navigate et
                 await Shell.Current.GoToAsync("///MerchDataEntryPage", parameters);

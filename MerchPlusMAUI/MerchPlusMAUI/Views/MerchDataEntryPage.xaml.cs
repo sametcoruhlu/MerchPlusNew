@@ -9,6 +9,7 @@ using MerchPlusMAUI.Models;
 namespace MerchPlusMAUI.Views
 {
     [QueryProperty(nameof(EntMemberRouteDetailId), "entMemberRouteDetailId")]
+    [QueryProperty(nameof(IsCompleted), "isCompleted")]
     public partial class MerchDataEntryPage : ContentPage, INotifyPropertyChanged
     {
         private readonly ILogger<MerchDataEntryPage>? _logger;
@@ -19,6 +20,7 @@ namespace MerchPlusMAUI.Views
         private FieldVisibilityModel? _fieldVisibility;
 
         private string _entMemberRouteDetailId = string.Empty;
+        private string _isCompleted = "false";
         private bool _isNavigatingAway = false;
         
         // Store route and store name for navigation back to StoreProductsPage
@@ -48,6 +50,17 @@ namespace MerchPlusMAUI.Views
                 _entMemberRouteDetailId = value;
                 OnPropertyChanged();
                 _ = LoadProductDataAsync();
+            }
+        }
+
+        public string IsCompleted
+        {
+            get => _isCompleted;
+            set
+            {
+                _isCompleted = value ?? "false";
+                OnPropertyChanged();
+                UpdateSaveButtonText();
             }
         }
 
@@ -114,6 +127,9 @@ namespace MerchPlusMAUI.Views
                 
                 // Veri yükleme işlemini başlat
                 await LoadProductDataAsync();
+                
+                // Buton metnini güncelle (parametreler set edildikten sonra)
+                UpdateSaveButtonText();
             }
             catch (Exception ex)
             {
@@ -200,6 +216,24 @@ namespace MerchPlusMAUI.Views
                 if (_mainContent != null)
                 {
                     _mainContent.IsVisible = true;
+                }
+                
+                // Buton metnini güncelle
+                UpdateSaveButtonText();
+            });
+        }
+
+        private void UpdateSaveButtonText()
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var saveButton = FindByName("SaveButton") as Button;
+                if (saveButton != null)
+                {
+                    // isCompleted parametresini kontrol et
+                    bool isCompleted = bool.TryParse(_isCompleted, out bool completed) && completed;
+                    saveButton.Text = isCompleted ? "GÜNCELLE" : "KAYDET";
+                    System.Diagnostics.Debug.WriteLine($"SaveButton text updated to: {saveButton.Text} (isCompleted: {isCompleted})");
                 }
             });
         }

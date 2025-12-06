@@ -223,7 +223,8 @@
               BackgroundColor="#F8F9FA" 
               Padding="15,10">
             <!-- Save Button -->
-            <Button Text="KAYDET"
+            <Button x:Name="SaveButton"
+                    Text="KAYDET"
                     BackgroundColor="#DC3545"
                     TextColor="White"
                     FontAttributes="Bold"
