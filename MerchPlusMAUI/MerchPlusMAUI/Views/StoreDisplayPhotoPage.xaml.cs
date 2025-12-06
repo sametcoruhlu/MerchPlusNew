@@ -365,18 +365,8 @@ namespace MerchPlusMAUI.Views
                     // Alert'i göster - await ile bekle
                     await DisplayAlert("Başarılı", $"Teşhir fotoğrafı başarıyla çekildi ve {_selectedProducts.Count} ürün için listeye eklendi.\nTeşhir Tipi: {_entPromotionTypeSelected.Name}", "Tamam");
                     
-                    // Fotoğraf çekildikten sonra seçimleri temizle (yeni teşhir tipi seçimi için)
-                    // Ama listedeki fotoğrafları koru
-                    _entPromotionTypeSelected = new entPromotionType { Id = -1, Name = "Seçiniz" };
-                    _selectedProducts.Clear();
-                    
-                    // UI'ı güncelle
-                    SelectedPromotionLabel.IsVisible = false;
-                    PromotionTypeLabel.IsVisible = true;
-                    SelectedProductsLabel.IsVisible = false;
-                    ProductSelectionLabel.IsVisible = true;
-                    
-                    System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Seçimler temizlendi, yeni teşhir tipi seçimi için hazır");
+                    // Seçimler temizlenmiyor - kullanıcı aynı teşhir tipi ve ürünlerle tekrar fotoğraf çekebilir
+                    System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Fotoğraf çekildi, seçimler korunuyor");
                 }
                 else
                 {

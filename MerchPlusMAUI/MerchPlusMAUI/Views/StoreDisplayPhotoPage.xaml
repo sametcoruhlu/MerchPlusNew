@@ -127,13 +127,10 @@
                                         <StackLayout Grid.Column="1" 
                                                      VerticalOptions="Center"
                                                      Margin="10,0">
-                                            <Label Text="{Binding ProductName}"
+                                            <Label Text="{Binding PromotionType}"
                                                    FontSize="14"
                                                    FontAttributes="Bold"
                                                    TextColor="#343A40"/>
-                                            <Label Text="{Binding PromotionType}"
-                                                   FontSize="12"
-                                                   TextColor="#6C757D"/>
                                         </StackLayout>
                                         <Button Grid.Column="2"
                                                 Text="Sil"
