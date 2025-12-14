@@ -253,6 +253,20 @@ namespace MerchPlusMAUI.Services
                         Console.WriteLine($"[KOORDINAT SENKRONIZASYON] ✅ BAŞARILI - {coordinates.Count} koordinat sunucuya gönderildi ve tablodan silindi");
                         Console.WriteLine("========================================");
                         _logger.LogInformation($"Successfully synced {coordinates.Count} coordinates to server");
+                        
+                        // Badge'i güncelle (koordinatlar silindi, badge güncellenmeli)
+                        try
+                        {
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                MerchPlusMAUI.Controls.CommonFooter.RefreshBadge();
+                                Console.WriteLine("[KOORDINAT SENKRONIZASYON] Badge güncellendi (koordinatlar silindi)");
+                            });
+                        }
+                        catch (Exception badgeEx)
+                        {
+                            Console.WriteLine($"[KOORDINAT SENKRONIZASYON] Badge güncelleme hatası: {badgeEx.Message}");
+                        }
                     }
                     else
                     {

@@ -454,6 +454,10 @@ namespace MerchPlusMAUI.Views
                 }
 
                 await DisplayAlert("Sipariş Kaydedildi", "Sipariş kalemleri başarıyla kaydedildi.", "Tamam");
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
+                
                 await Shell.Current.GoToAsync("..");
                 // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
                 IsBusy = false;

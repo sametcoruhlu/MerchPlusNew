@@ -462,6 +462,9 @@ namespace MerchPlusMAUI.Views
 
                 System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Tüm fotoğraflar veritabanına kaydedildi");
                 
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
+                
                 // Sayfayı temizle - yeni giriş için
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
@@ -484,6 +487,9 @@ namespace MerchPlusMAUI.Views
                 
                 // Kaydedildi mesajını göster
                 await DisplayAlert("Başarılı", "Fotoğraflar kaydedildi.", "Tamam");
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
                 
                 // Tamam butonuna tıklandığında bir önceki sayfaya (StoreVitrinePhotoPage) geri dön
                 await NavigateBackToPreviousPage();

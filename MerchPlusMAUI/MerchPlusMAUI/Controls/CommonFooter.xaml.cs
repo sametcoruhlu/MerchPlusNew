@@ -55,31 +55,174 @@ namespace MerchPlusMAUI.Controls
             UpdateButtonText();
         }
 
+        // Static metod: Tüm sayfalardan CommonFooter badge'ini güncellemek için
+        public static void RefreshBadge()
+        {
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    // Tüm navigation stack'i kontrol et - AboutMePage herhangi bir yerde olabilir
+                    if (MauiShell.Current?.Navigation != null)
+                    {
+                        // Navigation stack'ten AboutMePage'i bul
+                        var navigationStack = MauiShell.Current.Navigation.NavigationStack;
+                        foreach (var page in navigationStack)
+                        {
+                            if (page is MerchPlusMAUI.Views.AboutMePage aboutMePage)
+                            {
+                                // CommonFooter'ı bul
+                                var footer = aboutMePage.FindByName<CommonFooter>("CommonFooter");
+                                if (footer != null)
+                                {
+                                    footer.UpdateButtonText();
+                                    System.Diagnostics.Debug.WriteLine("[CommonFooter] Badge güncellendi (RefreshBadge çağrıldı)");
+                                    return; // Bulundu ve güncellendi, çık
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Eğer navigation stack'te bulunamadıysa, mevcut sayfayı kontrol et
+                    var currentPage = MauiShell.Current?.CurrentPage;
+                    if (currentPage is MerchPlusMAUI.Views.AboutMePage aboutMePageCurrent)
+                    {
+                        var footer = aboutMePageCurrent.FindByName<CommonFooter>("CommonFooter");
+                        if (footer != null)
+                        {
+                            footer.UpdateButtonText();
+                            System.Diagnostics.Debug.WriteLine("[CommonFooter] Badge güncellendi (RefreshBadge - current page)");
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] RefreshBadge hatası: {ex.Message}");
+            }
+        }
+
+        // Güncellenecek veri detaylarını hesapla (onay ekranında gösterilmek için)
+        private (int Routes, int Photos, int DisplayPhotos, int Coordinates, int RouteDetails, int SalesOrders, int SalesOrderDetails, int ProductExpirations, int Total) GetPendingUpdatesDetails()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesDetails() çağrıldı - {DateTime.Now:HH:mm:ss.fff}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesDetails() - Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}, IsMainThread: {MainThread.IsMainThread}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesDetails() - Database path: {_dbPath}");
+                
+                using var db = new SQLiteConnection(_dbPath);
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesDetails() - SQLiteConnection açıldı");
+                
+                // Gönderilmemiş route sayısı - SyncData ile aynı mantık (IsSentToServer != true)
+                // Sadece tamamlanmış route'ları say (ExitOn IS NOT NULL) çünkü sync sadece tamamlanmış route'ları gönderir
+                var remainingRoutes = db.Table<entMemberRoute>()
+                    .Where(r => r.ExitOn != null && (r.IsSentToServer != true || r.IsSentToServer == false))
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingRoutes (ExitOn IS NOT NULL AND IsSentToServer=false): {remainingRoutes}");
+                
+                // Gönderilmemiş route photo sayısı - Tüm gönderilmemiş fotoğrafları say
+                // (Route tamamlanmadıysa bile, kullanıcı veri eklediğinde görmeli)
+                var remainingPhotos = db.ExecuteScalar<int>(
+                    "SELECT COUNT(*) FROM entMemberRoutePhoto WHERE IsSentToServer = 0");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingPhotos (All unsent): {remainingPhotos}");
+                
+                // Gönderilmemiş display photo sayısı - Tüm gönderilmemiş display fotoğraflarını say
+                // (Route tamamlanmadıysa bile, kullanıcı veri eklediğinde görmeli)
+                var remainingDisplayPhotos = db.Table<MemberDisplayPhotos>()
+                    .Where(p => p.IsSentToServer == false)
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingDisplayPhotos (All unsent): {remainingDisplayPhotos}");
+                
+                // Gönderilmemiş coordinate sayısı
+                // Not: entMemberCoordinate'da IsSentToServer property'si yok, gönderilenler silindiği için tüm koordinatlar gönderilmemiş sayılır
+                // SQLite LINQ nullable double property'leri desteklemediği için SQL sorgusu kullanıyoruz
+                var remainingCoordinates = db.ExecuteScalar<int>(
+                    "SELECT COUNT(*) FROM entMemberCoordinate WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingCoordinates: {remainingCoordinates}");
+                
+                // Gönderilmemiş route detail sayısı (ürün veri girişi) - Sadece tamamlanmış route'lara ait verileri say
+                // Route detail'ler route ile birlikte sync edilir, bu yüzden sadece tamamlanmış route'lara ait olanları saymalıyız
+                var completedRouteIds = db.Table<entMemberRoute>()
+                    .Where(r => r.ExitOn != null)
+                    .Select(r => r.Id)
+                    .ToList();
+                var remainingRouteDetails = db.Table<entMerchPlus.entMemberRouteDetail>()
+                    .Where(d => d.IsSentToServer == false)
+                    .ToList()
+                    .Where(d => d.MemberRouteId != null && completedRouteIds.Contains((int)d.MemberRouteId))
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingRouteDetails (Completed routes only): {remainingRouteDetails}");
+                
+                // Gönderilmemiş sipariş sayısı - Sadece tamamlanmış route'lara ait siparişleri say
+                // Siparişler route ile birlikte sync edilir
+                var remainingSalesOrders = db.Table<SalesOrder>()
+                    .Where(s => s.IsSentToServer == false && completedRouteIds.Contains(s.MemberRouteId))
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingSalesOrders (Completed routes only): {remainingSalesOrders}");
+                
+                // Gönderilmemiş sipariş detay sayısı - Sadece tamamlanmış route'lara ait sipariş detaylarını say
+                // Sipariş detayları route ile birlikte sync edilir
+                var salesOrderIds = db.Table<SalesOrder>()
+                    .Where(s => completedRouteIds.Contains(s.MemberRouteId))
+                    .Select(s => s.Id)
+                    .ToList();
+                var remainingSalesOrderDetails = db.Table<SalesOrderDetail>()
+                    .Where(sd => sd.IsSentToServer == false && salesOrderIds.Contains(sd.SalesOrderId))
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingSalesOrderDetails (Completed routes only): {remainingSalesOrderDetails}");
+                
+                // Gönderilmemiş SKT (Son Kullanma Tarihi) sayısı - Sadece tamamlanmış route'lara ait SKT'leri say
+                // SKT'ler route ile birlikte sync edilir
+                var remainingProductExpirations = db.Table<ProductExpiration>()
+                    .Where(pe => pe.IsSentToServer == false && completedRouteIds.Contains(pe.MemberRouteId))
+                    .Count();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] remainingProductExpirations (Completed routes only): {remainingProductExpirations}");
+                
+                // Toplam güncelleme sayısı
+                int totalUpdates = remainingRoutes + remainingPhotos + remainingDisplayPhotos + remainingCoordinates + 
+                                   remainingRouteDetails + remainingSalesOrders + remainingSalesOrderDetails + remainingProductExpirations;
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] totalUpdates: {totalUpdates}");
+                
+                return (remainingRoutes, remainingPhotos, remainingDisplayPhotos, remainingCoordinates, 
+                        remainingRouteDetails, remainingSalesOrders, remainingSalesOrderDetails, remainingProductExpirations, totalUpdates);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Güncellenecek veri detayları hesaplama hatası: {ex.Message}");
+                return (0, 0, 0, 0, 0, 0, 0, 0, 0);
+            }
+        }
+
+        // Güncellenecek veri sayısını hesapla (UpdateButtonText ve OnUpdateDbClicked için ortak metod)
+        private int GetPendingUpdatesCount()
+        {
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesCount() çağrıldı - {DateTime.Now:HH:mm:ss.fff}");
+            var details = GetPendingUpdatesDetails();
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] GetPendingUpdatesCount() - GetPendingUpdatesDetails() sonucu: Total={details.Total}");
+            return details.Total;
+        }
+
         // Buton metnini güncelle ve badge göster (eski projede olduğu gibi - badge ile sayı göster)
         public void UpdateButtonText()
         {
             try
             {
-                using var db = new SQLiteConnection(_dbPath);
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() çağrıldı - {DateTime.Now:HH:mm:ss.fff}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - Thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}, IsMainThread: {MainThread.IsMainThread}");
                 
-                // Gönderilmemiş route sayısı
-                var remainingRoutes = db.Table<entMemberRoute>().Where(r => r.IsSentToServer != true).Count();
+                int totalUpdates = GetPendingUpdatesCount();
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - GetPendingUpdatesCount() sonucu: {totalUpdates}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - MainThread.BeginInvokeOnMainThread() çağrılıyor, totalUpdates değeri: {totalUpdates}");
                 
-                // Gönderilmemiş route photo sayısı
-                var remainingPhotos = db.Table<entMemberRoutePhoto>().Where(p => p.IsSentToServer != true).Count();
-                
-                // Gönderilmemiş display photo sayısı
-                var remainingDisplayPhotos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer).Count();
-                
-                // Gönderilmemiş coordinate sayısı
-                // Not: entMemberCoordinate'da IsSentToServer property'si yok, gönderilenler silindiği için tüm koordinatlar gönderilmemiş sayılır
-                var remainingCoordinates = db.Table<MerchPlusMAUI.Models.entMemberCoordinate>().Count();
-                
-                // Toplam güncelleme sayısı
-                int totalUpdates = remainingRoutes + remainingPhotos + remainingDisplayPhotos + remainingCoordinates;
+                // totalUpdates değerini closure içinde kullanmak için yerel değişkene kopyala
+                int capturedTotalUpdates = totalUpdates;
                 
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
+                    System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - MainThread callback çalışıyor - {DateTime.Now:HH:mm:ss.fff}");
+                    System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - MainThread callback içinde totalUpdates değeri: {capturedTotalUpdates}");
+                    
                     if (UpdateButtonLabel != null)
                     {
                         UpdateButtonLabel.Text = "Güncelle";
@@ -88,13 +231,14 @@ namespace MerchPlusMAUI.Controls
                     // Badge'i göster/gizle
                     if (UpdateBadge != null && UpdateBadgeLabel != null)
                     {
-                        if (totalUpdates > 0)
+                        if (capturedTotalUpdates > 0)
                         {
                             UpdateBadge.IsVisible = true;
-                            UpdateBadgeLabel.Text = totalUpdates > 99 ? "99+" : totalUpdates.ToString();
+                            UpdateBadgeLabel.Text = capturedTotalUpdates > 99 ? "99+" : capturedTotalUpdates.ToString();
+                            System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - Badge GÖSTERİLDİ: {capturedTotalUpdates} (IsVisible={UpdateBadge.IsVisible}, Text={UpdateBadgeLabel.Text})");
                             
                             // Badge boyutunu sayıya göre ayarla
-                            if (totalUpdates > 9)
+                            if (capturedTotalUpdates > 9)
                             {
                                 UpdateBadge.WidthRequest = 24;
                             }
@@ -106,13 +250,19 @@ namespace MerchPlusMAUI.Controls
                         else
                         {
                             UpdateBadge.IsVisible = false;
+                            System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - Badge GİZLENDİ (totalUpdates=0, IsVisible={UpdateBadge.IsVisible})");
                         }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CommonFooter] UpdateButtonText() - UpdateBadge veya UpdateBadgeLabel null! (UpdateBadge={UpdateBadge != null}, UpdateBadgeLabel={UpdateBadgeLabel != null})");
                     }
                 });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Buton metni güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] Buton metni güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -155,18 +305,67 @@ namespace MerchPlusMAUI.Controls
         // Veritabanı güncelleme butonuna tıklandığında
         private async void OnUpdateDbClicked(object sender, EventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() çağrıldı - {DateTime.Now:HH:mm:ss.fff}");
+            
             if (_isBusy)
             {
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - _isBusy=true, işlem zaten devam ediyor");
                 return; // İşlem zaten devam ediyor, engelle
             }
             
             UpdateDbClicked?.Invoke(this, EventArgs.Empty);
             
-            // Veri gönderme işlemi
+            // Önce badge'i güncelle (background sync sonrası değişmiş olabilir)
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - Badge güncellemesi yapılıyor (1. çağrı)...");
+            UpdateButtonText();
+            
+            // Sonra güncellenecek veri kontrolü yap
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - GetPendingUpdatesDetails() çağrılıyor...");
+            var pendingDetails = GetPendingUpdatesDetails();
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - GetPendingUpdatesDetails() sonucu: Total={pendingDetails.Total}, Routes={pendingDetails.Routes}, Photos={pendingDetails.Photos}, DisplayPhotos={pendingDetails.DisplayPhotos}, Coordinates={pendingDetails.Coordinates}, RouteDetails={pendingDetails.RouteDetails}, SalesOrders={pendingDetails.SalesOrders}, SalesOrderDetails={pendingDetails.SalesOrderDetails}, ProductExpirations={pendingDetails.ProductExpirations}");
+            
+            if (pendingDetails.Total == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - Total=0, güncellenecek veri yok! Badge gizleniyor...");
+                // Güncellenecek bir şey yok, badge'i gizle ve uyarı göster
+                UpdateButtonText(); // Badge'i gizlemek için tekrar güncelle
+                if (MauiShell.Current != null)
+                {
+                    await MauiShell.Current.DisplayAlert("Bilgi", 
+                        "Güncellenecek veri bulunmuyor. Tüm veriler zaten sunucuya gönderilmiş.", 
+                        "Tamam");
+                }
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"[CommonFooter] OnUpdateDbClicked() - Total={pendingDetails.Total}, güncelleme işlemi devam ediyor...");
+            
+            // Veri gönderme işlemi - detaylı bilgi göster
             if (MauiShell.Current != null)
             {
-                bool answer = await MauiShell.Current.DisplayAlert("Onay", 
-                    "Tüm verileri sunucuya göndermek istediğinizden emin misiniz?", 
+                // Güncellenecek veri türlerini ve sayılarını göster
+                var detailsMessage = "Güncellenecek veriler:\n\n";
+                if (pendingDetails.Routes > 0)
+                    detailsMessage += $"• Mağaza Ziyaretleri: {pendingDetails.Routes} adet\n";
+                if (pendingDetails.Photos > 0)
+                    detailsMessage += $"• Raf Fotoğrafları: {pendingDetails.Photos} adet\n";
+                if (pendingDetails.DisplayPhotos > 0)
+                    detailsMessage += $"• Teşhir Fotoğrafları: {pendingDetails.DisplayPhotos} adet\n";
+                if (pendingDetails.Coordinates > 0)
+                    detailsMessage += $"• Koordinatlar: {pendingDetails.Coordinates} adet\n";
+                if (pendingDetails.RouteDetails > 0)
+                    detailsMessage += $"• Ürün Veri Girişleri: {pendingDetails.RouteDetails} adet\n";
+                if (pendingDetails.SalesOrders > 0)
+                    detailsMessage += $"• Siparişler: {pendingDetails.SalesOrders} adet\n";
+                if (pendingDetails.SalesOrderDetails > 0)
+                    detailsMessage += $"• Sipariş Detayları: {pendingDetails.SalesOrderDetails} adet\n";
+                if (pendingDetails.ProductExpirations > 0)
+                    detailsMessage += $"• Son Kullanma Tarihleri: {pendingDetails.ProductExpirations} adet\n";
+                
+                detailsMessage += $"\nToplam: {pendingDetails.Total} adet veri güncellenecek.";
+                
+                bool answer = await MauiShell.Current.DisplayAlert("Güncelleme Onayı", 
+                    detailsMessage + "\n\nTüm verileri sunucuya göndermek istediğinizden emin misiniz?", 
                     "Evet", "Hayır");
 
                 if (answer)
@@ -323,6 +522,12 @@ namespace MerchPlusMAUI.Controls
                     {
                         await SyncCoordinates(coordinates);
                         message += $"Koordinatlar gönderildi ({coordinates.Count} adet)\r\n";
+                        
+                        // Badge'i güncelle (koordinatlar gönderildikten sonra)
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            UpdateButtonText();
+                        });
                     }
                     catch (Exception ex)
                     {
@@ -331,7 +536,10 @@ namespace MerchPlusMAUI.Controls
                 }
 
                 // Sync routes (eski projede ana işlem)
-                var routes = db.Table<entMemberRoute>().Where(r => r.IsSentToServer != true).ToList();
+                // Sadece tamamlanmış route'ları gönder (ExitOn IS NOT NULL) - sunucu sadece bunları kabul ediyor
+                var routes = db.Table<entMemberRoute>()
+                    .Where(r => r.ExitOn != null && r.IsSentToServer != true)
+                    .ToList();
                 int totalRoutes = routes.Count;
                 int counter = 0;
 
@@ -363,6 +571,9 @@ namespace MerchPlusMAUI.Controls
                                     {
                                         UpdateButtonLabel.Text = $"Güncellendi {counter}/{totalRoutes}";
                                     }
+                                    
+                                    // Badge'i güncelle (her route gönderildikten sonra)
+                                    UpdateButtonText();
                                 });
                             }
                             else
@@ -386,6 +597,9 @@ namespace MerchPlusMAUI.Controls
                                 ? $"Güncelle ({remainingRoutes.Count} mağaza)" 
                                 : "Güncelle";
                         }
+                        
+                        // Badge'i güncelle (route'lar bittikten sonra)
+                        UpdateButtonText();
                     });
                 }
 
@@ -398,6 +612,12 @@ namespace MerchPlusMAUI.Controls
                     {
                         await SyncPhotos(photos, db);
                         message += $"Fotoğraflar gönderildi ({photos.Count} adet)\r\n";
+                        
+                        // Badge'i güncelle (fotoğraflar gönderildikten sonra)
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            UpdateButtonText();
+                        });
                     }
                     catch (Exception ex)
                     {

@@ -746,6 +746,17 @@ namespace MerchPlusMAUI.Views
             }
         }
 
+        // Placeholder değerlerini gerçek değerler olarak kullanmak için helper metod
+        private string GetValueOrPlaceholder(Entry entry, string placeholder)
+        {
+            if (string.IsNullOrWhiteSpace(entry.Text))
+            {
+                System.Diagnostics.Debug.WriteLine($"GetValueOrPlaceholder: {entry.GetType().Name} boş, placeholder kullanılıyor: {placeholder}");
+                return placeholder;
+            }
+            return entry.Text;
+        }
+
         private async void OnSaveClicked(object sender, EventArgs e)
         {
             ShowLoadingOverlay();
@@ -759,14 +770,15 @@ namespace MerchPlusMAUI.Views
             if (FaceCountGrid.IsVisible)
             {
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount alanı görünür, kontrol ediliyor...");
-                if (string.IsNullOrEmpty(FaceCountEntry.Text) || Convert.ToInt32(FaceCountEntry.Text) < 0)
+                var faceCountValue = GetValueOrPlaceholder(FaceCountEntry, "0");
+                if (Convert.ToInt32(faceCountValue) < 0)
                 {
-                    errorMessage += "* Önyüz boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount validasyon hatası - boş veya negatif");
+                    errorMessage += "* Önyüz sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: FaceCount validasyon hatası - negatif");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount değeri: {FaceCountEntry.Text}");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount değeri: {faceCountValue}");
                 }
             }
             else
@@ -778,14 +790,15 @@ namespace MerchPlusMAUI.Views
             if (ShelfIndexGrid.IsVisible)
             {
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex alanı görünür, kontrol ediliyor...");
-                if (string.IsNullOrEmpty(ShelfIndexEntry.Text) || Convert.ToInt32(ShelfIndexEntry.Text) < 0)
+                var shelfIndexValue = GetValueOrPlaceholder(ShelfIndexEntry, "0");
+                if (Convert.ToInt32(shelfIndexValue) < 0)
                 {
-                    errorMessage += "* Raf Sırası boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex validasyon hatası - boş veya negatif");
+                    errorMessage += "* Raf Sırası sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfIndex validasyon hatası - negatif");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex değeri: {ShelfIndexEntry.Text}");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex değeri: {shelfIndexValue}");
                 }
             }
             else
@@ -797,14 +810,15 @@ namespace MerchPlusMAUI.Views
             if (ShelfStockGrid.IsVisible)
             {
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock alanı görünür, kontrol ediliyor...");
-                if (string.IsNullOrEmpty(ShelfStockEntry.Text) || Convert.ToInt32(ShelfStockEntry.Text) < 0)
+                var shelfStockValue = GetValueOrPlaceholder(ShelfStockEntry, "0");
+                if (Convert.ToInt32(shelfStockValue) < 0)
                 {
-                    errorMessage += "* Raf Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock validasyon hatası - boş veya negatif");
+                    errorMessage += "* Raf Stoğu sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: ShelfStock validasyon hatası - negatif");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock değeri: {ShelfStockEntry.Text}");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock değeri: {shelfStockValue}");
                 }
             }
             else
@@ -816,25 +830,19 @@ namespace MerchPlusMAUI.Views
             if (PriceGrid.IsVisible)
             {
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price alanı görünür, kontrol ediliyor...");
-                if (string.IsNullOrEmpty(ShelfPrice1Entry.Text) || Convert.ToDecimal(ShelfPrice1Entry.Text) < 0)
+                var price1Value = GetValueOrPlaceholder(ShelfPrice1Entry, "0");
+                if (Convert.ToDecimal(price1Value) < 0)
                 {
-                    errorMessage += "* Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price1 validasyon hatası - boş veya negatif");
+                    errorMessage += "* Fiyat 1. Kısım sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price1 validasyon hatası - negatif");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price1 değeri: {ShelfPrice1Entry.Text}");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price1 değeri: {price1Value}");
                 }
 
-                if (string.IsNullOrEmpty(ShelfPrice2Entry.Text))
-                {
-                    errorMessage += "* Fiyat 2. Kısım boş bırakılamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: Price2 validasyon hatası - boş");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price2 değeri: {ShelfPrice2Entry.Text}");
-                }
+                var price2Value = GetValueOrPlaceholder(ShelfPrice2Entry, "00");
+                System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Price2 değeri: {price2Value}");
             }
             else
             {
@@ -845,14 +853,15 @@ namespace MerchPlusMAUI.Views
             if (WarehouseStockGrid.IsVisible)
             {
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock alanı görünür, kontrol ediliyor...");
-                if (string.IsNullOrEmpty(WarehouseStockEntry.Text) || Convert.ToInt32(WarehouseStockEntry.Text) < 0)
+                var warehouseStockValue = GetValueOrPlaceholder(WarehouseStockEntry, "0");
+                if (Convert.ToInt32(warehouseStockValue) < 0)
                 {
-                    errorMessage += "* Depo Stoğu boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock validasyon hatası - boş veya negatif");
+                    errorMessage += "* Depo Stoğu sıfırdan küçük olamaz.\r\n";
+                    System.Diagnostics.Debug.WriteLine("OnSaveClicked: WarehouseStock validasyon hatası - negatif");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock değeri: {WarehouseStockEntry.Text}");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock değeri: {warehouseStockValue}");
                 }
             }
             else
@@ -878,25 +887,19 @@ namespace MerchPlusMAUI.Views
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice alanı görünür, kontrol ediliyor...");
                 if (selectedActivity == "FIYAT INDIRIMI")
                 {
-                    if (string.IsNullOrEmpty(DiscountPrice1Entry.Text) || Convert.ToDecimal(DiscountPrice1Entry.Text) < 0)
+                    var discountPrice1Value = GetValueOrPlaceholder(DiscountPrice1Entry, "0");
+                    if (Convert.ToDecimal(discountPrice1Value) < 0)
                     {
-                        errorMessage += "* İndirimli Fiyat 1. Kısım boş bırakılamaz veya sıfırdan küçük olamaz.\r\n";
-                        System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice1 validasyon hatası - boş veya negatif");
+                        errorMessage += "* İndirimli Fiyat 1. Kısım sıfırdan küçük olamaz.\r\n";
+                        System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice1 validasyon hatası - negatif");
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice1 değeri: {DiscountPrice1Entry.Text}");
+                        System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice1 değeri: {discountPrice1Value}");
                     }
 
-                    if (string.IsNullOrEmpty(DiscountPrice2Entry.Text))
-                    {
-                        errorMessage += "* İndirimli Fiyat 2. Kısım boş bırakılamaz.\r\n";
-                        System.Diagnostics.Debug.WriteLine("OnSaveClicked: DiscountPrice2 validasyon hatası - boş");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice2 değeri: {DiscountPrice2Entry.Text}");
-                    }
+                    var discountPrice2Value = GetValueOrPlaceholder(DiscountPrice2Entry, "00");
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: DiscountPrice2 değeri: {discountPrice2Value}");
                 }
             }
             else
@@ -936,11 +939,13 @@ namespace MerchPlusMAUI.Views
                 decimal priceConcat = 0;
                 decimal priceConcat2 = 0;
 
-                // Sadece görünen alanlardan fiyat hesapla
+                // Sadece görünen alanlardan fiyat hesapla (placeholder değerlerini kullan)
                 if (PriceGrid.IsVisible)
                 {
-                    priceConcat = Convert.ToDecimal(ShelfPrice1Entry.Text) + (Convert.ToDecimal(ShelfPrice2Entry.Text) / 100);
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Fiyat hesaplandı: {priceConcat}");
+                    var price1Value = GetValueOrPlaceholder(ShelfPrice1Entry, "0");
+                    var price2Value = GetValueOrPlaceholder(ShelfPrice2Entry, "00");
+                    priceConcat = Convert.ToDecimal(price1Value) + (Convert.ToDecimal(price2Value) / 100);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: Fiyat hesaplandı: {priceConcat} (Price1: {price1Value}, Price2: {price2Value})");
                 }
                 else
                 {
@@ -949,8 +954,10 @@ namespace MerchPlusMAUI.Views
 
                 if (DiscountPriceGrid.IsVisible && selectedActivity == "FIYAT INDIRIMI")
                 {
-                    priceConcat2 = Convert.ToDecimal(DiscountPrice1Entry.Text) + (Convert.ToDecimal(DiscountPrice2Entry.Text) / 100);
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: İndirimli fiyat hesaplandı: {priceConcat2}");
+                    var discountPrice1Value = GetValueOrPlaceholder(DiscountPrice1Entry, "0");
+                    var discountPrice2Value = GetValueOrPlaceholder(DiscountPrice2Entry, "00");
+                    priceConcat2 = Convert.ToDecimal(discountPrice1Value) + (Convert.ToDecimal(discountPrice2Value) / 100);
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: İndirimli fiyat hesaplandı: {priceConcat2} (DiscountPrice1: {discountPrice1Value}, DiscountPrice2: {discountPrice2Value})");
                 }
                 else
                 {
@@ -966,12 +973,13 @@ namespace MerchPlusMAUI.Views
                 var updateFields = new List<string>();
                 var parameters = new List<object>();
                 
-                // Sadece görünen alanları güncelle
+                // Sadece görünen alanları güncelle (placeholder değerlerini kullan)
                 if (ShelfIndexGrid.IsVisible)
                 {
+                    var shelfIndexValue = GetValueOrPlaceholder(ShelfIndexEntry, "0");
                     updateFields.Add("ShelfIndex=?");
-                    parameters.Add(Convert.ToInt32(ShelfIndexEntry.Text));
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex eklendi: {ShelfIndexEntry.Text}");
+                    parameters.Add(Convert.ToInt32(shelfIndexValue));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfIndex eklendi: {shelfIndexValue}");
                 }
                 else
                 {
@@ -980,9 +988,10 @@ namespace MerchPlusMAUI.Views
                 
                 if (ShelfStockGrid.IsVisible)
                 {
+                    var shelfStockValue = GetValueOrPlaceholder(ShelfStockEntry, "0");
                     updateFields.Add("ShelfStock=?");
-                    parameters.Add(Convert.ToInt32(ShelfStockEntry.Text));
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock eklendi: {ShelfStockEntry.Text}");
+                    parameters.Add(Convert.ToInt32(shelfStockValue));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: ShelfStock eklendi: {shelfStockValue}");
                 }
                 else
                 {
@@ -1002,9 +1011,10 @@ namespace MerchPlusMAUI.Views
                 
                 if (FaceCountGrid.IsVisible)
                 {
+                    var faceCountValue = GetValueOrPlaceholder(FaceCountEntry, "0");
                     updateFields.Add("FaceCount=?");
-                    parameters.Add(Convert.ToInt32(FaceCountEntry.Text));
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount eklendi: {FaceCountEntry.Text}");
+                    parameters.Add(Convert.ToInt32(faceCountValue));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: FaceCount eklendi: {faceCountValue}");
                 }
                 else
                 {
@@ -1013,9 +1023,10 @@ namespace MerchPlusMAUI.Views
                 
                 if (WarehouseStockGrid.IsVisible)
                 {
+                    var warehouseStockValue = GetValueOrPlaceholder(WarehouseStockEntry, "0");
                     updateFields.Add("WarehouseStock=?");
-                    parameters.Add(Convert.ToInt32(WarehouseStockEntry.Text));
-                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock eklendi: {WarehouseStockEntry.Text}");
+                    parameters.Add(Convert.ToInt32(warehouseStockValue));
+                    System.Diagnostics.Debug.WriteLine($"OnSaveClicked: WarehouseStock eklendi: {warehouseStockValue}");
                 }
                 else
                 {
@@ -1090,6 +1101,9 @@ namespace MerchPlusMAUI.Views
                 HideLoadingOverlay();
                 await DisplayAlert("Başarılı", "Ürün verileri kaydedildi.", "Tamam");
                 System.Diagnostics.Debug.WriteLine("OnSaveClicked: Başarı mesajı gösterildi");
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
                 
                 // Tamam butonuna tıklandığında ürünler sayfasına geri dön
                 await NavigateBackToStoreProductsPage();

@@ -311,6 +311,9 @@ namespace MerchPlusMAUI.Views
 
                         db.Insert(shelfPhoto);
                         System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Raf fotoğrafı veritabanına kaydedildi");
+                        
+                        // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                        Controls.CommonFooter.RefreshBadge();
                     }
                     else
                     {
@@ -335,6 +338,9 @@ namespace MerchPlusMAUI.Views
                 
                 // Kaydedildi mesajını göster
                 await DisplayAlert("Başarılı", "Fotoğraflar kaydedildi.", "Tamam");
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
                 
                 // Tamam butonuna tıklandığında ürün listeleme sayfasına geri dön
                 await NavigateBackToStoreProductsPage();

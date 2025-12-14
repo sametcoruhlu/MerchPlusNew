@@ -80,7 +80,9 @@ namespace MerchPlusMAUI.Views
                 // İstatistikleri hesapla
                 CalculateAndUpdateStatistics();
                 
-                // CommonFooter'daki badge'i güncelle
+                // CommonFooter'daki badge'i güncelle (background sync sonrası değişmiş olabilir)
+                // UpdateButtonText() metodu GetPendingUpdatesCount() çağırır ve veritabanından güncel sayıyı alır
+                // Eğer güncellenecek veri yoksa (totalUpdates == 0) badge gizlenir
                 UpdateFooterBadge();
                 
                 System.Diagnostics.Debug.WriteLine("AboutMePage: Veri yükleme tamamlandı.");
@@ -93,20 +95,30 @@ namespace MerchPlusMAUI.Views
         }
 
         // CommonFooter'daki badge'i güncelle
+        // UpdateButtonText() metodu GetPendingUpdatesCount() çağırır ve eğer totalUpdates == 0 ise badge'i gizler
         private void UpdateFooterBadge()
         {
             try
             {
+                System.Diagnostics.Debug.WriteLine($"[AboutMePage] UpdateFooterBadge() çağrıldı - {DateTime.Now:HH:mm:ss.fff}");
                 // CommonFooter'ı bul
                 var footer = this.FindByName<Controls.CommonFooter>("CommonFooter");
                 if (footer != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[AboutMePage] UpdateFooterBadge() - CommonFooter bulundu, UpdateButtonText() çağrılıyor...");
+                    // UpdateButtonText() metodu badge'i günceller:
+                    // - Eğer güncellenecek veri varsa (totalUpdates > 0) badge gösterilir
+                    // - Eğer güncellenecek veri yoksa (totalUpdates == 0) badge gizlenir
                     footer.UpdateButtonText();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[AboutMePage] UpdateFooterBadge() - CommonFooter bulunamadı!");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Footer badge güncelleme hatası: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[AboutMePage] Footer badge güncelleme hatası: {ex.Message}");
             }
         }
 
