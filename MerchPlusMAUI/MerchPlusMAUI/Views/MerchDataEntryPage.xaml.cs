@@ -71,13 +71,9 @@ namespace MerchPlusMAUI.Views
 
         public MerchDataEntryPage(ILogger<MerchDataEntryPage>? logger, IFieldVisibilityService? fieldVisibilityService)
         {
-            System.Diagnostics.Debug.WriteLine("MerchDataEntryPage Constructor: Başladı");
-            
             InitializeComponent();
             _logger = logger;
             _fieldVisibilityService = fieldVisibilityService ?? new FieldVisibilityService(new HttpClient());
-            
-            System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage Constructor: _fieldVisibilityService null mu? {_fieldVisibilityService == null}");
             
             _dbPath = GlobalVariables.DatabasePath; // GlobalVariables'daki veritabanı yolunu kullan
             BindingContext = this;
@@ -97,8 +93,6 @@ namespace MerchPlusMAUI.Views
                     loadingOverlay.IsVisible = true;
                 }
             });
-            
-            System.Diagnostics.Debug.WriteLine("MerchDataEntryPage Constructor: Tamamlandı");
         }
 
         protected override async void OnAppearing()
@@ -108,16 +102,11 @@ namespace MerchPlusMAUI.Views
             // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
             this.Opacity = 1;
             
-            System.Diagnostics.Debug.WriteLine("=== MerchDataEntryPage OnAppearing ===");
-            
             try
             {
                 // XAML elementlerini initialize et
                 _loadingOverlay = FindByName("LoadingOverlay") as Grid;
                 _mainContent = FindByName("MainContent") as ScrollView;
-                
-                System.Diagnostics.Debug.WriteLine($"LoadingOverlay found: {_loadingOverlay != null}");
-                System.Diagnostics.Debug.WriteLine($"MainContent found: {_mainContent != null}");
                 
                 // Loading overlay'i hemen göster (sayfa render edilmeden önce)
                 if (_loadingOverlay != null)
@@ -133,7 +122,6 @@ namespace MerchPlusMAUI.Views
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"OnAppearing error: {ex.Message}");
                 _logger?.LogError(ex, "Error in OnAppearing");
                 HideLoadingOverlay();
             }
@@ -174,8 +162,6 @@ namespace MerchPlusMAUI.Views
                             }
                         }
                     }
-                    
-                    System.Diagnostics.Debug.WriteLine("MerchDataEntryPage: Loading overlay shown");
                 }
                 
                 if (_mainContent != null)
@@ -194,7 +180,6 @@ namespace MerchPlusMAUI.Views
                 {
                     _loadingOverlay.IsVisible = true;
                     _loadingOverlay.InputTransparent = false;
-                    System.Diagnostics.Debug.WriteLine("MerchDataEntryPage: Loading overlay re-shown (EnsureLoadingOverlayVisible)");
                 }
             });
         }
@@ -256,49 +241,45 @@ namespace MerchPlusMAUI.Views
             ActivityTypePicker.SelectedIndexChanged += OnActivityTypeSelectionChanged;
         }
 
-        private async Task LoadFieldVisibilityAsync()
+        private async Task LoadFieldVisibilityAsync(int? customerId = null)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("LoadFieldVisibilityAsync: Başladı");
-                
                 if (_fieldVisibilityService == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("LoadFieldVisibilityAsync: _fieldVisibilityService null!");
                     ShowAllFields();
+                    HideLoadingOverlay();
                     return;
                 }
 
-                // CustomerId'yi al - önce route detail'dan, sonra kullanıcı profilinden
-                int customerId = await GetCustomerIdAsync();
+                // CustomerId belirtilmemişse al
+                int finalCustomerId = customerId ?? await GetCustomerIdAsync();
                 
-                if (customerId <= 0)
+                if (finalCustomerId <= 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("LoadFieldVisibilityAsync: CustomerId bulunamadı, tüm alanlar gösteriliyor");
                     ShowAllFields();
+                    HideLoadingOverlay();
                     return;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"LoadFieldVisibilityAsync: CustomerId: {customerId}, Servis çağrısı yapılıyor...");
-                _fieldVisibility = await _fieldVisibilityService.GetFieldVisibilityAsync(customerId);
+                // OPTİMİZE: Field visibility'yi background'da yükle, UI thread'i bloklama
+                _fieldVisibility = await Task.Run(async () => 
+                    await _fieldVisibilityService.GetFieldVisibilityAsync(finalCustomerId));
                 
-                System.Diagnostics.Debug.WriteLine($"LoadFieldVisibilityAsync: Servis cevabı alındı: {_fieldVisibility != null}");
-                
-                ApplyFieldVisibility();
-                
-                // Loading overlay'i gizle ve ana içeriği göster
-                HideLoadingOverlay();
-                
-                System.Diagnostics.Debug.WriteLine("LoadFieldVisibilityAsync: Tamamlandı");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ApplyFieldVisibility();
+                    HideLoadingOverlay();
+                });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"LoadFieldVisibilityAsync: Hata: {ex.Message}");
                 _logger?.LogError(ex, "Error loading field visibility");
-                // Hata durumunda tüm alanları göster
-                ShowAllFields();
-                // Loading overlay'i gizle
-                HideLoadingOverlay();
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    ShowAllFields();
+                    HideLoadingOverlay();
+                });
             }
         }
 
@@ -306,97 +287,55 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
-                // 1. Önce GlobalVariables.CurrentCustomerId'yi kontrol et (en yaygın yöntem)
+                // 1. Önce GlobalVariables.CurrentCustomerId'yi kontrol et (en yaygın ve hızlı yöntem)
                 if (!string.IsNullOrEmpty(GlobalVariables.CurrentCustomerId))
                 {
                     if (int.TryParse(GlobalVariables.CurrentCustomerId, out int globalCustomerId))
                     {
-                        System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: GlobalVariables.CurrentCustomerId: {globalCustomerId}");
                         return globalCustomerId;
                     }
                 }
 
-                // 2. Route detail'dan customer bilgisini almaya çalış
-                if (_currentMemberRouteDetail != null)
+                // 2. OPTİMİZE: Route'dan CustomerId al (zaten LoadProductDataAsync'de yüklenmiş)
+                // Reflection kullanmak yerine direkt property erişimi (daha hızlı)
+                // Eğer route yüklenmişse ondan al, yoksa GlobalVariables'dan
+                if (GlobalVariables.CurrentMember != null && !string.IsNullOrEmpty(GlobalVariables.CurrentMember.Id))
                 {
-                    using var db = new SQLiteConnection(_dbPath);
-                    var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteDetail.MemberRouteId);
-                    
-                    if (route.Count > 0)
+                    if (int.TryParse(GlobalVariables.CurrentMember.Id, out int memberCustomerId))
                     {
-                        var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId);
-                        if (retailShop.Count > 0)
-                        {
-                            // RetailShop
-                            System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: RetailShop Name: {retailShop[0].Name}");
-                            
-                            // entRetailShop'da CustomerId property'si var mı kontrol et
-                            var customerIdProperty = typeof(entRetailShop).GetProperty("CustomerId");
-                            if (customerIdProperty != null)
-                            {
-                                var customerIdValue = customerIdProperty.GetValue(retailShop[0]);
-                                if (customerIdValue != null && int.TryParse(customerIdValue.ToString(), out int customerId))
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: RetailShop'dan CustomerId: {customerId}");
-                                    return customerId;
-                                }
-                            }
-                            
-                            // Alternatif: Route'dan CustomerId al
-                            if (route[0].CustomerId != null)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: Route'dan CustomerId: {route[0].CustomerId}");
-                                return (int)route[0].CustomerId;
-                            }
-                        }
+                        return memberCustomerId;
                     }
                 }
 
-                // 3. UserProfileService'den customer bilgisini al
+                // 3. UserProfileService'den al (cache'lenmiş)
                 var userProfileService = UserProfileService.Instance;
                 var currentUser = userProfileService?.GetCurrentUser();
                 if (currentUser != null && !string.IsNullOrEmpty(currentUser.Id))
                 {
                     if (int.TryParse(currentUser.Id, out int userCustomerId))
                     {
-                        System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: UserProfile'den CustomerId: {userCustomerId}");
                         return userCustomerId;
                     }
                 }
 
-                // 4. GlobalVariables.CurrentMember'dan al
-                if (GlobalVariables.CurrentMember != null && !string.IsNullOrEmpty(GlobalVariables.CurrentMember.Id))
-                {
-                    if (int.TryParse(GlobalVariables.CurrentMember.Id, out int memberCustomerId))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: CurrentMember'den CustomerId: {memberCustomerId}");
-                        return memberCustomerId;
-                    }
-                }
-
-                System.Diagnostics.Debug.WriteLine("GetCustomerIdAsync: CustomerId bulunamadı, test amaçlı 1 kullanılıyor");
-                return 1; // Test amaçlı sabit CustomerId
+                // Son çare: Test amaçlı 1
+                return 1;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"GetCustomerIdAsync: Hata: {ex.Message}");
-                return 1; // Hata durumunda da test amaçlı 1 döndür
+                _logger?.LogWarning(ex, "Error getting CustomerId");
+                return 1;
             }
         }
 
         private void ApplyFieldVisibility()
         {
-            System.Diagnostics.Debug.WriteLine("ApplyFieldVisibility: Başladı");
-            
             // Eğer servisten boş cevap gelirse (null) tüm alanları göster
             if (_fieldVisibility == null)
             {
-                System.Diagnostics.Debug.WriteLine("ApplyFieldVisibility: _fieldVisibility null, tüm alanlar gösteriliyor (servis cevap vermedi)");
                 ShowAllFields();
                 return;
             }
-
-            System.Diagnostics.Debug.WriteLine($"ApplyFieldVisibility: Alanlar ayarlanıyor - FaceCount: {_fieldVisibility.FaceCount}, ShelfIndex: {_fieldVisibility.ShelfIndex}");
             
             // Servisten gelen veriye göre alanları göster/gizle
             FaceCountGrid.IsVisible = _fieldVisibility.FaceCount;
@@ -407,8 +346,6 @@ namespace MerchPlusMAUI.Views
             ActivityTypeGrid.IsVisible = _fieldVisibility.ActivityType;
             DiscountPriceGrid.IsVisible = _fieldVisibility.DiscountPrice;
             NotesGrid.IsVisible = _fieldVisibility.Notes;
-            
-            System.Diagnostics.Debug.WriteLine("ApplyFieldVisibility: Tamamlandı");
         }
 
         private void ShowAllFields()
@@ -446,23 +383,6 @@ namespace MerchPlusMAUI.Views
         }
 
 
-        private async Task<bool> CheckTableExistsAsync(SQLiteConnection db, string tableName)
-        {
-            try
-            {
-                var result = await Task.Run(() => 
-                {
-                    var count = db.ExecuteScalar<int>("SELECT COUNT(name) FROM sqlite_master WHERE name = ?", tableName);
-                    return count > 0;
-                });
-                return result;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"CheckTableExistsAsync: Hata - {ex.Message}");
-                return false;
-            }
-        }
 
         private async Task LoadProductDataAsync()
         {
@@ -470,100 +390,106 @@ namespace MerchPlusMAUI.Views
             {
                 if (string.IsNullOrEmpty(_entMemberRouteDetailId)) return;
 
-                // Loading overlay zaten OnAppearing'de gösterildi
-                System.Diagnostics.Debug.WriteLine("LoadProductDataAsync: Veri yükleme başlıyor");
-
                 _currentId = Convert.ToInt32(_entMemberRouteDetailId);
 
-                using var db = new SQLiteConnection(_dbPath);
-                
-                // Önce tablo varlığını kontrol et
-                System.Diagnostics.Debug.WriteLine($"LoadProductDataAsync: Veritabanı yolu: {_dbPath}");
-                
-                var tableExists = await CheckTableExistsAsync(db, "entMemberRouteDetail");
-                System.Diagnostics.Debug.WriteLine($"LoadProductDataAsync: entMemberRouteDetail tablosu var mı: {tableExists}");
-                
-                if (!tableExists)
+                // OPTİMİZE: Tüm veritabanı işlemlerini background thread'de yap
+                var (routeDetail, route, retailShop, product, customerId) = await Task.Run(() =>
                 {
-                    await DisplayAlert("Hata", "Veritabanı tabloları henüz oluşturulmamış. Lütfen uygulamayı yeniden başlatın.", "Tamam");
-                    await Shell.Current.GoToAsync("..");
-                    return;
-                }
+                    using var db = new SQLiteConnection(_dbPath);
+                    
+                    // 1. Route detail'i yükle
+                    var routeDetailList = db.Query<entMemberRouteDetail>("SELECT * FROM entMemberRouteDetail WHERE Id=?", _currentId);
+                    
+                    if (routeDetailList.Count == 0)
+                    {
+                        return (null, null, null, null, 0);
+                    }
+                    
+                    var routeDetailItem = routeDetailList[0];
+                    
+                    // 2. Route'u yükle
+                    entMemberRoute? routeItem = null;
+                    if (routeDetailItem.MemberRouteId.HasValue)
+                    {
+                        var routeList = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", routeDetailItem.MemberRouteId.Value);
+                        if (routeList.Count > 0)
+                        {
+                            routeItem = routeList[0];
+                        }
+                    }
+                    
+                    // 3. Retail shop'u yükle
+                    entRetailShop? retailShopItem = null;
+                    if (routeItem?.RetailShopId.HasValue == true)
+                    {
+                        var retailShopList = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", routeItem.RetailShopId.Value);
+                        if (retailShopList.Count > 0)
+                        {
+                            retailShopItem = retailShopList[0];
+                        }
+                    }
+                    
+                    // 4. Product'u yükle
+                    entCustomerProduct? productItem = null;
+                    if (routeDetailItem.CustomerProductId.HasValue)
+                    {
+                        var productList = db.Query<entCustomerProduct>("SELECT * FROM entCustomerProduct WHERE Id=?", routeDetailItem.CustomerProductId.Value);
+                        if (productList.Count > 0)
+                        {
+                            productItem = productList[0];
+                        }
+                    }
+                    
+                    // 5. CustomerId'yi belirle (önce route'dan, sonra GlobalVariables'dan)
+                    int customerIdValue = 0;
+                    if (routeItem?.CustomerId.HasValue == true)
+                    {
+                        customerIdValue = routeItem.CustomerId.Value;
+                    }
+                    else if (!string.IsNullOrEmpty(GlobalVariables.CurrentCustomerId) && int.TryParse(GlobalVariables.CurrentCustomerId, out int globalCustomerId))
+                    {
+                        customerIdValue = globalCustomerId;
+                    }
+                    else if (GlobalVariables.CurrentMember != null && !string.IsNullOrEmpty(GlobalVariables.CurrentMember.Id) && int.TryParse(GlobalVariables.CurrentMember.Id, out int memberCustomerId))
+                    {
+                        customerIdValue = memberCustomerId;
+                    }
+                    
+                    return (routeDetailItem, routeItem, retailShopItem, productItem, customerIdValue);
+                }).ConfigureAwait(false);
                 
-                // Load route detail - Raw SQL kullanarak veri oku
-                System.Diagnostics.Debug.WriteLine($"Loading route detail for Id: {_currentId}");
-                
-                // Load route detail
-                var routeDetail = db.Query<entMemberRouteDetail>("SELECT * FROM entMemberRouteDetail WHERE Id=?", _currentId);
-                System.Diagnostics.Debug.WriteLine($"Found {routeDetail.Count} route detail records");
-                
-                // routeDetail datasını detaylı logla
-                if (routeDetail.Count > 0)
+                // Veri kontrolü
+                if (routeDetail == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("=== Raw routeDetail data from database ===");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].Id: {routeDetail[0].Id}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].MemberRouteId: {routeDetail[0].MemberRouteId}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].CustomerProductId: {routeDetail[0].CustomerProductId}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].FaceCount: {routeDetail[0].FaceCount}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfIndex: {routeDetail[0].ShelfIndex}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfStock: {routeDetail[0].ShelfStock}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ShelfPrice: {routeDetail[0].ShelfPrice}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].WarehouseStock: {routeDetail[0].WarehouseStock}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].Notes: '{routeDetail[0].Notes}'");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].ActivityTypeName: '{routeDetail[0].ActivityTypeName}'");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].DiscountedPrice: {routeDetail[0].DiscountedPrice}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].CreatedOn: {routeDetail[0].CreatedOn}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].IsSentToServer: {routeDetail[0].IsSentToServer}");
-                    System.Diagnostics.Debug.WriteLine($"routeDetail[0].SentToServerOn: {routeDetail[0].SentToServerOn}");
-                    System.Diagnostics.Debug.WriteLine("=== End of raw routeDetail data ===");
-                }
-                
-                if (routeDetail.Count == 0)
-                {
-                    System.Diagnostics.Debug.WriteLine("No route detail found, showing error");
                     await DisplayAlert("Hata", "Ürün bilgisi bulunamadı.", "Tamam");
                     await Shell.Current.GoToAsync("..");
                     return;
                 }
-
-                _currentMemberRouteDetail = routeDetail[0];
-                System.Diagnostics.Debug.WriteLine($"Route detail loaded: Id={routeDetail[0].Id}, MemberRouteId={routeDetail[0].MemberRouteId}");
                 
-                // Tüm property'leri debug et
-                System.Diagnostics.Debug.WriteLine($"FaceCount: {routeDetail[0].FaceCount}");
-                System.Diagnostics.Debug.WriteLine($"ShelfIndex: {routeDetail[0].ShelfIndex}");
-                System.Diagnostics.Debug.WriteLine($"ShelfStock: {routeDetail[0].ShelfStock}");
-                System.Diagnostics.Debug.WriteLine($"ShelfPrice: {routeDetail[0].ShelfPrice}");
-                System.Diagnostics.Debug.WriteLine($"WarehouseStock: {routeDetail[0].WarehouseStock}");
-                System.Diagnostics.Debug.WriteLine($"Notes: '{routeDetail[0].Notes}'");
-                System.Diagnostics.Debug.WriteLine($"ActivityTypeName: '{routeDetail[0].ActivityTypeName}'");
-                System.Diagnostics.Debug.WriteLine($"DiscountedPrice: {routeDetail[0].DiscountedPrice}");
-                System.Diagnostics.Debug.WriteLine($"CreatedOn: {routeDetail[0].CreatedOn}");
-
-                // Load route
-                var route = db.Query<entMemberRoute>("SELECT * FROM entMemberRoute WHERE Id=?", _currentMemberRouteDetail.MemberRouteId);
-                if (route.Count == 0) return;
-
-                // Store MemberRouteId for navigation back
-                _currentMemberRouteId = _currentMemberRouteDetail.MemberRouteId;
-                System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage: Stored MemberRouteId: {_currentMemberRouteId}");
-
-                // Load retail shop
-                var retailShop = db.Query<entRetailShop>("SELECT * FROM entRetailShop WHERE Id=?", route[0].RetailShopId);
-                if (retailShop.Count > 0)
+                if (route == null)
                 {
-                    RetailShopNameLabel.Text = retailShop[0].Name;
-                    // Store StoreName for navigation back
-                    _currentStoreName = retailShop[0].Name ?? string.Empty;
-                    System.Diagnostics.Debug.WriteLine($"MerchDataEntryPage: Stored StoreName: {_currentStoreName}");
+                    await DisplayAlert("Hata", "Mağaza rotası bulunamadı.", "Tamam");
+                    await Shell.Current.GoToAsync("..");
+                    return;
                 }
 
-                // Load product
-                var product = db.Query<entCustomerProduct>("SELECT * FROM entCustomerProduct WHERE Id=?", _currentMemberRouteDetail.CustomerProductId);
-                if (product.Count > 0)
+                _currentMemberRouteDetail = routeDetail;
+                _currentMemberRouteId = routeDetail.MemberRouteId ?? 0;
+                
+                // UI güncellemelerini main thread'de yap
+                await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    CustomerProductNameLabel.Text = product[0].Name;
-                }
+                    if (retailShop != null)
+                    {
+                        RetailShopNameLabel.Text = retailShop.Name;
+                        _currentStoreName = retailShop.Name ?? string.Empty;
+                    }
+                    
+                    if (product != null)
+                    {
+                        CustomerProductNameLabel.Text = product.Name;
+                    }
+                });
 
                 // Load existing data - using the actual properties from entMemberRouteDetail
                 // Note: These properties might have different names in the actual entity
@@ -571,144 +497,88 @@ namespace MerchPlusMAUI.Views
                 
                 // Initialize all fields as empty so placeholders are shown
                 // Only set values if existing data is found
-                System.Diagnostics.Debug.WriteLine("Initializing fields with empty values (placeholders will be shown)...");
-                FaceCountEntry.Text = string.Empty;
-                ShelfIndexEntry.Text = string.Empty;
-                ShelfStockEntry.Text = string.Empty;
-                ShelfPrice1Entry.Text = string.Empty;
-                ShelfPrice2Entry.Text = string.Empty;
-                WarehouseStockEntry.Text = string.Empty;
-                NotesEditor.Text = string.Empty;
-                DiscountPrice1Entry.Text = string.Empty;
-                DiscountPrice2Entry.Text = string.Empty;
-                ActivityTypePicker.SelectedIndex = -1;
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    FaceCountEntry.Text = string.Empty;
+                    ShelfIndexEntry.Text = string.Empty;
+                    ShelfStockEntry.Text = string.Empty;
+                    ShelfPrice1Entry.Text = string.Empty;
+                    ShelfPrice2Entry.Text = string.Empty;
+                    WarehouseStockEntry.Text = string.Empty;
+                    NotesEditor.Text = string.Empty;
+                    DiscountPrice1Entry.Text = string.Empty;
+                    DiscountPrice2Entry.Text = string.Empty;
+                    ActivityTypePicker.SelectedIndex = -1;
 
-                // Try to load existing data if the properties exist
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine("=== Loading existing data from entMemberRouteDetail ===");
-                    
                     // Load existing data from entMemberRouteDetail
-                    if (_currentMemberRouteDetail.FaceCount.HasValue)
+                    try
                     {
-                        FaceCountEntry.Text = _currentMemberRouteDetail.FaceCount.Value.ToString();
-                        System.Diagnostics.Debug.WriteLine($"FaceCount loaded: {_currentMemberRouteDetail.FaceCount.Value}");
-                    }
-                    else
-                    {
-                        FaceCountEntry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("FaceCount is null or empty - showing placeholder");
-                    }
-                    
-                    if (_currentMemberRouteDetail.ShelfIndex.HasValue)
-                    {
-                        ShelfIndexEntry.Text = _currentMemberRouteDetail.ShelfIndex.Value.ToString();
-                        System.Diagnostics.Debug.WriteLine($"ShelfIndex loaded: {_currentMemberRouteDetail.ShelfIndex.Value}");
-                    }
-                    else
-                    {
-                        ShelfIndexEntry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("ShelfIndex is null or empty - showing placeholder");
-                    }
-                    
-                    if (_currentMemberRouteDetail.ShelfStock.HasValue)
-                    {
-                        ShelfStockEntry.Text = _currentMemberRouteDetail.ShelfStock.Value.ToString();
-                        System.Diagnostics.Debug.WriteLine($"ShelfStock loaded: {_currentMemberRouteDetail.ShelfStock.Value}");
-                    }
-                    else
-                    {
-                        ShelfStockEntry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("ShelfStock is null or empty - showing placeholder");
-                    }
-                    
-                    if (_currentMemberRouteDetail.ShelfPrice.HasValue)
-                    {
-                        var priceValue = _currentMemberRouteDetail.ShelfPrice.Value;
-                        ShelfPrice1Entry.Text = Convert.ToString(Math.Truncate(priceValue));
-                        ShelfPrice2Entry.Text = Convert.ToInt32((priceValue - Math.Truncate(priceValue)) * 100).ToString("00");
-                        System.Diagnostics.Debug.WriteLine($"ShelfPrice loaded: {priceValue}");
-                    }
-                    else
-                    {
-                        ShelfPrice1Entry.Text = string.Empty;
-                        ShelfPrice2Entry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("ShelfPrice is null or empty - showing placeholder");
-                    }
-                    
-                    if (_currentMemberRouteDetail.WarehouseStock.HasValue)
-                    {
-                        WarehouseStockEntry.Text = _currentMemberRouteDetail.WarehouseStock.Value.ToString();
-                        System.Diagnostics.Debug.WriteLine($"WarehouseStock loaded: {_currentMemberRouteDetail.WarehouseStock.Value}");
-                    }
-                    else
-                    {
-                        WarehouseStockEntry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("WarehouseStock is null or empty - showing placeholder");
-                    }
-                    
-                    if (!string.IsNullOrEmpty(_currentMemberRouteDetail.Notes))
-                    {
-                        NotesEditor.Text = _currentMemberRouteDetail.Notes;
-                        System.Diagnostics.Debug.WriteLine($"Notes loaded: {_currentMemberRouteDetail.Notes}");
-                    }
-                    else
-                    {
-                        NotesEditor.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("Notes is null or empty - showing placeholder");
-                    }
-                    
-                    if (!string.IsNullOrEmpty(_currentMemberRouteDetail.ActivityTypeName))
-                    {
-                        var activityTypes = ActivityTypePicker.ItemsSource as List<string>;
-                        var index = activityTypes?.IndexOf(_currentMemberRouteDetail.ActivityTypeName) ?? -1;
-                        if (index >= 0)
+                        if (_currentMemberRouteDetail.FaceCount.HasValue)
                         {
-                            ActivityTypePicker.SelectedIndex = index;
-                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName loaded: {_currentMemberRouteDetail.ActivityTypeName} (index: {index})");
+                            FaceCountEntry.Text = _currentMemberRouteDetail.FaceCount.Value.ToString();
                         }
-                        else
+                        
+                        if (_currentMemberRouteDetail.ShelfIndex.HasValue)
                         {
-                            ActivityTypePicker.SelectedIndex = -1;
-                            System.Diagnostics.Debug.WriteLine($"ActivityTypeName not found in picker: {_currentMemberRouteDetail.ActivityTypeName} - showing placeholder");
+                            ShelfIndexEntry.Text = _currentMemberRouteDetail.ShelfIndex.Value.ToString();
+                        }
+                        
+                        if (_currentMemberRouteDetail.ShelfStock.HasValue)
+                        {
+                            ShelfStockEntry.Text = _currentMemberRouteDetail.ShelfStock.Value.ToString();
+                        }
+                        
+                        if (_currentMemberRouteDetail.ShelfPrice.HasValue)
+                        {
+                            var priceValue = _currentMemberRouteDetail.ShelfPrice.Value;
+                            ShelfPrice1Entry.Text = Convert.ToString(Math.Truncate(priceValue));
+                            ShelfPrice2Entry.Text = Convert.ToInt32((priceValue - Math.Truncate(priceValue)) * 100).ToString("00");
+                        }
+                        
+                        if (_currentMemberRouteDetail.WarehouseStock.HasValue)
+                        {
+                            WarehouseStockEntry.Text = _currentMemberRouteDetail.WarehouseStock.Value.ToString();
+                        }
+                        
+                        if (!string.IsNullOrEmpty(_currentMemberRouteDetail.Notes))
+                        {
+                            NotesEditor.Text = _currentMemberRouteDetail.Notes;
+                        }
+                        
+                        if (!string.IsNullOrEmpty(_currentMemberRouteDetail.ActivityTypeName))
+                        {
+                            var activityTypes = ActivityTypePicker.ItemsSource as List<string>;
+                            var index = activityTypes?.IndexOf(_currentMemberRouteDetail.ActivityTypeName) ?? -1;
+                            if (index >= 0)
+                            {
+                                ActivityTypePicker.SelectedIndex = index;
+                            }
+                        }
+                        
+                        if (_currentMemberRouteDetail.DiscountedPrice.HasValue)
+                        {
+                            var discountValue = _currentMemberRouteDetail.DiscountedPrice.Value;
+                            DiscountPrice1Entry.Text = Convert.ToString(Math.Truncate(discountValue));
+                            DiscountPrice2Entry.Text = Convert.ToInt32((discountValue - Math.Truncate(discountValue)) * 100).ToString("00");
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        ActivityTypePicker.SelectedIndex = -1;
-                        System.Diagnostics.Debug.WriteLine("ActivityTypeName is null or empty - showing placeholder");
+                        _logger?.LogWarning(ex, "Some properties might not exist in entMemberRouteDetail");
                     }
-                    
-                    if (_currentMemberRouteDetail.DiscountedPrice.HasValue)
-                    {
-                        var discountValue = _currentMemberRouteDetail.DiscountedPrice.Value;
-                        DiscountPrice1Entry.Text = Convert.ToString(Math.Truncate(discountValue));
-                        DiscountPrice2Entry.Text = Convert.ToInt32((discountValue - Math.Truncate(discountValue)) * 100).ToString("00");
-                        System.Diagnostics.Debug.WriteLine($"DiscountedPrice loaded: {discountValue}");
-                    }
-                    else
-                    {
-                        DiscountPrice1Entry.Text = string.Empty;
-                        DiscountPrice2Entry.Text = string.Empty;
-                        System.Diagnostics.Debug.WriteLine("DiscountedPrice is null or empty - showing placeholder");
-                    }
-                    
-                    System.Diagnostics.Debug.WriteLine("=== Existing data loading completed ===");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Error loading existing data: {ex.Message}");
-                    _logger?.LogWarning(ex, "Some properties might not exist in entMemberRouteDetail");
-                }
+                });
 
                 // Product data yüklendikten sonra field visibility'yi yükle
-                System.Diagnostics.Debug.WriteLine("LoadProductDataAsync: Field visibility yükleniyor...");
-                await LoadFieldVisibilityAsync();
+                await LoadFieldVisibilityAsync(customerId > 0 ? customerId : null);
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "Error loading product data");
-                await DisplayAlert("Hata", "Ürün bilgileri yüklenirken hata oluştu.", "Tamam");
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await DisplayAlert("Hata", "Ürün bilgileri yüklenirken hata oluştu.", "Tamam");
+                    HideLoadingOverlay();
+                });
             }
         }
 

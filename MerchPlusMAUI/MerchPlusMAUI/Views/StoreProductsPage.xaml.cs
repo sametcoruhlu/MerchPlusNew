@@ -484,64 +484,125 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
-                Console.WriteLine("=== Loading Products ===");
-                Console.WriteLine($"EntMemberRouteId: '{EntMemberRouteId}'");
-                
                 // Not: Loading overlay zaten OnAppearing'de gösterildi, burada tekrar göstermeye gerek yok
                 
                 // EntMemberRouteId boşsa hata göster
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    Console.WriteLine("ERROR: EntMemberRouteId is empty, cannot load products");
                     _logger.LogWarning("EntMemberRouteId is empty, cannot load products");
                     await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı. Lütfen tekrar deneyin.", "Tamam");
                     return;
                 }
                 
-                // Database işlemlerini background thread'de yap ama daha verimli
-                var memberRouteDetails = await Task.Run(async () =>
+                // Database işlemlerini background thread'de yap - OPTİMİZE EDİLDİ: Tüm verileri tek sorguda çek
+                var (memberRouteDetails, productsCache, imagesCache) = await Task.Run(() =>
                 {
                     using var db = new SQLiteConnection(_dbPath);
                     
                     if (!int.TryParse(EntMemberRouteId, out int memberRouteId))
                     {
-                        Console.WriteLine($"ERROR: Cannot parse EntMemberRouteId '{EntMemberRouteId}' to int");
-                        return new List<entMemberRouteDetail>();
+                        _logger.LogWarning($"Cannot parse EntMemberRouteId '{EntMemberRouteId}' to int");
+                        return (new List<entMemberRouteDetail>(), new Dictionary<int, entCustomerProduct>(), new Dictionary<int, ImageSource?>());
                     }
                     
-                    Console.WriteLine($"Querying products for MemberRouteId: {memberRouteId}");
-                    
-                    // Tüm ürünleri göster (veri girişi yapılmış veya yapılmamış)
-                    // CreatedOn IS NULL filtresi kaldırıldı - kullanıcı veri girişi yaptıktan sonra da ürünü görebilmeli
+                    // 1. Tüm route detail'leri çek
                     var listOfMemberRouteDetail = db.Query<entMemberRouteDetail>(
                         "SELECT * FROM entMemberRouteDetail WHERE MemberRouteId=?", 
-                        memberRouteId);
+                        memberRouteId) ?? new List<entMemberRouteDetail>();
                     
-                    Console.WriteLine($"Found {listOfMemberRouteDetail?.Count ?? 0} products");
-                    
-                    if (listOfMemberRouteDetail == null || listOfMemberRouteDetail.Count == 0)
+                    if (listOfMemberRouteDetail.Count == 0)
                     {
-                        // Sadece sorun varsa debug bilgisi göster
+                        return (listOfMemberRouteDetail, new Dictionary<int, entCustomerProduct>(), new Dictionary<int, ImageSource?>());
+                    }
+                    
+                    // 2. Tüm CustomerProductId'leri topla
+                    var customerProductIds = listOfMemberRouteDetail
+                        .Where(d => d.CustomerProductId.HasValue)
+                        .Select(d => d.CustomerProductId.Value)
+                        .Distinct()
+                        .ToList();
+                    
+                    if (customerProductIds.Count == 0)
+                    {
+                        return (listOfMemberRouteDetail, new Dictionary<int, entCustomerProduct>(), new Dictionary<int, ImageSource?>());
+                    }
+                    
+                    // 3. Tüm CustomerProduct'ları TEK SORGUDA çek (N+1 problemini çöz)
+                    List<entCustomerProduct> allProducts;
+                    if (customerProductIds.Count == 1)
+                    {
+                        // Tek ID için basit sorgu
+                        allProducts = db.Query<entCustomerProduct>(
+                            "SELECT * FROM entCustomerProduct WHERE Id = ?",
+                            customerProductIds[0]) ?? new List<entCustomerProduct>();
+                    }
+                    else
+                    {
+                        // Çoklu ID için IN sorgusu - SQLite parametreli IN destekler
+                        var placeholders = string.Join(",", customerProductIds.Select(_ => "?"));
+                        var parameters = customerProductIds.Cast<object>().ToArray();
+                        allProducts = db.Query<entCustomerProduct>(
+                            $"SELECT * FROM entCustomerProduct WHERE Id IN ({placeholders})",
+                            parameters) ?? new List<entCustomerProduct>();
+                    }
+                    
+                    var productsDict = allProducts.ToDictionary(p => p.Id, p => p);
+                    
+                    // 4. Tüm CustomerProductPicture'ları TEK SORGUDA çek
+                    List<entCustomerProductPicture> allPictures;
+                    if (customerProductIds.Count == 1)
+                    {
+                        allPictures = db.Query<entCustomerProductPicture>(
+                            "SELECT * FROM entCustomerProductPicture WHERE CustomerProductId = ?",
+                            customerProductIds[0]) ?? new List<entCustomerProductPicture>();
+                    }
+                    else
+                    {
+                        var placeholders = string.Join(",", customerProductIds.Select(_ => "?"));
+                        var parameters = customerProductIds.Cast<object>().ToArray();
+                        allPictures = db.Query<entCustomerProductPicture>(
+                            $"SELECT * FROM entCustomerProductPicture WHERE CustomerProductId IN ({placeholders})",
+                            parameters) ?? new List<entCustomerProductPicture>();
+                    }
+                    
+                    var imagesDict = new Dictionary<int, ImageSource?>();
+                    var placeholderImage = ImageSource.FromFile("product_placeholder.png");
+                    
+                    foreach (var picture in allPictures)
+                    {
                         try
                         {
-                            var totalRecords = db.ExecuteScalar<int>("SELECT COUNT(*) FROM entMemberRouteDetail");
-                            Console.WriteLine($"Debug: Total records in table: {totalRecords}");
+                            if (!string.IsNullOrEmpty(picture.CustomerProductPictureBase64))
+                            {
+                                var imageBytes = Convert.FromBase64String(picture.CustomerProductPictureBase64);
+                                imagesDict[picture.CustomerProductId] = ImageSource.FromStream(() => new MemoryStream(imageBytes));
+                            }
                         }
-                        catch (Exception debugEx)
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"Debug query error: {debugEx.Message}");
+                            _logger.LogWarning(ex, $"Error converting base64 to image for CustomerProductId: {picture.CustomerProductId}");
+                            imagesDict[picture.CustomerProductId] = placeholderImage;
                         }
                     }
-
-                    return listOfMemberRouteDetail ?? new List<entMemberRouteDetail>();
+                    
+                    // Resmi olmayan ürünler için placeholder ekle
+                    foreach (var productId in customerProductIds)
+                    {
+                        if (!imagesDict.ContainsKey(productId))
+                        {
+                            imagesDict[productId] = placeholderImage;
+                        }
+                    }
+                    
+                    return (listOfMemberRouteDetail, productsDict, imagesDict);
                 }).ConfigureAwait(false);
 
-                _logger.LogInformation($"Found {memberRouteDetails.Count} products for MemberRouteId: {EntMemberRouteId}");
+                _logger.LogInformation($"Found {memberRouteDetails.Count} route details, {productsCache.Count} products, {imagesCache.Count} images for MemberRouteId: {EntMemberRouteId}");
 
                 // UI güncellemesini main thread'de yap
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    UpdateProductCollections(memberRouteDetails);
+                    UpdateProductCollections(memberRouteDetails, productsCache, imagesCache);
                 });
                 
                 // Başarılı yükleme toast'ı
@@ -556,14 +617,11 @@ namespace MerchPlusMAUI.Views
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR loading products: {ex.Message}");
                 _logger.LogError(ex, "Error loading products from database");
                 await ShowToast("❌ Ürünler yüklenirken hata oluştu", 3000);
             }
             finally
             {
-                Console.WriteLine("=== Product Loading Completed ===");
-                
                 // Veri yüklendikten sonra MainContent'i göster, LoadingOverlay'i gizle
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -584,13 +642,13 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private void UpdateProductCollections(List<entMemberRouteDetail> memberRouteDetails)
+        private void UpdateProductCollections(
+            List<entMemberRouteDetail> memberRouteDetails, 
+            Dictionary<int, entCustomerProduct> productsCache,
+            Dictionary<int, ImageSource?> imagesCache)
         {
             try
             {
-                Console.WriteLine($"=== UpdateProductCollections Started ===");
-                Console.WriteLine($"Input memberRouteDetails count: {memberRouteDetails?.Count ?? 0}");
-                
                 // Android Adapter pattern'ini ObservableCollection ile simüle et
                 MemberRouteDetails.Clear();
                 Products.Clear();
@@ -600,97 +658,66 @@ namespace MerchPlusMAUI.Views
 
                 if (memberRouteDetails == null || memberRouteDetails.Count == 0)
                 {
-                    Console.WriteLine("No member route details to process");
                     HasProducts = false;
                     ProductCountText = "0 ürün listelendi";
                     return;
                 }
 
-                int successCount = 0;
-                int failCount = 0;
                 int completedCount = 0;
                 int pendingCount = 0;
 
                 foreach (var detail in memberRouteDetails)
                 {
-                    Console.WriteLine($"Processing RouteDetail Id: {detail.Id}, CustomerProductId: {detail.CustomerProductId}");
-                    
                     MemberRouteDetails.Add(detail);
                     
-                    var productViewModel = CreateProductViewModel(detail);
-                    if (productViewModel != null)
+                    // OPTİMİZE: CreateProductViewModel yerine direkt burada oluştur (cache'den al)
+                    if (detail.CustomerProductId == null || !productsCache.TryGetValue(detail.CustomerProductId.Value, out var product))
                     {
-                        Console.WriteLine($"  ✓ ProductViewModel created: {productViewModel.ProductName}");
-                        Products.Add(productViewModel);
-                        
-                        // Veri girişi yapılmış mı kontrol et (CreatedOn null değilse ve geçerli bir tarihse tamamlanmış demektir)
-                        // Reflection kullanarak CreatedOn property'sinin değerini güvenli bir şekilde kontrol ediyoruz
-                        bool isCompleted = false;
-                        DateTime? createdOnValue = null;
-                        
-                        try
+                        continue;
+                    }
+                    
+                    var customerProductId = detail.CustomerProductId.Value;
+                    imagesCache.TryGetValue(customerProductId, out var productImage);
+                    
+                    var viewModel = new ProductViewModel
+                    {
+                        Id = product.Id,
+                        RouteDetailId = detail.Id,
+                        ProductName = product.Name ?? "Ürün Adı Yok",
+                        ProductCode = product.Id.ToString(),
+                        ProductCategory = "Bilgi girişi için tıklayın.",
+                        ProductImage = productImage ?? ImageSource.FromFile("product_placeholder.png"),
+                        MemberRouteDetail = detail
+                    };
+                    
+                    Products.Add(viewModel);
+                    
+                    // OPTİMİZE: Reflection yerine doğrudan property erişimi
+                    bool isCompleted = false;
+                    try
+                    {
+                        // CreatedOn property'sine doğrudan eriş
+                        var createdOnValue = detail.CreatedOn;
+                        if (createdOnValue.HasValue)
                         {
-                            var createdOnProp = detail.GetType().GetProperty("CreatedOn");
-                            if (createdOnProp != null)
-                            {
-                                var value = createdOnProp.GetValue(detail);
-                                
-                                // Property tipini kontrol et
-                                var propertyType = createdOnProp.PropertyType;
-                                bool isNullableDateTime = propertyType == typeof(DateTime?) || 
-                                                         (propertyType.IsGenericType && 
-                                                          propertyType.GetGenericTypeDefinition() == typeof(Nullable<>) &&
-                                                          propertyType.GetGenericArguments()[0] == typeof(DateTime));
-                                
-                                if (value != null)
-                                {
-                                    if (value is DateTime dt)
-                                    {
-                                        // DateTime veya boxed DateTime? değeri
-                                        createdOnValue = dt;
-                                    }
-                                }
-                                else if (isNullableDateTime)
-                                {
-                                    // Nullable DateTime? ve null değer
-                                    createdOnValue = null;
-                                }
-                                
-                                // Geçerli bir tarih kontrolü yap (DateTime.MinValue veya default değerden büyükse tamamlanmıştır)
-                                if (createdOnValue.HasValue)
-                                {
-                                    var dtValue = createdOnValue.Value;
-                                    // DateTime.MinValue (0001-01-01) veya default(DateTime) değilse ve mantıklı bir tarihse (örn. 1900'den sonra) tamamlanmıştır
-                                    isCompleted = dtValue != default(DateTime) && dtValue.Year > 1900;
-                                }
-                            }
+                            var dtValue = createdOnValue.Value;
+                            isCompleted = dtValue != default(DateTime) && dtValue.Year > 1900;
                         }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"    ⚠ ERROR checking CreatedOn: {ex.Message}");
-                            // Hata durumunda bekleyen olarak işaretle
-                            isCompleted = false;
-                        }
-                        
-                        if (isCompleted)
-                        {
-                            CompletedProducts.Add(productViewModel);
-                            completedCount++;
-                            Console.WriteLine($"    → Tamamlanan ürün (CreatedOn: {createdOnValue})");
-                        }
-                        else
-                        {
-                            PendingProducts.Add(productViewModel);
-                            pendingCount++;
-                            Console.WriteLine($"    → Bekleyen ürün (CreatedOn: {createdOnValue?.ToString() ?? "null/default"})");
-                        }
-                        
-                        successCount++;
+                    }
+                    catch
+                    {
+                        isCompleted = false;
+                    }
+                    
+                    if (isCompleted)
+                    {
+                        CompletedProducts.Add(viewModel);
+                        completedCount++;
                     }
                     else
                     {
-                        Console.WriteLine($"  ✗ Failed to create ProductViewModel");
-                        failCount++;
+                        PendingProducts.Add(viewModel);
+                        pendingCount++;
                     }
                 }
 
@@ -700,22 +727,10 @@ namespace MerchPlusMAUI.Views
                 // Seçili tab'a göre filtrele
                 FilterProductsByTab();
                 
-                Console.WriteLine($"UpdateProductCollections completed:");
-                Console.WriteLine($"  - Processed: {memberRouteDetails.Count} route details");
-                Console.WriteLine($"  - Success: {successCount} products");
-                Console.WriteLine($"  - Failed: {failCount} products");
-                Console.WriteLine($"  - Total products: {Products.Count}");
-                Console.WriteLine($"  - Completed: {completedCount} products");
-                Console.WriteLine($"  - Pending: {pendingCount} products");
-                Console.WriteLine($"  - HasProducts: {HasProducts}");
-                Console.WriteLine($"  - ProductCountText: {ProductCountText}");
-                
                 _logger.LogInformation($"Updated collections with {Products.Count} products (Completed: {completedCount}, Pending: {pendingCount})");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR in UpdateProductCollections: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 _logger.LogError(ex, "Error updating product collections");
             }
         }
