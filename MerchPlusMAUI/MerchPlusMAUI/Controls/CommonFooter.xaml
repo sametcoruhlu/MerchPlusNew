@@ -97,7 +97,7 @@
             </Grid>
             <Label Grid.Row="1"
                    x:Name="UpdateButtonLabel"
-                   Text="Güncelle"
+                   Text="Gönder"
                    TextColor="White"
                    FontSize="12"
                    HorizontalOptions="Center"/>

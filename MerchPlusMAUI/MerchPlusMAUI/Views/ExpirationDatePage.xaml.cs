@@ -752,6 +752,128 @@ namespace MerchPlusMAUI.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        // Footer button event handlers
+        private async void OnTakePhotoClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                IsBusy = true;
+                await Task.Delay(50);
+                
+                _logger.LogInformation($"Take photo clicked from ExpirationDatePage - EntMemberRouteId: {EntMemberRouteId}");
+                
+                if (GlobalVariables.CurrentMemberRoute == null)
+                {
+                    GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = Convert.ToInt32(EntMemberRouteId) };
+                }
+                else
+                {
+                    GlobalVariables.CurrentMemberRoute.Id = Convert.ToInt32(EntMemberRouteId);
+                }
+                
+                await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
+                IsBusy = false;
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                _logger.LogError(ex, "Error in OnTakePhotoClicked");
+                await DisplayAlert("Hata", "Fotoğraf çekme işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnSalesOrderClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                IsBusy = true;
+                await Task.Delay(50);
+                
+                _logger.LogInformation($"Sales order clicked from ExpirationDatePage - EntMemberRouteId: {EntMemberRouteId}");
+                
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    IsBusy = false;
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+
+                // StoreName'i almak için veritabanından route bilgisini çek
+                string storeName = StoreName;
+                using var db = new SQLiteConnection(_dbPath);
+                var route = db.Table<entMemberRoute>().FirstOrDefault(r => r.Id == Convert.ToInt32(EntMemberRouteId));
+                if (route?.RetailShopId.HasValue == true)
+                {
+                    var shop = db.Table<entRetailShop>().FirstOrDefault(x => x.Id == route.RetailShopId.Value);
+                    if (!string.IsNullOrWhiteSpace(shop?.Name))
+                    {
+                        storeName = shop.Name;
+                    }
+                }
+
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = EntMemberRouteId,
+                    ["StoreName"] = storeName
+                };
+
+                await Shell.Current.GoToAsync("///SalesOrderPage", parameters);
+                IsBusy = false;
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                _logger.LogError(ex, "Error in OnSalesOrderClicked");
+                await DisplayAlert("Hata", "Sipariş işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnExpirationClicked(object sender, EventArgs e)
+        {
+            // Zaten SKT sayfasındayız, sayfayı yenile
+            try
+            {
+                await RefreshExpirationListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing expiration list");
+            }
+        }
+
+        private async void OnExitShopClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation($"Exit shop clicked from ExpirationDatePage - EntMemberRouteId: {EntMemberRouteId}");
+                
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
+                    return;
+                }
+
+                // StoreProductsPage'e dön, oradan çıkış yapılacak
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = EntMemberRouteId,
+                    ["StoreName"] = StoreName ?? "Mağaza"
+                };
+                
+                IsBusy = true;
+                await Task.Delay(50);
+                
+                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                IsBusy = false;
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                _logger.LogError(ex, "Error in OnExitShopClicked");
+                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
+            }
+        }
+
         // Geri butonu için override
         protected override bool OnBackButtonPressed()
         {

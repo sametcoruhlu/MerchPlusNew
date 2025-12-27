@@ -57,7 +57,7 @@
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationVersion>2</ApplicationVersion>
 		
 		<!-- Package formatı: Release için AAB (Google Play Store), Debug için APK -->
 		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
@@ -74,8 +74,8 @@
 		
 		<!-- Signing için keystore ayarları (aşağıdaki değerleri kendi keystore bilgilerinizle değiştirin) -->
 		<!-- Keystore oluşturmak için: keytool -genkey -v -keystore merchplus-release.keystore -alias merchplus -keyalg RSA -keysize 2048 -validity 10000 -->
-		<!-- Geçici olarak imzalama kapatıldı - test için -->
-		<AndroidKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">false</AndroidKeyStore>
+		<!-- Release build için imzalama aktif -->
+		<AndroidKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</AndroidKeyStore>
 		<!-- Bu değerleri kendi keystore bilgilerinizle değiştirin -->
 		<!-- Keystore dosyası Platforms\Android\ klasöründe olmalı -->
 		<AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">$(MSBuildProjectDirectory)\Platforms\Android\merchplus-release.keystore</AndroidSigningKeyStore>

@@ -1,26 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:MerchPlusMAUI.Controls"
              x:Class="MerchPlusMAUI.Views.StoreVitrinePhotoPage"
              Title="Raf ve Teşhir Fotoğrafı"
              BackgroundColor="#F8F9FA">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="70,*,75">
         
         <!-- Header -->
-        <Frame Grid.Row="0"
-               BackgroundColor="#343A40"
-               Padding="20,15"
-               CornerRadius="0"
-               HasShadow="True"
-               Margin="0">
-            <Label Text="Raf ve Teşhir Fotoğrafı"
-                   FontSize="20"
-                   FontAttributes="Bold"
-                   TextColor="White"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"/>
-        </Frame>
+        <controls:CommonHeader Grid.Row="0" />
 
         <!-- Main Content -->
         <ScrollView Grid.Row="1" Padding="20">
@@ -47,8 +36,9 @@
                                 FontSize="18"
                                 FontAttributes="Bold"
                                 CornerRadius="12"
-                                HeightRequest="60"
-                                Padding="20"
+                                HeightRequest="65"
+                                Padding="20,15"
+                                VerticalOptions="Center"
                                 Clicked="OnShelfPhotoClicked"/>
                     </StackLayout>
                 </Frame>
@@ -74,8 +64,9 @@
                                 FontSize="18"
                                 FontAttributes="Bold"
                                 CornerRadius="12"
-                                HeightRequest="60"
-                                Padding="20"
+                                HeightRequest="65"
+                                Padding="20,15"
+                                VerticalOptions="Center"
                                 Clicked="OnDisplayPhotoClicked"/>
                     </StackLayout>
                 </Frame>
@@ -83,22 +74,100 @@
             </StackLayout>
         </ScrollView>
 
-        <!-- Bottom Navigation -->
-        <Frame Grid.Row="2"
-               BackgroundColor="#343A40"
-               Padding="20,15"
-               CornerRadius="0"
-               HasShadow="True">
-            <!-- Kaydet Butonu -->
-            <Button Text="KAYDET"
-                    BackgroundColor="#DC3545"
-                    TextColor="White"
-                    FontSize="16"
-                    FontAttributes="Bold"
-                    CornerRadius="8"
-                    HeightRequest="50"
-                    Clicked="OnSaveClicked"/>
-        </Frame>
+        <!-- Bottom Action Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,*,*,*"
+              BackgroundColor="{StaticResource Primary}"
+              Padding="0,5">
+            
+            <!-- Take Photo Button -->
+            <Grid Grid.Column="0" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe412;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Fotoğraf"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTakePhotoClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Sales Order Button -->
+            <Grid Grid.Column="1" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe8cc;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Sipariş"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSalesOrderClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Expiration Date Button -->
+            <Grid Grid.Column="2" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe916;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="SKT"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnExpirationClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Exit Shop Button -->
+            <Grid Grid.Column="3" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe879;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Çıkış"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnExitShopClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+        </Grid>
 
         <!-- Loading Overlay -->
         <Grid Grid.RowSpan="3"

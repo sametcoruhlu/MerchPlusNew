@@ -351,122 +351,111 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async void OnBackClicked(object sender, EventArgs e)
+        // Footer button event handlers
+        private async void OnTakePhotoClicked(object sender, EventArgs e)
         {
             try
             {
-                // Loading overlay göster (hemen görünsün)
-                IsBusy = true; // Loading overlay göster (IsBusy binding ile)
-                
-                // Kısa bir delay ekle ki overlay render edilsin
+                IsBusy = true;
                 await Task.Delay(50);
                 
-                Console.WriteLine($"[SalesOrderPage] Back button tapped. EntMemberRouteId='{EntMemberRouteId}', StoreName='{StoreName}'");
-                Console.WriteLine($"[SalesOrderPage] NavigationStack={Shell.Current.Navigation.NavigationStack.Count}, ModalStack={Shell.Current.Navigation.ModalStack.Count}");
-
-                // StoreProductsPage'e geri dön - parametrelerle birlikte
-                if (!string.IsNullOrEmpty(EntMemberRouteId))
+                _logger.LogInformation($"Take photo clicked from SalesOrderPage - EntMemberRouteId: {EntMemberRouteId}");
+                
+                if (GlobalVariables.CurrentMemberRoute == null)
                 {
-                    var parameters = new Dictionary<string, object>
-                    {
-                        ["entMemberRouteId"] = EntMemberRouteId,
-                        ["StoreName"] = StoreName ?? "Mağaza"
-                    };
-                    
-                    Console.WriteLine($"[SalesOrderPage] Navigating to StoreProductsPage with parameters:");
-                    Console.WriteLine($"[SalesOrderPage]     entMemberRouteId: {EntMemberRouteId}");
-                    Console.WriteLine($"[SalesOrderPage]     StoreName: {StoreName}");
-                    
-                    await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
-                    Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') with parameters executed");
-                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                    IsBusy = false;
+                    GlobalVariables.CurrentMemberRoute = new entMemberRoute { Id = Convert.ToInt32(EntMemberRouteId) };
                 }
                 else
                 {
-                    Console.WriteLine("[SalesOrderPage] WARNING - EntMemberRouteId is empty, trying navigation stack");
-                    
-                    if (Shell.Current.Navigation.NavigationStack.Count > 1)
-                    {
-                        await Shell.Current.Navigation.PopAsync();
-                        Console.WriteLine("[SalesOrderPage] PopAsync executed");
-                        IsBusy = false;
-                        return;
-                    }
-
-                    if (Shell.Current.Navigation.ModalStack.Count > 0)
-                    {
-                        await Shell.Current.Navigation.PopModalAsync();
-                        Console.WriteLine("[SalesOrderPage] PopModalAsync executed");
-                        IsBusy = false;
-                        return;
-                    }
-
-                    Console.WriteLine("[SalesOrderPage] No entries in stack and no parameters, navigating to StoreProductsPage without parameters");
-                    await Shell.Current.GoToAsync("///StoreProductsPage");
-                    Console.WriteLine("[SalesOrderPage] Shell GoToAsync('///StoreProductsPage') without parameters executed");
-                    // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
-                    IsBusy = false;
+                    GlobalVariables.CurrentMemberRoute.Id = Convert.ToInt32(EntMemberRouteId);
                 }
+                
+                await Shell.Current.GoToAsync("//StoreVitrinePhotoPage");
+                IsBusy = false;
             }
             catch (Exception ex)
             {
                 IsBusy = false;
-                _logger.LogError(ex, "SalesOrderPage back navigation error");
-                Console.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[SalesOrderPage] ERROR during back navigation: {ex.Message}");
-                
-                // Fallback: StoresPage'e git
-                try
-                {
-                    await Shell.Current.GoToAsync("///StoresPage?StoreType=All");
-                }
-                catch (Exception fallbackEx)
-                {
-                    Console.WriteLine($"[SalesOrderPage] Fallback navigation error: {fallbackEx.Message}");
-                }
+                _logger.LogError(ex, "Error in OnTakePhotoClicked");
+                await DisplayAlert("Hata", "Fotoğraf çekme işleminde hata oluştu.", "Tamam");
             }
         }
 
-        private async void OnSaveClicked(object sender, EventArgs e)
+        private async void OnSalesOrderClicked(object sender, EventArgs e)
+        {
+            // Zaten sipariş sayfasındayız, sayfayı yenile
+            try
+            {
+                await RefreshOrderPreviewAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing order preview");
+            }
+        }
+
+        private async void OnExpirationClicked(object sender, EventArgs e)
         {
             try
             {
-                // Loading overlay göster (hemen görünsün)
-                IsBusy = true; // Loading overlay göster
-                
-                // Kısa bir delay ekle ki overlay render edilsin
+                IsBusy = true;
                 await Task.Delay(50);
                 
-                // Ürün seçimi kontrolü
-                if (SelectedProduct == null)
-                {
-                    IsBusy = false;
-                    await DisplayAlert("Uyarı", "Lütfen bir ürün seçiniz.", "Tamam");
-                    return;
-                }
+                _logger.LogInformation($"Expiration date clicked from SalesOrderPage - EntMemberRouteId: {EntMemberRouteId}");
                 
-                if (OrderPreviewItems.Count == 0)
+                if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
                     IsBusy = false;
-                    await DisplayAlert("Bilgi", "Kaydedilecek sipariş kalemi bulunmuyor. Lütfen önce ürünleri listeye ekleyiniz.", "Tamam");
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
                     return;
                 }
 
-                await DisplayAlert("Sipariş Kaydedildi", "Sipariş kalemleri başarıyla kaydedildi.", "Tamam");
-                
-                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
-                Controls.CommonFooter.RefreshBadge();
-                
-                await Shell.Current.GoToAsync("..");
-                // Navigation tamamlandı, loading overlay'i gizle (hedef sayfa kendi overlay'ini gösterecek)
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = EntMemberRouteId
+                };
+
+                await Shell.Current.GoToAsync("///ExpirationDatePage", parameters);
                 IsBusy = false;
             }
             catch (Exception ex)
             {
                 IsBusy = false;
-                _logger?.LogError(ex, "Error in OnSaveClicked");
-                await DisplayAlert("Hata", "Sipariş kaydedilirken hata oluştu.", "Tamam");
+                _logger.LogError(ex, "Error in OnExpirationClicked");
+                await DisplayAlert("Hata", "SKT işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnExitShopClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation($"Exit shop clicked from SalesOrderPage - EntMemberRouteId: {EntMemberRouteId}");
+                
+                if (string.IsNullOrEmpty(EntMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
+                    return;
+                }
+
+                // StoreProductsPage'e dön, oradan çıkış yapılacak
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = EntMemberRouteId,
+                    ["StoreName"] = StoreName ?? "Mağaza"
+                };
+                
+                IsBusy = true;
+                await Task.Delay(50);
+                
+                await Shell.Current.GoToAsync("///StoreProductsPage", parameters);
+                IsBusy = false;
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                _logger.LogError(ex, "Error in OnExitShopClicked");
+                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }
         #endregion
@@ -568,6 +557,9 @@ namespace MerchPlusMAUI.Views
 
                 QuantityText = string.Empty;
                 await RefreshOrderPreviewAsync();
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
             }
             catch (Exception ex)
             {
@@ -603,6 +595,9 @@ namespace MerchPlusMAUI.Views
                 });
 
                 await RefreshOrderPreviewAsync();
+                
+                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
+                Controls.CommonFooter.RefreshBadge();
             }
             catch (Exception ex)
             {

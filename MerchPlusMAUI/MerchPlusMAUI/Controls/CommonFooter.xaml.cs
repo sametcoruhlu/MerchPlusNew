@@ -225,7 +225,7 @@ namespace MerchPlusMAUI.Controls
                     
                     if (UpdateButtonLabel != null)
                     {
-                        UpdateButtonLabel.Text = "Güncelle";
+                        UpdateButtonLabel.Text = "Gönder";
                     }
                     
                     // Badge'i göster/gizle
@@ -403,7 +403,7 @@ namespace MerchPlusMAUI.Controls
                         {
                             if (UpdateButtonLabel != null)
                             {
-                                UpdateButtonLabel.Text = "Güncelle";
+                                UpdateButtonLabel.Text = "Gönder";
                             }
                             if (UpdateButtonGrid != null)
                             {
@@ -437,7 +437,7 @@ namespace MerchPlusMAUI.Controls
                         {
                             if (UpdateButtonLabel != null)
                             {
-                                UpdateButtonLabel.Text = "Güncelle";
+                                UpdateButtonLabel.Text = "Gönder";
                             }
                             if (UpdateButtonGrid != null)
                             {
@@ -594,8 +594,8 @@ namespace MerchPlusMAUI.Controls
                         if (UpdateButtonLabel != null)
                         {
                             UpdateButtonLabel.Text = remainingRoutes.Count > 0 
-                                ? $"Güncelle ({remainingRoutes.Count} mağaza)" 
-                                : "Güncelle";
+                                ? $"Gönder ({remainingRoutes.Count} mağaza)" 
+                                : "Gönder";
                         }
                         
                         // Badge'i güncelle (route'lar bittikten sonra)

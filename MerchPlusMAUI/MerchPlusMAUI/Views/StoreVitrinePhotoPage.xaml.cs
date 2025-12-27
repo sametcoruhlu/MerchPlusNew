@@ -5,6 +5,7 @@ using System.IO;
 using entMerchPlus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
+using System.Collections.Generic;
 
 namespace MerchPlusMAUI.Views
 {
@@ -330,26 +331,86 @@ namespace MerchPlusMAUI.Views
         }
 
 
-        private async void OnSaveClicked(object sender, EventArgs e)
+        // Footer button event handlers
+        private async void OnTakePhotoClicked(object sender, EventArgs e)
+        {
+            // Zaten fotoğraf sayfasındayız, raf fotoğrafı çekme işlemini tetikle
+            // OnShelfPhotoClicked async void olduğu için await edilemez, direkt çağırıyoruz
+            OnShelfPhotoClicked(sender, e);
+        }
+
+        private async void OnSalesOrderClicked(object sender, EventArgs e)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Kaydet butonuna tıklandı");
+                System.Diagnostics.Debug.WriteLine($"Sales order clicked from StoreVitrinePhotoPage - EntMemberRouteId: {_entMemberRouteId}");
                 
-                // Kaydedildi mesajını göster
-                await DisplayAlert("Başarılı", "Fotoğraflar kaydedildi.", "Tamam");
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = _entMemberRouteId,
+                    ["StoreName"] = _storeName
+                };
+
+                await Shell.Current.GoToAsync("///SalesOrderPage", parameters);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in OnSalesOrderClicked");
+                await DisplayAlert("Hata", "Sipariş işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnExpirationClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Expiration date clicked from StoreVitrinePhotoPage - EntMemberRouteId: {_entMemberRouteId}");
                 
-                // CommonFooter badge'ini güncelle (eğer AboutMePage görünürse)
-                Controls.CommonFooter.RefreshBadge();
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza bilgisi bulunamadı.", "Tamam");
+                    return;
+                }
+
+                var parameters = new Dictionary<string, object>
+                {
+                    ["entMemberRouteId"] = _entMemberRouteId
+                };
+
+                await Shell.Current.GoToAsync("///ExpirationDatePage", parameters);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in OnExpirationClicked");
+                await DisplayAlert("Hata", "SKT işleminde hata oluştu.", "Tamam");
+            }
+        }
+
+        private async void OnExitShopClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Exit shop clicked from StoreVitrinePhotoPage - EntMemberRouteId: {_entMemberRouteId}");
                 
-                // Tamam butonuna tıklandığında ürün listeleme sayfasına geri dön
+                if (string.IsNullOrEmpty(_entMemberRouteId))
+                {
+                    await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
+                    return;
+                }
+
+                // StoreProductsPage'e dön, oradan çıkış yapılacak
                 await NavigateBackToStoreProductsPage();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Kaydet hatası: {ex.Message}");
-                _logger?.LogError(ex, "Error in OnSaveClicked");
-                await DisplayAlert("Hata", "İşlem sırasında hata oluştu.", "Tamam");
+                _logger?.LogError(ex, "Error in OnExitShopClicked");
+                await DisplayAlert("Hata", "Sayfa geçişi sırasında hata oluştu.", "Tamam");
             }
         }
     }

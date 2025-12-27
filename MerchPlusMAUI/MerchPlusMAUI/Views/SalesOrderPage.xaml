@@ -6,7 +6,7 @@
              Title="Sipariş Girişi"
              BackgroundColor="#F8F9FA">
 
-    <Grid RowDefinitions="70,*,80">
+    <Grid RowDefinitions="70,*,75">
         <!-- Header -->
         <controls:CommonHeader Grid.Row="0" />
 
@@ -89,7 +89,7 @@
                             </StackLayout>
                         </Grid>
 
-                        <Button Text="Listeye Ekle"
+                        <Button Text="Listeye Ekle ve Kaydet"
                                 BackgroundColor="#DC3545"
                                 TextColor="White"
                                 FontAttributes="Bold"
@@ -166,28 +166,99 @@
             </StackLayout>
         </ScrollView>
 
-        <!-- Bottom Actions -->
-        <Grid Grid.Row="2"
-              ColumnDefinitions="*,*"
-              BackgroundColor="White"
-              Padding="20,10"
-              ColumnSpacing="10">
-            <Button Grid.Column="0"
-                    Text="Geri Dön"
-                    BackgroundColor="#6C757D"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    CornerRadius="25"
-                    HeightRequest="50"
-                    Clicked="OnBackClicked" />
-            <Button Grid.Column="1"
-                    Text="Siparişi Kaydet"
-                    BackgroundColor="#28A745"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    CornerRadius="25"
-                    HeightRequest="50"
-                    Clicked="OnSaveClicked" />
+        <!-- Bottom Action Buttons -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,*,*,*"
+              BackgroundColor="{StaticResource Primary}"
+              Padding="0,5">
+            
+            <!-- Take Photo Button -->
+            <Grid Grid.Column="0" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe412;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Fotoğraf"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTakePhotoClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Sales Order Button -->
+            <Grid Grid.Column="1" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe8cc;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Sipariş"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSalesOrderClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Expiration Date Button -->
+            <Grid Grid.Column="2" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe916;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="SKT"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnExpirationClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+
+            <!-- Exit Shop Button -->
+            <Grid Grid.Column="3" 
+                  RowDefinitions="Auto,Auto" 
+                  RowSpacing="2"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Label Grid.Row="0"
+                       Text="&#xe879;"
+                       FontFamily="MaterialIcons"
+                       TextColor="White"
+                       FontSize="24"
+                       HorizontalOptions="Center"/>
+                <Label Grid.Row="1"
+                       Text="Çıkış"
+                       TextColor="White"
+                       FontSize="12"
+                       HorizontalOptions="Center"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnExitShopClicked"/>
+                </Grid.GestureRecognizers>
+            </Grid>
         </Grid>
 
         <!-- Loading Overlay -->
