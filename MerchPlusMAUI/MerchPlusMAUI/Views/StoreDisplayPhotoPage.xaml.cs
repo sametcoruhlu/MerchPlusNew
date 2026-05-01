@@ -7,12 +7,18 @@ using entMerchPlus;
 using Microsoft.Extensions.Logging;
 using MerchPlusMAUI.Models;
 using System.Collections.ObjectModel;
+using MerchPlusMAUI.Services;
+using System;
+#if ANDROID
+using Android.Graphics;
+#endif
 
 namespace MerchPlusMAUI.Views
 {
     public partial class StoreDisplayPhotoPage : ContentPage
     {
         private readonly ILogger<StoreDisplayPhotoPage> _logger;
+        private readonly IPhotoGalleryService _photoGalleryService;
         private string _entMemberRouteId;
         private readonly string _dbPath;
         
@@ -23,11 +29,14 @@ namespace MerchPlusMAUI.Views
         private ObservableCollection<DisplayPhotoItem> _displayPhotoList = new();
         
         private entMemberRoute _currentMemberRoute;
+        private bool _isTakingPhoto;
+        private bool _isSavingPhotos;
 
         public StoreDisplayPhotoPage(ILogger<StoreDisplayPhotoPage> logger)
         {
             InitializeComponent();
             _logger = logger;
+            _photoGalleryService = new PhotoGalleryService();
             _dbPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "merchplus.db3");
             
             // ObservableCollection'ın CollectionChanged event'ini dinle
@@ -279,8 +288,20 @@ namespace MerchPlusMAUI.Views
 
         private async void OnTakePhotoClicked(object sender, EventArgs e)
         {
+            if (_isTakingPhoto)
+            {
+                System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Fotoğraf çekme işlemi zaten devam ediyor, ikinci tetikleme engellendi");
+                return;
+            }
+
             try
             {
+                _isTakingPhoto = true;
+                if (TakePhotoButton != null)
+                {
+                    TakePhotoButton.IsEnabled = false;
+                }
+
                 if (_entPromotionTypeSelected.Id == -1)
                 {
                     await DisplayAlert("Uyarı", "Lütfen bir teşhir tipi seçiniz!", "Tamam");
@@ -329,8 +350,8 @@ namespace MerchPlusMAUI.Views
                     
                     foreach (var product in _selectedProducts)
                     {
-                        // Her ürün için ayrı ImageSource oluştur
-                        var photoSource = ImageSource.FromStream(() => new MemoryStream(photoBytes));
+                        // UI listesinde tam boy görsel yerine thumbnail kullan
+                        var photoSource = CreatePhotoPreviewSource(photoBytes);
                         
                         var newItem = new DisplayPhotoItem
                         {
@@ -346,6 +367,27 @@ namespace MerchPlusMAUI.Views
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Fotoğraf hazırlandı - Teşhir Tipi: {_entPromotionTypeSelected.Name}, Ürün: {product.Name}, PromotionTypeId: {_entPromotionTypeSelected.Id}");
                     }
 
+                    // Fotoğrafı galeriye kaydet
+                    try
+                    {
+                        var fileName = $"MerchPlus_Teşhir_{_entPromotionTypeSelected.Name}_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+                        var savedToGallery = await _photoGalleryService.SavePhotoToGalleryAsync(photoBytes, fileName);
+                        if (savedToGallery)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Teşhir fotoğrafı galeriye kaydedildi: {fileName}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Teşhir fotoğrafı galeriye kaydedilemedi");
+                        }
+                    }
+                    catch (Exception galleryEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Galeri kaydetme hatası: {galleryEx.Message}");
+                        _logger?.LogError(galleryEx, "Error saving photo to gallery");
+                        // Galeri kaydetme hatası kullanıcıyı rahatsız etmesin, sadece log'la
+                    }
+
                     // Ana thread'de tüm öğeleri tek seferde ekle - await ile bekle
                     await MainThread.InvokeOnMainThreadAsync(() =>
                     {
@@ -353,10 +395,6 @@ namespace MerchPlusMAUI.Views
                         {
                             _displayPhotoList.Add(item);
                         }
-                        
-                        // CollectionView'ı zorla güncelle
-                        PhotoListView.ItemsSource = null;
-                        PhotoListView.ItemsSource = _displayPhotoList;
                         
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: {newItems.Count} fotoğraf listeye eklendi");
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Toplam fotoğraf sayısı: {_displayPhotoList.Count}");
@@ -379,6 +417,14 @@ namespace MerchPlusMAUI.Views
                 _logger?.LogError(ex, "Error taking display photo");
                 await DisplayAlert("Hata", "Teşhir fotoğrafı çekilirken hata oluştu. Lütfen tekrar deneyin.", "Tamam");
             }
+            finally
+            {
+                _isTakingPhoto = false;
+                if (TakePhotoButton != null)
+                {
+                    TakePhotoButton.IsEnabled = true;
+                }
+            }
         }
 
         private void OnDeletePhotoClicked(object sender, EventArgs e)
@@ -391,10 +437,6 @@ namespace MerchPlusMAUI.Views
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         _displayPhotoList.Remove(item);
-                        
-                        // CollectionView'ı zorla güncelle
-                        PhotoListView.ItemsSource = null;
-                        PhotoListView.ItemsSource = _displayPhotoList;
                         
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Fotoğraf silindi: {item.ProductName}");
                         System.Diagnostics.Debug.WriteLine($"StoreDisplayPhotoPage: Kalan fotoğraf sayısı: {_displayPhotoList.Count}");
@@ -410,8 +452,21 @@ namespace MerchPlusMAUI.Views
 
         private async void OnSaveClicked(object sender, EventArgs e)
         {
+            if (_isSavingPhotos)
+            {
+                System.Diagnostics.Debug.WriteLine("StoreDisplayPhotoPage: Kaydet işlemi zaten çalışıyor, ikinci tetikleme engellendi");
+                return;
+            }
+
             try
             {
+                _isSavingPhotos = true;
+                if (SaveButton != null)
+                {
+                    SaveButton.IsEnabled = false;
+                    SaveButton.Text = "KAYDEDILIYOR...";
+                }
+
                 if (_displayPhotoList.Count == 0)
                 {
                     await DisplayAlert("Uyarı", "Kaydedilecek fotoğraf bulunamadı.", "Tamam");
@@ -469,8 +524,6 @@ namespace MerchPlusMAUI.Views
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     _displayPhotoList.Clear();
-                    PhotoListView.ItemsSource = null;
-                    PhotoListView.ItemsSource = _displayPhotoList;
                     
                     // Seçimleri de temizle
                     _entPromotionTypeSelected = new entPromotionType { Id = -1, Name = "Seçiniz" };
@@ -502,6 +555,61 @@ namespace MerchPlusMAUI.Views
                 if (loadingOverlay != null) loadingOverlay.IsVisible = false;
                 await DisplayAlert("Hata", "Fotoğraflar kaydedilirken hata oluştu.", "Tamam");
             }
+            finally
+            {
+                _isSavingPhotos = false;
+                if (SaveButton != null)
+                {
+                    SaveButton.IsEnabled = true;
+                    SaveButton.Text = "KAYDET";
+                }
+            }
+        }
+
+        private ImageSource CreatePhotoPreviewSource(byte[] photoBytes)
+        {
+            var thumbnailBytes = CreateThumbnailBytes(photoBytes, 240);
+            return ImageSource.FromStream(() => new MemoryStream(thumbnailBytes));
+        }
+
+        private static byte[] CreateThumbnailBytes(byte[] originalBytes, int maxEdge)
+        {
+            if (originalBytes == null || originalBytes.Length == 0)
+                return Array.Empty<byte>();
+
+#if ANDROID
+            try
+            {
+                var boundsOptions = new BitmapFactory.Options { InJustDecodeBounds = true };
+                BitmapFactory.DecodeByteArray(originalBytes, 0, originalBytes.Length, boundsOptions);
+
+                int sampleSize = 1;
+                while ((boundsOptions.OutHeight / sampleSize) > maxEdge || (boundsOptions.OutWidth / sampleSize) > maxEdge)
+                {
+                    sampleSize *= 2;
+                }
+
+                var decodeOptions = new BitmapFactory.Options
+                {
+                    InSampleSize = Math.Max(1, sampleSize),
+                    InPreferredConfig = Bitmap.Config.Rgb565
+                };
+
+                using var bitmap = BitmapFactory.DecodeByteArray(originalBytes, 0, originalBytes.Length, decodeOptions);
+                if (bitmap == null)
+                    return originalBytes;
+
+                using var output = new MemoryStream();
+                bitmap.Compress(Bitmap.CompressFormat.Jpeg, 80, output);
+                return output.ToArray();
+            }
+            catch
+            {
+                return originalBytes;
+            }
+#else
+            return originalBytes;
+#endif
         }
 
     }

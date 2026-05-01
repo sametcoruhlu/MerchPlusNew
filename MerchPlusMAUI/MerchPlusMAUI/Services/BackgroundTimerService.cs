@@ -52,14 +52,8 @@ namespace MerchPlusMAUI.Services
             try
             {
                 _logger.LogInformation("Background timer work started at: {Time}", DateTimeOffset.Now);
-
-                // 1. Tüm gönderilmemiş verileri senkronize et (5 dakikada bir)
-                await _databaseSyncService.SyncData();
-
-                // 2. Koordinat senkronizasyonu (eğer gerekirse)
-                await SyncCoordinatesIfNeeded();
-
-                // 3. Veritabanı temizlik işlemleri
+                
+                // 1. Veritabanı temizlik işlemleri
                 await PerformDatabaseMaintenance();
 
                 _logger.LogInformation("Background timer work completed at: {Time}", DateTimeOffset.Now);
@@ -67,33 +61,6 @@ namespace MerchPlusMAUI.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred during background timer work");
-            }
-        }
-
-        /// <summary>
-        /// Koordinat senkronizasyonu yapar (gerekirse)
-        /// </summary>
-        private async Task SyncCoordinatesIfNeeded()
-        {
-            try
-            {
-                // Son koordinat senkronizasyonundan 1 dakika geçmişse
-                var lastSync = GlobalVariables.LastCoordinateSync;
-                if (DateTime.UtcNow - lastSync > TimeSpan.FromMinutes(1))
-                {
-                    _logger.LogInformation("Syncing coordinates...");
-                    
-                    // DatabaseSyncService'in SyncCoordinates metodunu çağır
-                    // SyncData içinde SyncCoordinates çağrılıyor, ama burada da manuel çağıralım
-                    await _databaseSyncService.SyncData();
-                    
-                    GlobalVariables.LastCoordinateSync = DateTime.UtcNow;
-                    _logger.LogInformation("Coordinates synced successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error syncing coordinates");
             }
         }
 

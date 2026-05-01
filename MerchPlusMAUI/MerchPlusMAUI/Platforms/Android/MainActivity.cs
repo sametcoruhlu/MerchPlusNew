@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
@@ -101,22 +101,28 @@ namespace MerchPlusMAUI
             // Request Permissions
             RequestPermissions();
 
-            // Navigate to HomePage - all initialization will be handled there
-            _ = Task.Run(async () => 
+            // IMPORTANT:
+            // Do not force navigation on activity recreation (e.g. returning from camera).
+            // Otherwise the current flow gets reset to Home/AboutMe unexpectedly.
+            if (savedInstanceState == null)
             {
-                await Task.Delay(1000); // Give time for the app to fully load
-                await MainThread.InvokeOnMainThreadAsync(async () =>
+                // Navigate to HomePage only on cold app start.
+                _ = Task.Run(async () =>
                 {
-                    try
+                    await Task.Delay(1000); // Give time for the app to fully load
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await Shell.Current.GoToAsync("///HomePage");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
-                    }
+                        try
+                        {
+                            await Shell.Current.GoToAsync("///HomePage");
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
+                        }
+                    });
                 });
-            });
+            }
         }
 
         // Splash screen'in ne kadar süre ekranda kalacağını kontrol eden sınıf

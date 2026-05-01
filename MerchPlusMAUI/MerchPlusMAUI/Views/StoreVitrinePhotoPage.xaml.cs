@@ -6,12 +6,15 @@ using entMerchPlus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
 using System.Collections.Generic;
+using MerchPlusMAUI.Services;
+using System;
 
 namespace MerchPlusMAUI.Views
 {
     public partial class StoreVitrinePhotoPage : ContentPage
     {
         private readonly ILogger<StoreVitrinePhotoPage> _logger;
+        private readonly IPhotoGalleryService _photoGalleryService;
         private string _entMemberRouteId;
         private string _storeName = "Mağaza";
         private readonly string _dbPath;
@@ -24,6 +27,7 @@ namespace MerchPlusMAUI.Views
         {
             InitializeComponent();
             _logger = logger;
+            _photoGalleryService = new PhotoGalleryService();
             _dbPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "merchplus.db3");
         }
 
@@ -246,6 +250,27 @@ namespace MerchPlusMAUI.Views
 
                     // Fotoğrafı veritabanına kaydet (Raf fotoğrafı olarak)
                     await SaveShelfPhotoToDatabase(photoBytes);
+
+                    // Fotoğrafı galeriye kaydet
+                    try
+                    {
+                        var fileName = $"MerchPlus_Raf_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+                        var savedToGallery = await _photoGalleryService.SavePhotoToGalleryAsync(photoBytes, fileName);
+                        if (savedToGallery)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Raf fotoğrafı galeriye kaydedildi: {fileName}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("StoreVitrinePhotoPage: Raf fotoğrafı galeriye kaydedilemedi");
+                        }
+                    }
+                    catch (Exception galleryEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"StoreVitrinePhotoPage: Galeri kaydetme hatası: {galleryEx.Message}");
+                        _logger?.LogError(galleryEx, "Error saving photo to gallery");
+                        // Galeri kaydetme hatası kullanıcıyı rahatsız etmesin, sadece log'la
+                    }
 
                     await DisplayAlert("Başarılı", "Raf fotoğrafı başarıyla çekildi ve kaydedildi.", "Tamam");
                 }

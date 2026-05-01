@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
 
@@ -32,11 +32,12 @@
 		<AndroidEnableDeployment Condition="$(TargetFramework.Contains('-android'))">true</AndroidEnableDeployment>
 		<AndroidEnableMultiDex Condition="$(TargetFramework.Contains('-android'))">true</AndroidEnableMultiDex>
 		<!-- Release build için Fast Deployment kapatılmalı -->
-		<AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">true</AndroidUseSharedRuntime>
+		<AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">false</AndroidUseSharedRuntime>
 		<AndroidUseSharedRuntime Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">false</AndroidUseSharedRuntime>
 		<AndroidLinkMode Condition="$(TargetFramework.Contains('-android'))">None</AndroidLinkMode>
 		<!-- Release build için tüm assembly'ler APK'ya gömülmeli -->
-		<EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">false</EmbedAssembliesIntoApk>
+		<EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">true</EmbedAssembliesIntoApk>
+		<AndroidFastDeploymentType Condition="'$(Configuration)' == 'Debug' AND $(TargetFramework.Contains('-android'))">None</AndroidFastDeploymentType>
 		<EmbedAssembliesIntoApk Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">true</EmbedAssembliesIntoApk>
 		<AndroidCreatePackagePerAbi Condition="$(TargetFramework.Contains('-android'))">false</AndroidCreatePackagePerAbi>
 		<!-- AndroidSupportedAbis artık desteklenmiyor, RuntimeIdentifiers kullanılıyor -->
@@ -50,14 +51,14 @@
 		<IsPublishable>true</IsPublishable>
 
 		<!-- Display name -->
-		<ApplicationTitle>MerchPlusMAUI</ApplicationTitle>
+		<ApplicationTitle>MerchPlus</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.merchplusmaui</ApplicationId>
 
-		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>2</ApplicationVersion>
+		<!-- Versions (Play Store: ApplicationVersion = versionCode artan tam sayı; ApplicationDisplayVersion = versionName) -->
+		<ApplicationDisplayVersion>1.4</ApplicationDisplayVersion>
+		<ApplicationVersion>12</ApplicationVersion>
 		
 		<!-- Package formatı: Release için AAB (Google Play Store), Debug için APK -->
 		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
@@ -114,7 +115,7 @@
 	</PropertyGroup>
 
 	<!-- Startup proje ayarı -->
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
 		<AndroidManifest>Platforms\Android\AndroidManifest.xml</AndroidManifest>
@@ -155,6 +156,7 @@
 		<PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.91" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
 	</ItemGroup>
 
 	<!-- Android specific packages -->

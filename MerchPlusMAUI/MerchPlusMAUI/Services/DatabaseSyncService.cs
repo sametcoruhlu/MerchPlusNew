@@ -95,6 +95,9 @@ namespace MerchPlusMAUI.Services
 
             try
             {
+                // Uygulama açılışında 1 günden eski teşhir fotoğrafı kayıtlarını temizle
+                await CleanupOldDisplayPhotosOnStartup();
+
                 // İlk çalışmada 30 saniye bekle - LocationAgentService'in koordinat kaydetmesi için zaman tanı
                 Console.WriteLine("[DatabaseSyncService] İlk senkronizasyon için 30 saniye bekleniyor (LocationAgentService'in koordinat kaydetmesi için)...");
                 _logger.LogInformation("Waiting 30 seconds before first sync to allow LocationAgentService to save coordinates");
@@ -149,6 +152,42 @@ namespace MerchPlusMAUI.Services
         public void Stop()
         {
             _cancellationTokenSource.Cancel();
+        }
+
+        private async Task CleanupOldDisplayPhotosOnStartup()
+        {
+            try
+            {
+                using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+
+                // Tablo yoksa temizleme yapmadan çık
+                var tableExists = db.ExecuteScalar<int>(
+                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='entMemberDisplayPhotos'");
+                if (tableExists == 0)
+                {
+                    _logger.LogInformation("Cleanup skipped: entMemberDisplayPhotos table not found.");
+                    return;
+                }
+
+                var cutoffDate = DateTime.Now.AddDays(-1);
+                var deletedCount = db.Execute(
+                    "DELETE FROM entMemberDisplayPhotos WHERE CreatedOn IS NOT NULL AND CreatedOn < ?",
+                    cutoffDate);
+
+                _logger.LogInformation(
+                    "Startup cleanup completed: deleted {DeletedCount} display photo records older than {CutoffDate}.",
+                    deletedCount,
+                    cutoffDate);
+                Console.WriteLine(
+                    $"[DatabaseSyncService] Startup cleanup: {deletedCount} adet entMemberDisplayPhotos kaydı silindi (CreatedOn < {cutoffDate:yyyy-MM-dd HH:mm:ss})");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during startup cleanup of old display photos.");
+                Console.WriteLine($"[DatabaseSyncService] Startup cleanup error: {ex.Message}");
+            }
+
+            await Task.CompletedTask;
         }
 
         private async Task SyncCoordinates()
@@ -376,6 +415,12 @@ namespace MerchPlusMAUI.Services
                                 // Başarılı - flag'leri güncelle
                                 db.Execute("UPDATE entMemberRoute SET IsSentToServer=? WHERE Id=?", true, route.Id);
                                 db.Execute("UPDATE entMemberRouteDetail SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                                db.Execute("UPDATE entMemberRoutePhoto SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                                db.Execute("UPDATE entSalesOrder SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
+                                db.Execute(
+                                    "UPDATE entSalesOrderDetail SET IsSentToServer=? WHERE SalesOrderId IN (SELECT Id FROM entSalesOrder WHERE MemberRouteId=?)",
+                                    true,
+                                    route.Id);
                                 db.Execute("UPDATE entProductExpiration SET IsSentToServer=? WHERE MemberRouteId=?", true, route.Id);
                                 
                                 _logger.LogInformation($"Successfully synced MemberRoute {route.Id} to server");
@@ -537,114 +582,132 @@ namespace MerchPlusMAUI.Services
                 _logger.LogInformation("Synchronizing data with Server > MemberDisplayPhoto!");
 
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
-                var photos = db.Query<MemberDisplayPhotos>("SELECT * from entMemberDisplayPhotos WHERE IsSentToServer=false");
+                const int displayPhotoBatchSize = 20;
+                var pendingPhotoIds = db.Query<MemberDisplayPhotos>(
+                        "SELECT Id FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY Id")
+                    .Select(x => x.Id)
+                    .ToList();
                 
-                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tabloda {photos.Count} adet gönderilmemiş fotoğraf bulundu");
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tabloda {pendingPhotoIds.Count} adet gönderilmemiş fotoğraf bulundu");
 
-                foreach (var photo in photos)
+                int totalBatches = pendingPhotoIds.Count == 0
+                    ? 0
+                    : (int)Math.Ceiling(pendingPhotoIds.Count / (double)displayPhotoBatchSize);
+
+                for (int i = 0; i < pendingPhotoIds.Count; i += displayPhotoBatchSize)
                 {
-                    try
-                    {
-                        // DisplayPicturePath null/boş kontrolü
-                        if (string.IsNullOrEmpty(photo.DisplayPicturePath))
-                        {
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ UYARI: Fotoğraf Id: {photo.Id} için DisplayPicturePath null veya boş, atlanıyor");
-                            _logger.LogWarning($"Display photo Id: {photo.Id} has null or empty DisplayPicturePath, skipping");
-                            continue; // Bu fotoğrafı atla, bir sonrakine geç
-                        }
-                        
-                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
-                        
-                        // JSON serialize et ve sunucuya gönder
-                        var json = Newtonsoft.Json.JsonConvert.SerializeObject(photo, new Newtonsoft.Json.JsonSerializerSettings
-                        {
-                            NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                            DateFormatString = "yyyy-MM-dd HH:mm:ss"
-                        });
-                        
-                        var content = new StringContent(json, Encoding.UTF8, "application/json");
-                        var httpResponse = await _httpClient2.PostAsync($"api/MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
-                        
-                        string responseString = string.Empty;
-                        if (httpResponse.Content != null)
-                        {
-                            responseString = await httpResponse.Content.ReadAsStringAsync();
-                        }
-                        
-                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response içeriği: {responseString}");
-                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] HTTP Status: {httpResponse.StatusCode}");
+                    var batchIds = pendingPhotoIds.Skip(i).Take(displayPhotoBatchSize).ToList();
+                    var idList = string.Join(",", batchIds);
+                    var photos = db.Query<MemberDisplayPhotos>(
+                        $"SELECT * FROM entMemberDisplayPhotos WHERE Id IN ({idList}) ORDER BY Id");
 
-                        // Response kontrolü
-                        bool isSuccess = false;
-                        
-                        if (httpResponse.IsSuccessStatusCode)
+                    Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Batch {Math.Min(i / displayPhotoBatchSize + 1, totalBatches)}/{totalBatches} (adet: {photos.Count})");
+
+                    foreach (var photo in photos)
+                    {
+                        try
                         {
-                            // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
-                            if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
-                                responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
-                                responseString.Contains("ArgumentNullException", StringComparison.OrdinalIgnoreCase))
+                            // DisplayPicturePath null/boş kontrolü
+                            if (string.IsNullOrEmpty(photo.DisplayPicturePath))
                             {
-                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
-                                isSuccess = false;
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ UYARI: Fotoğraf Id: {photo.Id} için DisplayPicturePath null veya boş, atlanıyor");
+                                _logger.LogWarning($"Display photo Id: {photo.Id} has null or empty DisplayPicturePath, skipping");
+                                continue; // Bu fotoğrafı atla, bir sonrakine geç
                             }
-                            else
+                            
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                            
+                            // JSON serialize et ve sunucuya gönder
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(photo, new Newtonsoft.Json.JsonSerializerSettings
                             {
-                                // Response'u parse et
-                                try
+                                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                                DateFormatString = "yyyy-MM-dd HH:mm:ss"
+                            });
+                            
+                            var content = new StringContent(json, Encoding.UTF8, "application/json");
+                            var httpResponse = await _httpClient2.PostAsync("MemberDisplayPhotosController/InsertMemberDisplayPhotos", content);
+                            
+                            string responseString = string.Empty;
+                            if (httpResponse.Content != null)
+                            {
+                                responseString = await httpResponse.Content.ReadAsStringAsync();
+                            }
+                            
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response içeriği: {responseString}");
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] HTTP Status: {httpResponse.StatusCode}");
+
+                            // Response kontrolü
+                            bool isSuccess = false;
+                            
+                            if (httpResponse.IsSuccessStatusCode)
+                            {
+                                // Önce hata kontrolü yap (ExceptionMessage, "An error has occurred" vb.)
+                                if (responseString.Contains("ExceptionMessage", StringComparison.OrdinalIgnoreCase) ||
+                                    responseString.Contains("An error has occurred", StringComparison.OrdinalIgnoreCase) ||
+                                    responseString.Contains("ArgumentNullException", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    var responseJson = JObject.Parse(responseString);
-                                    var result = responseJson?["Result"]?.ToString();
-                                    
-                                    if (result != null)
+                                    Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Response'da hata mesajı bulundu - başarısız olarak işaretleniyor");
+                                    isSuccess = false;
+                                }
+                                else
+                                {
+                                    // Response'u parse et
+                                    try
                                     {
-                                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response Result: {result}");
-                                        isSuccess = result != "NOK";
+                                        var responseJson = JObject.Parse(responseString);
+                                        var result = responseJson?["Result"]?.ToString();
+                                        
+                                        if (result != null)
+                                        {
+                                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Response Result: {result}");
+                                            isSuccess = result != "NOK";
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response'da 'Result' key'i bulunamadı");
+                                            // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                            isSuccess = true;
+                                        }
                                     }
-                                    else
+                                    catch (Exception parseEx)
                                     {
-                                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response'da 'Result' key'i bulunamadı");
-                                        // Result key'i yoksa ve hata mesajı da yoksa, başarılı say (eski API davranışı)
+                                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response parse edilemedi: {parseEx.Message}");
+                                        // Parse edilemezse ama HTTP başarılıysa, başarılı say
                                         isSuccess = true;
                                     }
                                 }
-                                catch (Exception parseEx)
-                                {
-                                    Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] UYARI: Response parse edilemedi: {parseEx.Message}");
-                                    // Parse edilemezse ama HTTP başarılıysa, başarılı say
-                                    isSuccess = true;
-                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HTTP hatası: {httpResponse.StatusCode}");
+                                _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}, HTTP Status: {httpResponse.StatusCode}");
+                                isSuccess = false;
+                            }
+
+                            if (isSuccess)
+                            {
+                                // Başarılı - IsSentToServer flag'ini güncelle (Id ile güncelle, CustomerProductId ile değil)
+                                db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
+                                    true, photo.Id);
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi");
+                                _logger.LogInformation($"Successfully synced display photo - Id: {photo.Id}");
+                            }
+                            else
+                            {
+                                // Başarısız - IsSentToServer flag'ini geri al
+                                photo.IsSentToServer = false;
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Başarısız - Fotoğraf Id: {photo.Id} sunucuya gönderilemedi");
+                                _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}");
                             }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HTTP hatası: {httpResponse.StatusCode}");
-                            _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}, HTTP Status: {httpResponse.StatusCode}");
-                            isSuccess = false;
-                        }
-
-                        if (isSuccess)
-                        {
-                            // Başarılı - IsSentToServer flag'ini güncelle (Id ile güncelle, CustomerProductId ile değil)
-                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
-                                true, photo.Id);
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi");
-                            _logger.LogInformation($"Successfully synced display photo - Id: {photo.Id}");
-                        }
-                        else
-                        {
-                            // Başarısız - IsSentToServer flag'ini geri al
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HATA (Fotoğraf Id: {photo.Id}): {ex.Message}");
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] StackTrace: {ex.StackTrace}");
+                            _logger.LogError(ex, $"Error syncing display photo - Id: {photo.Id}");
+                            // Hata durumunda IsSentToServer flag'ini geri al
                             photo.IsSentToServer = false;
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ Başarısız - Fotoğraf Id: {photo.Id} sunucuya gönderilemedi");
-                            _logger.LogWarning($"Database Sync Failed > MemberDisplayPhoto - Id: {photo.Id}");
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ❌ HATA (Fotoğraf Id: {photo.Id}): {ex.Message}");
-                        Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] StackTrace: {ex.StackTrace}");
-                        _logger.LogError(ex, $"Error syncing display photo - Id: {photo.Id}");
-                        // Hata durumunda IsSentToServer flag'ini geri al
-                        photo.IsSentToServer = false;
                     }
                 }
                 

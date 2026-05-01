@@ -246,31 +246,25 @@ namespace MerchPlusMAUI.Views
             
             if (!_isInitialized)
             {
-                Console.WriteLine("Waiting for navigation parameters...");
-                
-                // Navigation parametrelerinin set edilmesini bekle
-                int attempts = 0;
-                while (string.IsNullOrEmpty(EntMemberRouteId) && attempts < 10)
+                // OPTİMİZE: Task.Delay polling kaldırıldı
+                // Eğer parametreler zaten set edilmişse direkt devam et
+                if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    await Task.Delay(50);
-                    attempts++;
-                    Console.WriteLine($"Waiting attempt {attempts}/10 - EntMemberRouteId: '{EntMemberRouteId}'");
+                    // Kısa bir süre bekle (navigation tamamlanması için)
+                    await Task.Delay(10);
                 }
                 
-                if (!string.IsNullOrEmpty(EntMemberRouteId))
+                // Eğer hala boşsa, ApplyQueryAttributes tamamlanmamış demektir
+                if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    Console.WriteLine($"Parameters received - EntMemberRouteId: {EntMemberRouteId}");
-                    Console.WriteLine("Initializing ExpirationDatePage...");
-                    
-                    await InitializePageAsync();
-                    _isInitialized = true;
-                }
-                else
-                {
-                    Console.WriteLine("ERROR: Navigation parameters not received after waiting!");
                     await DisplayAlert("Hata", "Mağaza bilgileri alınamadı. Lütfen tekrar deneyin.", "Tamam");
                     await Shell.Current.GoToAsync("..");
+                    return;
                 }
+                
+                // Parametreler hazır, sayfayı başlat
+                await InitializePageAsync();
+                _isInitialized = true;
             }
         }
 

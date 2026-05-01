@@ -90,18 +90,14 @@ namespace MerchPlusMAUI.Views
             // Sayfa başlangıçta görünür olsun (siyah ekranı önlemek için)
             this.Opacity = 1;
             
-            System.Diagnostics.Debug.WriteLine($"StoresPage: OnAppearing called, StoreType = '{StoreType}'");
-            
-            // StoreType'ın set edilmesini bekle (navigation parametreleri için)
-            int attempts = 0;
-            while (string.IsNullOrEmpty(StoreType) && attempts < 10)
+            // OPTİMİZE: Task.Delay polling kaldırıldı - direkt devam et
+            // StoreType zaten ApplyQueryAttributes'te set edilmiş olmalı
+            if (string.IsNullOrEmpty(StoreType))
             {
-                await Task.Delay(50);
-                attempts++;
-                System.Diagnostics.Debug.WriteLine($"StoresPage: Waiting for StoreType (attempt {attempts}/10) - Current: '{StoreType}'");
+                // Eğer boşsa, kısa bir süre bekle (navigation tamamlanması için)
+                await Task.Delay(10);
             }
             
-            System.Diagnostics.Debug.WriteLine($"StoresPage: StoreType after wait: '{StoreType}'");
             UpdatePageTitle();
             
             // Loading overlay'i hemen göster (sayfa render edilmeden önce)

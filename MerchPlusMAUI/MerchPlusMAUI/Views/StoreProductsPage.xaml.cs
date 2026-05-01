@@ -24,6 +24,7 @@ namespace MerchPlusMAUI.Views
         private readonly string _dbPath;
         private bool _isLoading = false;
         private bool _isInitialized = false;
+        private bool _isExitInProgress = false;
         #endregion
 
         #region Properties - Android Intent.GetStringExtra karşılıkları
@@ -223,14 +224,32 @@ namespace MerchPlusMAUI.Views
                 }
                 else
                 {
-                    Console.WriteLine("ERROR: Navigation parameters not received after waiting!");
-                    HideLoadingOverlay();
-                    await ShowErrorAndNavigateBack("Mağaza bilgileri alınamadı. Lütfen tekrar deneyin.");
-                    return;
+                    // Navigation parametresi gelmediyse fallback kaynaklardan route context çöz.
+                    var resolved = await EnsureRouteContextAsync();
+                    if (!resolved)
+                    {
+                        Console.WriteLine("ERROR: Navigation parameters not received and fallback route resolution failed!");
+                        HideLoadingOverlay();
+                        await ShowErrorAndNavigateBack("Mağaza bilgileri alınamadı. Lütfen tekrar deneyin.");
+                        return;
+                    }
+
+                    Console.WriteLine($"Fallback route resolved - EntMemberRouteId: {EntMemberRouteId}, StoreName: {StoreName}");
+                    await InitializePageAsync();
+                    _isInitialized = true;
                 }
             }
             else
             {
+                // Sayfa zaten init edilmiş olsa da route context'in geçerli olduğundan emin ol.
+                var resolved = await EnsureRouteContextAsync();
+                if (!resolved)
+                {
+                    HideLoadingOverlay();
+                    await ShowErrorAndNavigateBack("Mağaza bilgileri doğrulanamadı. Lütfen tekrar deneyin.");
+                    return;
+                }
+
                 // Zaten initialize edilmiş, ama parametrelerin set edilmesini bekle (SalesOrderPage'den geri dönüldüğünde)
                 Console.WriteLine("StoreProductsPage: Already initialized, waiting for parameters to be set...");
                 
@@ -947,6 +966,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                if (!await EnsureRouteContextAsync())
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Mağaza bilgisi doğrulanamadı. Lütfen mağaza listesinden tekrar giriş yapın.", "Tamam");
+                    return;
+                }
+
                 // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
                 
@@ -983,6 +1009,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                if (!await EnsureRouteContextAsync())
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Mağaza bilgisi doğrulanamadı. Lütfen mağaza listesinden tekrar giriş yapın.", "Tamam");
+                    return;
+                }
+
                 // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
                 
@@ -1028,6 +1061,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                if (!await EnsureRouteContextAsync())
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Mağaza bilgisi doğrulanamadı. Lütfen mağaza listesinden tekrar giriş yapın.", "Tamam");
+                    return;
+                }
+
                 // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
                 
@@ -1073,6 +1113,13 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                if (!await EnsureRouteContextAsync())
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Mağaza bilgisi doğrulanamadı. Lütfen mağaza listesinden tekrar giriş yapın.", "Tamam");
+                    return;
+                }
+
                 // Loading overlay göster (hemen görünsün)
                 ShowLoadingOverlay();
                 
@@ -1133,42 +1180,57 @@ namespace MerchPlusMAUI.Views
         // Android: BtnExitShop_Click
         private async Task OnExitShopClickedAsync()
         {
+            if (_isExitInProgress)
+            {
+                _logger.LogInformation("Exit shop click ignored because exit flow is already running.");
+                return;
+            }
+
             try
             {
+                _isExitInProgress = true;
+
+                if (!await EnsureRouteContextAsync())
+                {
+                    HideLoadingOverlay();
+                    await DisplayAlert("Hata", "Mağaza bilgisi doğrulanamadı. Lütfen mağaza listesinden tekrar giriş yapın.", "Tamam");
+                    return;
+                }
+
                 _logger.LogInformation($"Exit shop clicked - EntMemberRouteId: {EntMemberRouteId}");
                 
                 // EntMemberRouteId null kontrolü
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
-                    _logger.LogError("EntMemberRouteId is null or empty in OnExitShopClickedAsync");
+                    _logger.LogError("EntMemberRouteId is null or empty in OnExitShopClickedAsync after validation");
                     await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı. Lütfen sayfayı yeniden yükleyin.", "Tamam");
                     return;
                 }
-                
+
+                // Çıkış: önce yükleme göstergesi (konum + doğrulama uzun sürebilir)
+                await ShowLoadingOverlayAsync("Konum doğrulanıyor...");
+                await Task.Delay(50);
+
                 // Çıkış validasyonu yap
                 var canExit = await ValidateExitShop();
                 if (!canExit)
                 {
-                    return; // Çıkış validasyonu başarısız
+                    await HideLoadingOverlayAsync();
+                    return;
                 }
 
-                // Loading overlay göster (hemen görünsün)
-                ShowLoadingOverlay();
-                
-                // Kısa bir delay ekle ki overlay render edilsin
-                await Task.Delay(100);
-                
-                // Çıkış işlemini tamamla
+                // Kayıt ve sunucu senkronu (overlay zaten açık; CompleteExitShop metni güncelleyecek)
                 await CompleteExitShop();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in OnExitShopClicked");
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    HideLoadingOverlay();
-                    await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
-                });
+                await HideLoadingOverlayAsync();
+                await DisplayAlert("Hata", "Çıkış işleminde hata oluştu.", "Tamam");
+            }
+            finally
+            {
+                _isExitInProgress = false;
             }
         }
 
@@ -1180,11 +1242,23 @@ namespace MerchPlusMAUI.Views
         {
             try
             {
+                // Cikis aninda canli konumu yenile. Eski/stale konumla cikisa izin verme.
+                var locationResult = await TryRefreshCurrentLocationAsync();
+                if (!locationResult.Success)
+                {
+                    await HideLoadingOverlayAsync();
+                    await DisplayAlert("Konum Doğrulanamadı",
+                        locationResult.ErrorMessage,
+                        "Tamam");
+                    return false;
+                }
+                
                 // Koordinat kontrolü
                 if (GlobalVariables.MemberLastCoordinate.Latitude == 0 && GlobalVariables.MemberLastCoordinate.Longitude == 0)
                 {
-                    await DisplayAlert("Koordinatınız Alınamadı", 
-                        "MerchPlus uygulamasını çalıştırdığınızdan bu yana koordinatınız elde edilemedi. Lütfen gökyüzünü gören açık bir alana çıkarak bir süre bekleyiniz ve tekrar giriş yapmayı deneyiniz.", 
+                    await HideLoadingOverlayAsync();
+                    await DisplayAlert("Koordinatınız Alınamadı",
+                        "Guncel konum alinamadi. Lutfen acik alanda GPS'i acip tekrar deneyin.",
                         "Tamam");
                     return false;
                 }
@@ -1195,6 +1269,7 @@ namespace MerchPlusMAUI.Views
                 if (string.IsNullOrEmpty(EntMemberRouteId))
                 {
                     _logger.LogError("EntMemberRouteId is null or empty");
+                    await HideLoadingOverlayAsync();
                     await DisplayAlert("Hata", "Mağaza ID bilgisi bulunamadı.", "Tamam");
                     return false;
                 }
@@ -1206,12 +1281,22 @@ namespace MerchPlusMAUI.Views
                 
                 if (route?.RetailShopId == null)
                 {
+                    await HideLoadingOverlayAsync();
                     await DisplayAlert("Hata", "Mağaza bilgileri bulunamadı.", "Tamam");
                     return false;
                 }
 
                 var retailShop = db.Table<entRetailShop>()
                     .FirstOrDefault(s => s.Id == route.RetailShopId.Value);
+
+                if (retailShop?.CoordinateX == null || retailShop?.CoordinateY == null)
+                {
+                    await HideLoadingOverlayAsync();
+                    await DisplayAlert("Magaza Koordinati Eksik",
+                        "Bu magaza icin koordinat tanimi bulunamadi. Konum dogrulamasi olmadan cikis yapilamaz.",
+                        "Tamam");
+                    return false;
+                }
 
                 if (retailShop?.CoordinateX != null && retailShop?.CoordinateY != null)
                 {
@@ -1233,6 +1318,7 @@ namespace MerchPlusMAUI.Views
 
                     if (distanceMeters > 500)
                     {
+                        await HideLoadingOverlayAsync();
                         await DisplayAlert("UZAKTASINIZ", 
                             $"Bu mağaza için sisteme tanımlı koordinatın yaklaşık olarak {distanceMeters:F2} metre uzağındasınız. Mağazadan çıkış yapabilmek için mağaza yakınında bulunmalısınız.", 
                             "Tamam");
@@ -1247,6 +1333,7 @@ namespace MerchPlusMAUI.Views
 
                 if (photos.Count < 1)
                 {
+                    await HideLoadingOverlayAsync();
                     await DisplayAlert("Raf Düzeni Fotoğrafı Eksik", 
                         "Mağazaya girişinizi fotoğraf çekerek belgelediniz fakat raf düzeninize ait fotoğraf yok.\r\n\r\nÖncelikle fotoğraf çekiniz.", 
                         "Tamam");
@@ -1260,20 +1347,83 @@ namespace MerchPlusMAUI.Views
 
                 if (unenteredProducts.Count > 0)
                 {
+                    await HideLoadingOverlayAsync();
                     var result = await DisplayAlert("Eksik Veri Girişi", 
                         $"Toplam {unenteredProducts.Count} ürünün veri girişini yapmadınız. Çıkmanız halinde eksik ürün girişi yaptığınız yöneticinize bildirilecektir.\r\n\r\nYine de çıkmak istiyor musunuz?", 
                         "ÇIKIŞI ONAYLIYORUM", "VAZGEÇ");
                     
-                    return result;
+                    if (!result)
+                        return false;
+
+                    await ShowLoadingOverlayAsync("Çıkış tamamlanıyor...");
+                    await Task.Delay(50);
+                    return true;
                 }
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    var msg = this.FindByName<Label>("LoadingOverlayMessage");
+                    if (msg != null)
+                        msg.Text = "Çıkış kaydediliyor...";
+                });
 
                 return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Çıkış validasyonu sırasında hata oluştu");
+                await HideLoadingOverlayAsync();
                 await DisplayAlert("Hata", $"Çıkış validasyonu sırasında bir hata oluştu: {ex.Message}", "Tamam");
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Cikis aninda guncel konumu alir ve GlobalVariables'a yazar.
+        /// Basarisiz olursa cikis kontrolu guvenilir olmaz, bu nedenle false doner.
+        /// </summary>
+        private async Task<(bool Success, string ErrorMessage)> TryRefreshCurrentLocationAsync()
+        {
+            try
+            {
+                var permissionStatus = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+                if (permissionStatus != PermissionStatus.Granted)
+                {
+                    permissionStatus = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+                }
+
+                if (permissionStatus != PermissionStatus.Granted)
+                {
+                    return (false, "Konum izni verilmedigi icin magaza cikis konumu dogrulanamadi.");
+                }
+
+                var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(15));
+                var liveLocation = await Geolocation.Default.GetLocationAsync(request);
+
+                if (liveLocation == null)
+                {
+                    // Son bilinen konum ile bir sans daha verelim.
+                    liveLocation = await Geolocation.Default.GetLastKnownLocationAsync();
+                }
+
+                if (liveLocation == null)
+                {
+                    return (false, "Guncel konum alinamadi. Lutfen GPS'i acip acik alanda tekrar deneyin.");
+                }
+
+                GlobalVariables.MemberLastCoordinate = new MerchPlusMAUI.Location
+                {
+                    Latitude = liveLocation.Latitude,
+                    Longitude = liveLocation.Longitude
+                };
+
+                _logger.LogInformation($"Exit validation location refreshed: Lat={liveLocation.Latitude}, Lon={liveLocation.Longitude}");
+                return (true, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "TryRefreshCurrentLocationAsync failed");
+                return (false, "Konum alinirken beklenmeyen bir hata olustu. Lutfen tekrar deneyin.");
             }
         }
 
@@ -1320,14 +1470,26 @@ namespace MerchPlusMAUI.Views
                         // entMemberRoute entity'sinde PrimaryKey tanımlı olmayabilir, bu yüzden direkt SQL ile güncelle
                         try
                         {
-                            db.Execute("UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
-                                route.ExitOn, route.IsSentToServer, route.Id);
-                            _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}");
+                            var affectedRows = db.Execute(
+                                "UPDATE entMemberRoute SET ExitOn = ?, IsSentToServer = ? WHERE Id = ?",
+                                route.ExitOn, false, route.Id);
+                            _logger.LogInformation($"Route SQL ile güncellendi - ID: {route.Id}, AffectedRows: {affectedRows}");
+                            if (affectedRows <= 0)
+                            {
+                                throw new Exception($"Route update affected 0 rows. RouteId={route.Id}");
+                            }
                         }
                         catch (Exception sqlEx)
                         {
                             _logger.LogError(sqlEx, $"SQL güncelleme hatası - ID: {route.Id}");
                             throw; // Hata fırlat
+                        }
+
+                        // Doğrulama: ExitOn gerçekten yazılmış olmalı
+                        var verifyRoute = db.Table<entMemberRoute>().FirstOrDefault(r => r.Id == route.Id);
+                        if (verifyRoute?.ExitOn == null)
+                        {
+                            throw new Exception($"Route verify failed. ExitOn is null for RouteId={route.Id}");
                         }
                         
                         // Çıkış istatistiklerini logla
@@ -1366,6 +1528,8 @@ namespace MerchPlusMAUI.Views
 
                     _logger.LogInformation($"=== MAĞAZA ÇIKIŞ İŞLEMİ TAMAMLANDI ===");
                 });
+
+                await ShowLoadingOverlayAsync("Sunucuya gönderiliyor...");
                 
                 // Verileri sunucuya gönder (CommonFooter'daki SyncData metodunu kullan - güncelle butonu ile aynı mantık)
                 try
@@ -1576,6 +1740,85 @@ namespace MerchPlusMAUI.Views
             return normalized;
         }
 
+        /// <summary>
+        /// Route context'ini doğrular ve eksikse fallback kaynaklardan çözer.
+        /// Bu sayfa route context olmadan çalışmamalıdır.
+        /// </summary>
+        private async Task<bool> EnsureRouteContextAsync()
+        {
+            try
+            {
+                using var db = new SQLiteConnection(_dbPath);
+
+                // 1) Query parametresiyle gelen route id geçerli mi?
+                if (int.TryParse(EntMemberRouteId, out var parsedRouteId))
+                {
+                    var routeFromParam = db.Table<entMemberRoute>().FirstOrDefault(r => r.Id == parsedRouteId);
+                    if (routeFromParam != null)
+                    {
+                        GlobalVariables.CurrentMemberRoute = routeFromParam;
+                        if (string.IsNullOrWhiteSpace(StoreName) && routeFromParam.RetailShopId.HasValue)
+                        {
+                            var shop = db.Table<entRetailShop>().FirstOrDefault(s => s.Id == routeFromParam.RetailShopId.Value);
+                            if (shop != null && !string.IsNullOrWhiteSpace(shop.Name))
+                            {
+                                StoreName = shop.Name;
+                            }
+                        }
+                        return true;
+                    }
+                }
+
+                // 2) GlobalVariables üzerinden çöz
+                if (GlobalVariables.CurrentMemberRoute != null && GlobalVariables.CurrentMemberRoute.Id > 0)
+                {
+                    var routeFromGlobal = db.Table<entMemberRoute>().FirstOrDefault(r => r.Id == GlobalVariables.CurrentMemberRoute.Id);
+                    if (routeFromGlobal != null)
+                    {
+                        EntMemberRouteId = routeFromGlobal.Id.ToString();
+                        GlobalVariables.CurrentMemberRoute = routeFromGlobal;
+                        if (string.IsNullOrWhiteSpace(StoreName) && routeFromGlobal.RetailShopId.HasValue)
+                        {
+                            var shop = db.Table<entRetailShop>().FirstOrDefault(s => s.Id == routeFromGlobal.RetailShopId.Value);
+                            if (shop != null && !string.IsNullOrWhiteSpace(shop.Name))
+                            {
+                                StoreName = shop.Name;
+                            }
+                        }
+                        return true;
+                    }
+                }
+
+                // 3) Aktif rota fallback (Entry var, Exit yok)
+                var activeRoute = db.Query<entMemberRoute>(
+                    "SELECT * FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL ORDER BY EntryOn DESC LIMIT 1")
+                    .FirstOrDefault();
+                if (activeRoute != null)
+                {
+                    EntMemberRouteId = activeRoute.Id.ToString();
+                    GlobalVariables.CurrentMemberRoute = activeRoute;
+                    if (string.IsNullOrWhiteSpace(StoreName) && activeRoute.RetailShopId.HasValue)
+                    {
+                        var shop = db.Table<entRetailShop>().FirstOrDefault(s => s.Id == activeRoute.RetailShopId.Value);
+                        if (shop != null && !string.IsNullOrWhiteSpace(shop.Name))
+                        {
+                            StoreName = shop.Name;
+                        }
+                    }
+                    return true;
+                }
+
+                _logger.LogError("EnsureRouteContextAsync failed: no valid route context found.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "EnsureRouteContextAsync failed with exception");
+                await Task.CompletedTask;
+                return false;
+            }
+        }
+
         private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -1709,47 +1952,51 @@ namespace MerchPlusMAUI.Views
             });
         }
 
-        private void ShowLoadingOverlay()
+        private void ApplyLoadingOverlay(bool visible, string? statusMessage = null)
         {
-            MainThread.BeginInvokeOnMainThread(() =>
+            var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
+            var messageLabel = this.FindByName<Label>("LoadingOverlayMessage");
+
+            if (messageLabel != null)
             {
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                var mainContent = this.FindByName<Grid>("MainContent");
-                
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = true;
-                    loadingOverlay.InputTransparent = false; // Tıklamaları engelle
-                    loadingOverlay.Opacity = 1; // Opacity'yi açıkça 1 yap
+                messageLabel.Text = string.IsNullOrEmpty(statusMessage)
+                    ? "Yükleniyor..."
+                    : statusMessage;
+            }
+
+            if (loadingOverlay != null)
+            {
+                loadingOverlay.IsVisible = visible;
+                loadingOverlay.InputTransparent = !visible;
+                loadingOverlay.Opacity = 1;
+                if (visible)
                     Console.WriteLine("StoreProductsPage: Loading overlay shown");
-                }
-                
-                if (mainContent != null)
-                {
-                    mainContent.IsVisible = false;
-                }
-            });
+                else
+                    Console.WriteLine("StoreProductsPage: Loading overlay hidden");
+            }
+
+            // MainContent'i gizleme: overlay yarı saydam ve üstte; arka plandaki ekran görünsün.
+            // İlk yükleme için MainContent görünürlüğü OnAppearing / LoadProductsFromDatabaseAsync içinde yönetiliyor.
+        }
+
+        private void ShowLoadingOverlay(string? statusMessage = null)
+        {
+            MainThread.BeginInvokeOnMainThread(() => ApplyLoadingOverlay(true, statusMessage));
+        }
+
+        private Task ShowLoadingOverlayAsync(string? statusMessage = null)
+        {
+            return MainThread.InvokeOnMainThreadAsync(() => ApplyLoadingOverlay(true, statusMessage));
         }
 
         private void HideLoadingOverlay()
         {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                var loadingOverlay = this.FindByName<Grid>("LoadingOverlay");
-                var mainContent = this.FindByName<Grid>("MainContent");
-                
-                if (loadingOverlay != null)
-                {
-                    loadingOverlay.IsVisible = false;
-                    loadingOverlay.InputTransparent = true; // Tıklamalara izin ver
-                    Console.WriteLine("StoreProductsPage: Loading overlay hidden");
-                }
-                
-                if (mainContent != null)
-                {
-                    mainContent.IsVisible = true;
-                }
-            });
+            MainThread.BeginInvokeOnMainThread(() => ApplyLoadingOverlay(false));
+        }
+
+        private Task HideLoadingOverlayAsync()
+        {
+            return MainThread.InvokeOnMainThreadAsync(() => ApplyLoadingOverlay(false));
         }
         #endregion
 

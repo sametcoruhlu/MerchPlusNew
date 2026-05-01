@@ -5,7 +5,7 @@
              Title="Ürün Seçimi"
              BackgroundColor="#F8F9FA">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*">
         
         <!-- Header -->
         <Frame Grid.Row="0"
@@ -14,16 +14,47 @@
                CornerRadius="0"
                HasShadow="True"
                Margin="0">
-            <Label Text="Ürün Seçimi"
-                   FontSize="20"
-                   FontAttributes="Bold"
-                   TextColor="White"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"/>
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <!-- İptal -->
+                <Button Grid.Column="0"
+                        Text="İptal"
+                        BackgroundColor="#6C757D"
+                        TextColor="White"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Padding="14,0"
+                        VerticalOptions="Center"
+                        Clicked="OnCancelClicked"/>
+
+                <!-- Title -->
+                <Label Grid.Column="1"
+                       Text="Ürün Seçimi"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"/>
+
+                <!-- Tamam -->
+                <Button Grid.Column="2"
+                        Text="Tamam"
+                        BackgroundColor="#28A745"
+                        TextColor="White"
+                        FontSize="14"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        HeightRequest="40"
+                        Padding="14,0"
+                        VerticalOptions="Center"
+                        Clicked="OnOkClicked"/>
+            </Grid>
         </Frame>
 
         <!-- Product List -->
-        <Grid Grid.Row="1" Padding="20">
+        <Grid Grid.Row="1" Padding="20,20,20,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -74,39 +105,6 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </Grid>
-
-        <!-- Bottom Buttons -->
-        <Frame Grid.Row="2"
-               BackgroundColor="#343A40"
-               Padding="20,15"
-               CornerRadius="0"
-               HasShadow="True">
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-                
-                <!-- İptal Butonu -->
-                <Button Grid.Column="0"
-                        Text="İptal"
-                        BackgroundColor="#6C757D"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnCancelClicked"/>
-                
-                <!-- Tamam Butonu -->
-                <Button Grid.Column="1"
-                        Text="Tamam"
-                        BackgroundColor="#28A745"
-                        TextColor="White"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        CornerRadius="8"
-                        HeightRequest="50"
-                        Clicked="OnOkClicked"/>
-                        
-            </Grid>
-        </Frame>
 
     </Grid>
 </ContentPage>

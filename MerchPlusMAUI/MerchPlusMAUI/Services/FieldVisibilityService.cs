@@ -17,15 +17,15 @@ namespace MerchPlusMAUI.Services
         public FieldVisibilityService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            // Gerçek servis URL'si - SelectByCustomerId methodu için
-            _serviceUrl = "http://merchplus.net/api2/api/CustomerFormFieldVisibility/SelectByCustomerId";
+            // Primary URL: app genelinde kullanılan APIPath2 ile aynı backend.
+            _serviceUrl = $"{GlobalVariables.APIPath2.TrimEnd('/')}/CustomerFormFieldVisibility/SelectByCustomerId";
         }
 
         public async Task<FieldVisibilityModel?> GetFieldVisibilityAsync(int customerId)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"FieldVisibilityService.GetFieldVisibilityAsync: Servis URL: {_serviceUrl}");
+                System.Diagnostics.Debug.WriteLine($"FieldVisibilityService.GetFieldVisibilityAsync: Servis URL (primary): {_serviceUrl}");
                 System.Diagnostics.Debug.WriteLine($"FieldVisibilityService.GetFieldVisibilityAsync: CustomerId: {customerId}");
                 
                 // POST request için JSON body oluştur

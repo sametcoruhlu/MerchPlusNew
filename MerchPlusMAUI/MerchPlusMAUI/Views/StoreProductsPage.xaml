@@ -320,7 +320,8 @@
                                        Color="#DC3545" 
                                        WidthRequest="40" 
                                        HeightRequest="40"/>
-                    <Label Text="Yükleniyor..." 
+                    <Label x:Name="LoadingOverlayMessage"
+                           Text="Yükleniyor..." 
                            FontSize="14" 
                            TextColor="#343A40" 
                            HorizontalOptions="Center"/>

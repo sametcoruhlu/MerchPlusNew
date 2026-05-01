@@ -210,6 +210,7 @@ namespace MerchPlusMAUI.Views
                     try
                     {
                         await GetDataForToday();
+                        await EnsureCurrentMemberRouteFromDatabase();
                         _logger.LogInformation("Data synchronization completed successfully");
                     }
                     catch (Exception ex)
@@ -348,6 +349,62 @@ namespace MerchPlusMAUI.Views
             {
                 _logger.LogError(ex, "Critical error in InitializeAppAsync");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Uygulama ilk acilisinda CurrentMemberRoute context'ini merkezi olarak kurar.
+        /// Oncelik:
+        /// 1) Aktif rota (EntryOn != null ve ExitOn == null)
+        /// 2) Tamamlanmamis rota (ExitOn == null) - OrderIndex artan
+        /// 3) Herhangi bir rota - OrderIndex artan
+        /// </summary>
+        private async Task EnsureCurrentMemberRouteFromDatabase()
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+
+                    entMemberRoute? selectedRoute = null;
+
+                    // 1) Aktif rota
+                    selectedRoute = db.Query<entMemberRoute>(
+                        "SELECT * FROM entMemberRoute WHERE EntryOn IS NOT NULL AND ExitOn IS NULL ORDER BY EntryOn DESC LIMIT 1")
+                        .FirstOrDefault();
+
+                    // 2) Tamamlanmamis rota
+                    if (selectedRoute == null)
+                    {
+                        selectedRoute = db.Query<entMemberRoute>(
+                            "SELECT * FROM entMemberRoute WHERE ExitOn IS NULL ORDER BY IFNULL(OrderIndex, 999999), Id LIMIT 1")
+                            .FirstOrDefault();
+                    }
+
+                    // 3) Herhangi bir rota
+                    if (selectedRoute == null)
+                    {
+                        selectedRoute = db.Query<entMemberRoute>(
+                            "SELECT * FROM entMemberRoute ORDER BY IFNULL(OrderIndex, 999999), Id LIMIT 1")
+                            .FirstOrDefault();
+                    }
+
+                    if (selectedRoute != null)
+                    {
+                        GlobalVariables.CurrentMemberRoute = selectedRoute;
+                        _logger.LogInformation(
+                            $"CurrentMemberRoute initialized from DB. RouteId={selectedRoute.Id}, EntryOn={selectedRoute.EntryOn}, ExitOn={selectedRoute.ExitOn}, OrderIndex={selectedRoute.OrderIndex}");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("CurrentMemberRoute could not be initialized: entMemberRoute table has no rows.");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "EnsureCurrentMemberRouteFromDatabase failed");
             }
         }
 
@@ -1525,6 +1582,10 @@ namespace MerchPlusMAUI.Views
                     }
                     #endregion
 
+                    // Existing tables might come from older schema versions.
+                    // Ensure sync-related columns exist before any pending-data query runs.
+                    EnsureSyncColumns(db);
+
                     // Clean up specific records
                     try
                     {
@@ -1549,6 +1610,52 @@ namespace MerchPlusMAUI.Views
                 _logger.LogError(ex, "Error in CreateTablesForFirstUse");
                 throw new Exception($"Tablo oluşturma hatası: {ex.Message}", ex);
             }
+        }
+
+        private void EnsureSyncColumns(SQLiteConnection db)
+        {
+            try
+            {
+                EnsureColumn(db, "entSalesOrder", "IsSentToServer", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(db, "entSalesOrder", "SentToServerOn", "TEXT NULL");
+                EnsureColumn(db, "entSalesOrderDetail", "IsSentToServer", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(db, "entSalesOrderDetail", "SentToServerOn", "TEXT NULL");
+                EnsureColumn(db, "entMemberRoutePhoto", "IsSentToServer", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(db, "entProductExpiration", "IsSentToServer", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(db, "entProductExpiration", "SentToServerOn", "TEXT NULL");
+                EnsureColumn(db, "entMemberDisplayPhotos", "IsSentToServer", "INTEGER NOT NULL DEFAULT 0");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Schema migration failed in EnsureSyncColumns");
+                throw;
+            }
+        }
+
+        private void EnsureColumn(SQLiteConnection db, string tableName, string columnName, string definition)
+        {
+            if (TableExists(db, tableName) && !ColumnExists(db, tableName, columnName))
+            {
+                db.Execute($"ALTER TABLE {tableName} ADD COLUMN {columnName} {definition}");
+                _logger.LogInformation($"Schema updated: {tableName}.{columnName} column added");
+            }
+        }
+
+        private bool TableExists(SQLiteConnection db, string tableName)
+        {
+            var count = db.ExecuteScalar<int>("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?", tableName);
+            return count > 0;
+        }
+
+        private bool ColumnExists(SQLiteConnection db, string tableName, string columnName)
+        {
+            var columns = db.Query<PragmaColumnInfo>($"PRAGMA table_info({tableName})");
+            return columns.Any(c => string.Equals(c.name, columnName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private sealed class PragmaColumnInfo
+        {
+            public string name { get; set; } = string.Empty;
         }
 
         private async Task GetDataForToday()
@@ -2021,6 +2128,16 @@ namespace MerchPlusMAUI.Views
             try
             {
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                
+                // Eğer bu mağaza için profil resmi zaten indirilmişse yeniden indirmeye gerek yok
+                var existing = db.Table<MerchPlusMAUI.Models.entRetailProfilePicture>()
+                                 .FirstOrDefault(p => p.RetailId == retail.Id);
+                if (existing != null && !string.IsNullOrEmpty(existing.ProfilePictureBase64))
+                {
+                    _logger.LogDebug($"Retail profile picture already exists in DB, skipping download. RetailId={retail.Id}");
+                    return;
+                }
+
                 using var webClient = new HttpClient();
                 
                 byte[] imageBytes = await webClient.GetByteArrayAsync(GlobalVariables.WebsitePath + retail.ProfilePicturePath);
@@ -2046,6 +2163,16 @@ namespace MerchPlusMAUI.Views
             try
             {
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                
+                // Eğer bu ürün için resim zaten indirilmişse yeniden indirme
+                var existing = db.Table<entCustomerProductPicture>()
+                                 .FirstOrDefault(p => p.CustomerProductId == product.Id);
+                if (existing != null && !string.IsNullOrEmpty(existing.CustomerProductPictureBase64))
+                {
+                    _logger.LogDebug($"Product picture already exists in DB, skipping download. ProductId={product.Id}");
+                    return;
+                }
+
                 using var webClient = new HttpClient();
                 
                 byte[] imageBytes = await webClient.GetByteArrayAsync(GlobalVariables.WebsitePath + product.ProfilePicturePath);
