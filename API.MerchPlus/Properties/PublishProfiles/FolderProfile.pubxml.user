@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\GIT\MerchPlusNew\API.MerchPlus\bin\app.publish\</_PublishTargetUrl>
-    <History>True|2025-02-02T13:57:14.6477651Z||;True|2025-01-21T00:02:24.4331452+03:00||;True|2024-11-02T14:56:07.2752265+03:00||;True|2024-10-28T00:06:46.2308398+03:00||;True|2024-10-27T22:48:03.4515368+03:00||;True|2024-10-27T22:46:30.1028247+03:00||;True|2024-10-27T22:44:11.4342146+03:00||;</History>
+    <History>True|2025-09-01T19:18:07.3762192Z||;True|2025-08-26T22:17:57.9681448+03:00||;True|2025-02-02T16:57:14.6477651+03:00||;True|2025-01-21T00:02:24.4331452+03:00||;True|2024-11-02T14:56:07.2752265+03:00||;True|2024-10-28T00:06:46.2308398+03:00||;True|2024-10-27T22:48:03.4515368+03:00||;True|2024-10-27T22:46:30.1028247+03:00||;True|2024-10-27T22:44:11.4342146+03:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -79,22 +79,22 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/09/2024 21:41:23</publishTime>
     </File>
     <File Include="bin/API.MerchPlus.dll">
-      <publishTime>02/02/2025 17:10:40</publishTime>
+      <publishTime>09/01/2025 22:18:06</publishTime>
     </File>
     <File Include="bin/API.MerchPlus.pdb">
-      <publishTime>02/02/2025 17:10:40</publishTime>
+      <publishTime>09/01/2025 22:18:06</publishTime>
     </File>
     <File Include="bin/busMerchPlus.dll">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>09/01/2025 22:18:00</publishTime>
     </File>
     <File Include="bin/busMerchPlus.pdb">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>09/01/2025 22:18:00</publishTime>
     </File>
     <File Include="bin/datMerchPlus.dll">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>09/01/2025 22:17:59</publishTime>
     </File>
     <File Include="bin/datMerchPlus.pdb">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>09/01/2025 22:17:59</publishTime>
     </File>
     <File Include="bin/EntityFramework.dll">
       <publishTime>12/09/2024 21:41:23</publishTime>
@@ -103,10 +103,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/09/2024 21:41:23</publishTime>
     </File>
     <File Include="bin/entMerchPlus.dll">
-      <publishTime>12/09/2024 23:01:33</publishTime>
+      <publishTime>09/01/2025 22:17:59</publishTime>
     </File>
     <File Include="bin/entMerchPlus.pdb">
-      <publishTime>12/09/2024 23:01:33</publishTime>
+      <publishTime>09/01/2025 22:17:59</publishTime>
     </File>
     <File Include="bin/Infrastructure.dll">
       <publishTime>01/21/2025 00:02:16</publishTime>
@@ -280,10 +280,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/09/2024 21:41:24</publishTime>
     </File>
     <File Include="bin/SqlHelper.dll">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>08/26/2025 22:17:49</publishTime>
     </File>
     <File Include="bin/SqlHelper.pdb">
-      <publishTime>02/02/2025 16:57:09</publishTime>
+      <publishTime>08/26/2025 22:17:49</publishTime>
     </File>
     <File Include="bin/System.Buffers.dll">
       <publishTime>11/13/2024 00:47:04</publishTime>
@@ -562,7 +562,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>12/09/2024 21:41:02</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>02/02/2025 16:57:14</publishTime>
+      <publishTime>08/26/2025 22:17:57</publishTime>
     </File>
   </ItemGroup>
 </Project>

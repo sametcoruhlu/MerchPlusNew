@@ -306,6 +306,7 @@
     <Compile Include="Controllers\MemberController.cs" />
     <Compile Include="Controllers\MemberTitleController.cs" />
     <Compile Include="Controllers\MemberCustomerController.cs" />
+    <Compile Include="Controllers\CustomerFormFieldVisibilityController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

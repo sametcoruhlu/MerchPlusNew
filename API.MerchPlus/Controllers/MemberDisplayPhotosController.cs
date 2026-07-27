@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Configuration;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace API.MerchPlus.Controllers
 {
@@ -23,44 +24,80 @@ namespace API.MerchPlus.Controllers
         public JObject InsertMemberDisplayPhotos(JObject data)
         {
 
-            JObject returnJson;
             dynamic json = data;
-
-            #region Business Logic
-            string fileName = Guid.NewGuid().ToString() + ".jpg";
-            string filePath = ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"] + fileName;
-            string url = ConfigurationManager.AppSettings["DisplayPhotosBaseURL"] + fileName;
-
-            busMemberDisplayPhotos insBusMemberDisplayPhotos = new busMemberDisplayPhotos();
-            entMemberDisplayPhotos insEntMemberDisplayPhotos = new entMemberDisplayPhotos();
-
-            insEntMemberDisplayPhotos.DisplayPicturePath = url;
-            insEntMemberDisplayPhotos.IsSentToServer = true;
-            insEntMemberDisplayPhotos.MemberId = Convert.ToString(json.MemberId);
-            insEntMemberDisplayPhotos.CreatedOn = Convert.ToDateTime(json.CreatedOn);
-            insEntMemberDisplayPhotos.MemberRouteId = Convert.ToInt32(json.MemberRouteId);
-            insEntMemberDisplayPhotos.CustomerProductId = Convert.ToInt32(json.CustomerProductId);
-            insEntMemberDisplayPhotos.PromotionTypeId = Convert.ToInt32(json.PromotionTypeId);
-
-            byte[] bytes = Convert.FromBase64String(Convert.ToString(json.DisplayPicturePath));
-            File.WriteAllBytes(filePath, bytes);
-
-            DataTable insDt = new DataTable();
-            insBusMemberDisplayPhotos.InsertMemberDisplayPhotos(insEntMemberDisplayPhotos);
-            if (insBusMemberDisplayPhotos.HasErrors)
+            try
             {
-                returnJson = new JObject(new JProperty("Result", "NOK"),
-                                            new JProperty("Reason", "ERROR OCCURED DURING PROCESS"),
-                                            new JProperty("Details", insBusMemberDisplayPhotos.ErrorMessage)
-                                            );
-                return returnJson;
+                string physicalRoot = ConfigurationManager.AppSettings["DisplayPhotosPhysicalPath"];
+                string baseUrl = ConfigurationManager.AppSettings["DisplayPhotosBaseURL"];
+                if (string.IsNullOrWhiteSpace(physicalRoot) || string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    return new JObject(
+                        new JProperty("Result", "NOK"),
+                        new JProperty("Reason", "CONFIG_ERROR"),
+                        new JProperty("Details", "DisplayPhotosPhysicalPath veya DisplayPhotosBaseURL boş.")
+                    );
+                }
+                // Base64 -> bytes
+                byte[] bytes = Convert.FromBase64String(Convert.ToString(json.DisplayPicturePath));
+                // Aynı içerik için aynı dosya adı
+                string hashHex;
+                using (var sha = SHA256.Create())
+                {
+                    hashHex = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+                }
+                string fileName = hashHex + ".jpg";
+                string filePath = Path.Combine(physicalRoot, fileName);
+                string url = baseUrl.TrimEnd('/') + "/" + fileName;
+                // Fiziksel çoğalmayı engelle
+                if (!File.Exists(filePath))
+                {
+                    Directory.CreateDirectory(physicalRoot);
+                    File.WriteAllBytes(filePath, bytes);
+                }
+                // DB kaydı
+                busMemberDisplayPhotos insBusMemberDisplayPhotos = new busMemberDisplayPhotos();
+                entMemberDisplayPhotos insEntMemberDisplayPhotos = new entMemberDisplayPhotos
+                {
+                    DisplayPicturePath = url,
+                    IsSentToServer = true,
+                    MemberId = Convert.ToString(json.MemberId),
+                    CreatedOn = Convert.ToDateTime(json.CreatedOn),
+                    MemberRouteId = Convert.ToInt32(json.MemberRouteId),
+                    CustomerProductId = Convert.ToInt32(json.CustomerProductId),
+                    PromotionTypeId = Convert.ToInt32(json.PromotionTypeId)
+                };
+                insBusMemberDisplayPhotos.InsertMemberDisplayPhotos(insEntMemberDisplayPhotos);
+                if (insBusMemberDisplayPhotos.HasErrors)
+                {
+                    return new JObject(
+                        new JProperty("Result", "NOK"),
+                        new JProperty("Reason", "ERROR OCCURED DURING PROCESS"),
+                        new JProperty("Details", insBusMemberDisplayPhotos.ErrorMessage)
+                    );
+                }
+                // Eski davranışı korumak için boş DataTable response
+                DataTable insDt = new DataTable();
+                return new JObject(
+                    new JProperty("Result", "OK"),
+                    new JProperty("Content", JArray.Parse(JsonConvert.SerializeObject(insDt)))
+                );
             }
-            returnJson = new JObject(
-                                        new JProperty("Result", "OK"),
-                                        new JProperty("Content", JArray.Parse(JsonConvert.SerializeObject(insDt)))
-                                        );
-            return returnJson;
-            #endregion
+            catch (FormatException ex)
+            {
+                return new JObject(
+                    new JProperty("Result", "NOK"),
+                    new JProperty("Reason", "INVALID_BASE64"),
+                    new JProperty("Details", ex.Message)
+                );
+            }
+            catch (Exception ex)
+            {
+                return new JObject(
+                    new JProperty("Result", "NOK"),
+                    new JProperty("Reason", "UNEXPECTED_ERROR"),
+                    new JProperty("Details", ex.Message)
+                );
+            }
         }
     }
 }
