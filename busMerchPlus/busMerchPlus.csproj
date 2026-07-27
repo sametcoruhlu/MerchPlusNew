@@ -79,6 +79,7 @@
     <Compile Include="busSalesOrder.cs" />
     <Compile Include="busSalesOrderDetail.cs" />
     <Compile Include="busSalesOrderPackageType.cs" />
+    <Compile Include="busCustomerFormFieldVisibility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

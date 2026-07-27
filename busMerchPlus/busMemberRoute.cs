@@ -166,10 +166,10 @@ namespace busMerchPlus
                 insEntMemberRoute.EntryCoordinateX = Convert.ToDecimal(memberRoute.EntryCoordinateX);
                 insEntMemberRoute.EntryCoordinateY = Convert.ToDecimal(memberRoute.EntryCoordinateY);
                 insEntMemberRoute.EntryOn = Convert.ToDateTime(memberRoute.EntryOn);
-                insEntMemberRoute.ExitOn = Convert.ToDateTime(memberRoute.ExitOn);
+                insEntMemberRoute.ExitOn = memberRoute.ExitOn != null ? Convert.ToDateTime(memberRoute.ExitOn) : (DateTime?)null;
                 insEntMemberRoute.IsSentToServer = true;
                 insEntMemberRoute.SentToServerOn = DateTime.Now;
-                insEntMemberRoute.TotalTimeSpent = Convert.ToInt32((insEntMemberRoute.ExitOn.Value - insEntMemberRoute.EntryOn.Value).TotalMinutes);
+                insEntMemberRoute.TotalTimeSpent = insEntMemberRoute.ExitOn != null && insEntMemberRoute.EntryOn != null ? Convert.ToInt32((insEntMemberRoute.ExitOn.Value - insEntMemberRoute.EntryOn.Value).TotalMinutes) :(int?) null;
 
                 string fileName1 = Guid.NewGuid().ToString() + ".jpg";
                 string filePath1 = ConfigurationManager.AppSettings["ShopPhotosPhysicalPath"] + fileName1;

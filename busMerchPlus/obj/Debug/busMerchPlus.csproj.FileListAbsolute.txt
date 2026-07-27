@@ -15,6 +15,8 @@ C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\busMerchPlus\obj\Debug\busMer
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\busMerchPlus\obj\Debug\busMerch.067004C0.Up2Date
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\busMerchPlus\obj\Debug\busMerchPlus.dll
 C:\Users\samet\Downloads\MERCH\MERCH\MerchPlus_New\busMerchPlus\obj\Debug\busMerchPlus.pdb
+D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.csproj.AssemblyReference.cache
+D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.csproj.CoreCompileInputs.cache
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\busMerchPlus.dll
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\busMerchPlus.pdb
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\datMerchPlus.dll
@@ -27,8 +29,6 @@ D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\entMerchPlus.pdb
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\Infrastructure.pdb
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\SqlHelper.pdb
 D:\GIT\MerchPlusNew\busMerchPlus\bin\Debug\Newtonsoft.Json.xml
-D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.csproj.AssemblyReference.cache
-D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.csproj.CoreCompileInputs.cache
 D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerch.067004C0.Up2Date
 D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.dll
 D:\GIT\MerchPlusNew\busMerchPlus\obj\Debug\busMerchPlus.pdb
