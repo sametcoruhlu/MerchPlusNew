@@ -60,6 +60,7 @@
     <Compile Include="entCustomerBrandPool.cs" />
     <Compile Include="entCustomerProduct.cs" />
     <Compile Include="entCustomerProductCompetitor.cs" />
+    <Compile Include="entCustomerFormFieldVisibility.cs" />
     <Compile Include="entCustomerProductRetailShop.cs" />
     <Compile Include="entDeviceModel.cs" />
     <Compile Include="entDistrict.cs" />

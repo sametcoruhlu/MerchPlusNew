@@ -253,6 +253,11 @@ namespace entMerchPlus
             set { memDiscountedPrice = value; }
         }
 
+        /// <summary>
+        /// [IsProductAvailable] column that will hold value from database table [MemberRouteDetail]
+        /// </summary>
+        private bool? memIsProductAvailable;
+
         #endregion
         #region CONSTRUCTORS
         /// <summary>
