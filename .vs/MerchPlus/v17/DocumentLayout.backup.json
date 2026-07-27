@@ -1,0 +1,197 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\GIT\\MerchPlusNew\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|d:\\git\\merchplusnew\\api.merchplus\\controllers\\memberdisplayphotoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|solutionrelative:api.merchplus\\controllers\\memberdisplayphotoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3CE560F6-245A-40FE-BDD6-4B7542075B33}|busMerchPlus\\busMerchPlus.csproj|D:\\GIT\\MerchPlusNew\\busmerchplus\\buscustomerformfieldvisibility.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3CE560F6-245A-40FE-BDD6-4B7542075B33}|busMerchPlus\\busMerchPlus.csproj|solutionrelative:busmerchplus\\buscustomerformfieldvisibility.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\api.merchplus\\controllers\\customerformfieldvisibilitycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|solutionrelative:api.merchplus\\controllers\\customerformfieldvisibilitycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\api.merchplus\\controllers\\retailcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|solutionrelative:api.merchplus\\controllers\\retailcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\api.merchplus\\app_start\\webapiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|solutionrelative:api.merchplus\\app_start\\webapiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\api.merchplus\\app_start\\routeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5819E390-6777-46C0-8F57-979818EBCDFD}|API.MerchPlus\\API.MerchPlus.csproj|solutionrelative:api.merchplus\\app_start\\routeconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{79D07370-3C22-4F53-9E2F-402841EE40C8}|WEB.MerchPlus\\WEB.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\web.merchplus\\controllers\\__global.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{79D07370-3C22-4F53-9E2F-402841EE40C8}|WEB.MerchPlus\\WEB.MerchPlus.csproj|solutionrelative:web.merchplus\\controllers\\__global.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{79D07370-3C22-4F53-9E2F-402841EE40C8}|WEB.MerchPlus\\WEB.MerchPlus.csproj|D:\\GIT\\MerchPlusNew\\web.merchplus\\controllers\\customerselectcontroller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{79D07370-3C22-4F53-9E2F-402841EE40C8}|WEB.MerchPlus\\WEB.MerchPlus.csproj|solutionrelative:web.merchplus\\controllers\\customerselectcontroller.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3CE560F6-245A-40FE-BDD6-4B7542075B33}|busMerchPlus\\busMerchPlus.csproj|D:\\GIT\\MerchPlusNew\\busmerchplus\\busmemberroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3CE560F6-245A-40FE-BDD6-4B7542075B33}|busMerchPlus\\busMerchPlus.csproj|solutionrelative:busmerchplus\\busmemberroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A213226F-2BC7-479D-9CC2-03389C055CFD}|datMerchPlus\\datMerchPlus.csproj|D:\\GIT\\MerchPlusNew\\datmerchplus\\datmemberroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A213226F-2BC7-479D-9CC2-03389C055CFD}|datMerchPlus\\datMerchPlus.csproj|solutionrelative:datmerchplus\\datmemberroute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:3:0:{57d563b6-44a5-47df-85be-f4199ad6b651}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MemberDisplayPhotosController.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\MemberDisplayPhotosController.cs",
+              "RelativeDocumentMoniker": "API.MerchPlus\\Controllers\\MemberDisplayPhotosController.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\MemberDisplayPhotosController.cs",
+              "RelativeToolTip": "API.MerchPlus\\Controllers\\MemberDisplayPhotosController.cs",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAowEcAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-23T11:31:01.385Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RetailController.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\RetailController.cs",
+              "RelativeDocumentMoniker": "API.MerchPlus\\Controllers\\RetailController.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\RetailController.cs",
+              "RelativeToolTip": "API.MerchPlus\\Controllers\\RetailController.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAqwBYAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-30T17:56:58.78Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "WebApiConfig.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\App_Start\\WebApiConfig.cs",
+              "RelativeDocumentMoniker": "API.MerchPlus\\App_Start\\WebApiConfig.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\App_Start\\WebApiConfig.cs",
+              "RelativeToolTip": "API.MerchPlus\\App_Start\\WebApiConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-06T18:51:43.223Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "RouteConfig.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\App_Start\\RouteConfig.cs",
+              "RelativeDocumentMoniker": "API.MerchPlus\\App_Start\\RouteConfig.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\App_Start\\RouteConfig.cs",
+              "RelativeToolTip": "API.MerchPlus\\App_Start\\RouteConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-06T18:51:06.675Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "__Global.js",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\WEB.MerchPlus\\Controllers\\__Global.js",
+              "RelativeDocumentMoniker": "WEB.MerchPlus\\Controllers\\__Global.js",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\WEB.MerchPlus\\Controllers\\__Global.js",
+              "RelativeToolTip": "WEB.MerchPlus\\Controllers\\__Global.js",
+              "ViewState": "AgIAAAYAAAAAAAAAAAApwBkAAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-06T16:55:35.246Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "CustomerSelectController.js",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\WEB.MerchPlus\\Controllers\\CustomerSelectController.js",
+              "RelativeDocumentMoniker": "WEB.MerchPlus\\Controllers\\CustomerSelectController.js",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\WEB.MerchPlus\\Controllers\\CustomerSelectController.js",
+              "RelativeToolTip": "WEB.MerchPlus\\Controllers\\CustomerSelectController.js",
+              "ViewState": "AgIAACgAAAAAAAAAAAApwDsAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-09-06T16:55:12.613Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CustomerFormFieldVisibilityController.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\CustomerFormFieldVisibilityController.cs",
+              "RelativeDocumentMoniker": "API.MerchPlus\\Controllers\\CustomerFormFieldVisibilityController.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\API.MerchPlus\\Controllers\\CustomerFormFieldVisibilityController.cs",
+              "RelativeToolTip": "API.MerchPlus\\Controllers\\CustomerFormFieldVisibilityController.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAAAF8AAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-17T15:47:24.685Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "busCustomerFormFieldVisibility.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\busMerchPlus\\busCustomerFormFieldVisibility.cs",
+              "RelativeDocumentMoniker": "busMerchPlus\\busCustomerFormFieldVisibility.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\busMerchPlus\\busCustomerFormFieldVisibility.cs",
+              "RelativeToolTip": "busMerchPlus\\busCustomerFormFieldVisibility.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAAawC4AAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-17T14:10:55.007Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "busMemberRoute.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\busMerchPlus\\busMemberRoute.cs",
+              "RelativeDocumentMoniker": "busMerchPlus\\busMemberRoute.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\busMerchPlus\\busMemberRoute.cs",
+              "RelativeToolTip": "busMerchPlus\\busMemberRoute.cs",
+              "ViewState": "AgIAAKwAAAAAAAAAAAAAAKsAAADiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-07T22:07:44.942Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "datMemberRoute.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\datMerchPlus\\datMemberRoute.cs",
+              "RelativeDocumentMoniker": "datMerchPlus\\datMemberRoute.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\datMerchPlus\\datMemberRoute.cs",
+              "RelativeToolTip": "datMerchPlus\\datMemberRoute.cs",
+              "ViewState": "AgIAAIYAAAAAAAAAAAAjwI8AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-07T21:07:34.102Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
