@@ -27,11 +27,18 @@ namespace MerchPlusMAUI.Services
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private bool _isRunning;
+        private static bool _startupCleanupExecuted;
         
         private const int COORDINATE_SYNC_INTERVAL = 300000; // 5 minutes
         private const int ROUTE_SYNC_INTERVAL = 360000; // 6 minutes
         private const int PHOTO_SYNC_INTERVAL = 360000; // 6 minutes
         private const int DB_CHECK_INTERVAL = 15000; // 15 seconds
+        private static readonly HashSet<string> StartupCleanupTables = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "entMemberDisplayPhotos",
+            "entMemberCoordinate",
+            "entMemberRoutePhoto"
+        };
 
         public DatabaseSyncService(ILogger<DatabaseSyncService> logger)
         {
@@ -95,17 +102,31 @@ namespace MerchPlusMAUI.Services
 
             try
             {
-                // Uygulama açılışında 1 günden eski teşhir fotoğrafı kayıtlarını temizle
-                await CleanupOldDisplayPhotosOnStartup();
+                // Uygulama process'i içinde yalnızca ilk açılışta cleanup çalışsın.
+                if (!_startupCleanupExecuted)
+                {
+                    Console.WriteLine($"[DatabaseSyncService] Startup cleanup tetiklendi (process-first-run) - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    _startupCleanupExecuted = true;
+                    await CleanupOldRecordsOnStartup();
+                }
+                else
+                {
+                    Console.WriteLine($"[DatabaseSyncService] Startup cleanup atlandı (bu process'te daha önce çalıştı) - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                }
 
                 // İlk çalışmada 30 saniye bekle - LocationAgentService'in koordinat kaydetmesi için zaman tanı
                 Console.WriteLine("[DatabaseSyncService] İlk senkronizasyon için 30 saniye bekleniyor (LocationAgentService'in koordinat kaydetmesi için)...");
                 _logger.LogInformation("Waiting 30 seconds before first sync to allow LocationAgentService to save coordinates");
                 await Task.Delay(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
                 
+                int syncCycle = 0;
                 while (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
+                    syncCycle++;
+                    Console.WriteLine($"[DatabaseSyncService] Periyodik senkron döngüsü başladı (Cycle: {syncCycle}) - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
                     await SyncData();
+                    Console.WriteLine($"[DatabaseSyncService] Periyodik senkron döngüsü tamamlandı (Cycle: {syncCycle}) - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                    Console.WriteLine("[DatabaseSyncService] Bir sonraki döngü için 5 dakika bekleniyor...");
                     await Task.Delay(TimeSpan.FromMinutes(5), _cancellationTokenSource.Token);
                 }
             }
@@ -154,36 +175,65 @@ namespace MerchPlusMAUI.Services
             _cancellationTokenSource.Cancel();
         }
 
-        private async Task CleanupOldDisplayPhotosOnStartup()
+        private async Task CleanupOldRecordsOnStartup()
         {
             try
             {
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
+                var cutoffDate = DateTime.Now.AddDays(-1);
+                var totalDeletedCount = 0;
+                Console.WriteLine($"[DatabaseSyncService] Startup cleanup kapsamındaki tablolar: {string.Join(", ", StartupCleanupTables)}");
 
-                // Tablo yoksa temizleme yapmadan çık
-                var tableExists = db.ExecuteScalar<int>(
-                    "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='entMemberDisplayPhotos'");
-                if (tableExists == 0)
+                foreach (var tableName in StartupCleanupTables)
                 {
-                    _logger.LogInformation("Cleanup skipped: entMemberDisplayPhotos table not found.");
-                    return;
+                    try
+                    {
+                        var tableExists = db.ExecuteScalar<int>(
+                            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
+                            tableName);
+                        if (tableExists == 0)
+                        {
+                            continue;
+                        }
+
+                        var hasCreatedOnColumn = db.Query<TableColumnInfoResult>($"PRAGMA table_info([{tableName}])")
+                            .Any(c => string.Equals(c.Name, "CreatedOn", StringComparison.OrdinalIgnoreCase));
+
+                        if (!hasCreatedOnColumn)
+                        {
+                            continue;
+                        }
+
+                        var deletedCount = db.Execute(
+                            $"DELETE FROM [{tableName}] WHERE CreatedOn IS NOT NULL AND CreatedOn < ?",
+                            cutoffDate);
+
+                        totalDeletedCount += deletedCount;
+
+                        if (deletedCount > 0)
+                        {
+                            Console.WriteLine(
+                                $"[DatabaseSyncService] Startup cleanup: {deletedCount} adet kayıt silindi (Tablo: {tableName}, CreatedOn < {cutoffDate:yyyy-MM-dd HH:mm:ss})");
+                        }
+                    }
+                    catch (Exception tableEx)
+                    {
+                        _logger.LogWarning(tableEx, "Startup cleanup table skipped: {TableName}", tableName);
+                        Console.WriteLine($"[DatabaseSyncService] Startup cleanup table skipped ({tableName}): {tableEx.Message}");
+                    }
                 }
 
-                var cutoffDate = DateTime.Now.AddDays(-1);
-                var deletedCount = db.Execute(
-                    "DELETE FROM entMemberDisplayPhotos WHERE CreatedOn IS NOT NULL AND CreatedOn < ?",
-                    cutoffDate);
-
                 _logger.LogInformation(
-                    "Startup cleanup completed: deleted {DeletedCount} display photo records older than {CutoffDate}.",
-                    deletedCount,
-                    cutoffDate);
+                    "Startup cleanup completed: deleted {DeletedCount} records older than {CutoffDate} across {TableCount} tables.",
+                    totalDeletedCount,
+                    cutoffDate,
+                    StartupCleanupTables.Count);
                 Console.WriteLine(
-                    $"[DatabaseSyncService] Startup cleanup: {deletedCount} adet entMemberDisplayPhotos kaydı silindi (CreatedOn < {cutoffDate:yyyy-MM-dd HH:mm:ss})");
+                    $"[DatabaseSyncService] Startup cleanup tamamlandı: toplam {totalDeletedCount} kayıt silindi (CreatedOn < {cutoffDate:yyyy-MM-dd HH:mm:ss})");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during startup cleanup of old display photos.");
+                _logger.LogError(ex, "Error during startup cleanup of old records.");
                 Console.WriteLine($"[DatabaseSyncService] Startup cleanup error: {ex.Message}");
             }
 
@@ -583,23 +633,23 @@ namespace MerchPlusMAUI.Services
 
                 using var db = new SQLiteConnection(GlobalVariables.DatabasePath);
                 const int displayPhotoBatchSize = 20;
-                var pendingPhotoIds = db.Query<MemberDisplayPhotos>(
-                        "SELECT Id FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY Id")
-                    .Select(x => x.Id)
+                var pendingPhotoRowIds = db.Query<PendingDisplayPhotoRecord>(
+                        "SELECT rowid AS LocalRowId FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY rowid")
+                    .Select(x => x.LocalRowId)
                     .ToList();
                 
-                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tabloda {pendingPhotoIds.Count} adet gönderilmemiş fotoğraf bulundu");
+                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Tabloda {pendingPhotoRowIds.Count} adet gönderilmemiş fotoğraf bulundu");
 
-                int totalBatches = pendingPhotoIds.Count == 0
+                int totalBatches = pendingPhotoRowIds.Count == 0
                     ? 0
-                    : (int)Math.Ceiling(pendingPhotoIds.Count / (double)displayPhotoBatchSize);
+                    : (int)Math.Ceiling(pendingPhotoRowIds.Count / (double)displayPhotoBatchSize);
 
-                for (int i = 0; i < pendingPhotoIds.Count; i += displayPhotoBatchSize)
+                for (int i = 0; i < pendingPhotoRowIds.Count; i += displayPhotoBatchSize)
                 {
-                    var batchIds = pendingPhotoIds.Skip(i).Take(displayPhotoBatchSize).ToList();
-                    var idList = string.Join(",", batchIds);
-                    var photos = db.Query<MemberDisplayPhotos>(
-                        $"SELECT * FROM entMemberDisplayPhotos WHERE Id IN ({idList}) ORDER BY Id");
+                    var batchRowIds = pendingPhotoRowIds.Skip(i).Take(displayPhotoBatchSize).ToList();
+                    var rowIdList = string.Join(",", batchRowIds);
+                    var photos = db.Query<PendingDisplayPhotoRecord>(
+                        $"SELECT rowid AS LocalRowId, * FROM entMemberDisplayPhotos WHERE rowid IN ({rowIdList}) ORDER BY rowid");
 
                     Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Batch {Math.Min(i / displayPhotoBatchSize + 1, totalBatches)}/{totalBatches} (adet: {photos.Count})");
 
@@ -615,7 +665,7 @@ namespace MerchPlusMAUI.Services
                                 continue; // Bu fotoğrafı atla, bir sonrakine geç
                             }
                             
-                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                            Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] Fotoğraf gönderiliyor - LocalRowId: {photo.LocalRowId}, Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
                             
                             // JSON serialize et ve sunucuya gönder
                             var json = Newtonsoft.Json.JsonConvert.SerializeObject(photo, new Newtonsoft.Json.JsonSerializerSettings
@@ -687,10 +737,10 @@ namespace MerchPlusMAUI.Services
                             if (isSuccess)
                             {
                                 // Başarılı - IsSentToServer flag'ini güncelle (Id ile güncelle, CustomerProductId ile değil)
-                                db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
-                                    true, photo.Id);
-                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi");
-                                _logger.LogInformation($"Successfully synced display photo - Id: {photo.Id}");
+                                db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE rowid=?", 
+                                    true, photo.LocalRowId);
+                                Console.WriteLine($"[TEŞHİR FOTOĞRAFI SENKRONIZASYON] ✅ Başarılı - Fotoğraf LocalRowId: {photo.LocalRowId} (Id: {photo.Id}) sunucuya gönderildi");
+                                _logger.LogInformation($"Successfully synced display photo - LocalRowId: {photo.LocalRowId}, Id: {photo.Id}");
                             }
                             else
                             {
@@ -957,6 +1007,16 @@ namespace MerchPlusMAUI.Services
         public List<SalesOrderDetail> SalesOrderDetail { get; set; } = new List<SalesOrderDetail>();
         public List<ProductExpiration> ProductExpiration { get; set; } = new List<ProductExpiration>();
         public List<MemberDisplayPhotos> MemberDisplayPhotos { get; set; } = new List<MemberDisplayPhotos>();
+    }
+
+    internal class PendingDisplayPhotoRecord : MemberDisplayPhotos
+    {
+        public long LocalRowId { get; set; }
+    }
+
+    internal class TableColumnInfoResult
+    {
+        public string Name { get; set; } = string.Empty;
     }
 
 } 

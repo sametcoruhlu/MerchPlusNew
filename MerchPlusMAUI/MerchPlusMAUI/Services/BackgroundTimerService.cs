@@ -71,39 +71,9 @@ namespace MerchPlusMAUI.Services
         {
             try
             {
-                _logger.LogInformation("Performing database maintenance...");
-
-                using var db = new SQLite.SQLiteConnection(GlobalVariables.DatabasePath);
-
-                // 1. Eski log kayıtlarını temizle (30 günden eski)
-                var cutoffDate = DateTime.UtcNow.AddDays(-30);
-                
-                // 2. Gönderilmiş eski fotoğrafları temizle (7 günden eski) - eski projeye göre sadece IsSentToServer kontrolü
-                var photoCutoffDate = DateTime.UtcNow.AddDays(-7);
-                var oldPhotos = db.Table<entMemberRoutePhoto>()
-                    .Where(p => p.IsSentToServer == true && p.CreatedOn < photoCutoffDate)
-                    .ToList();
-
-                foreach (var photo in oldPhotos)
-                {
-                    // Fotoğraf dosyasını sil (eğer varsa) - eski projeye göre ProfilePicturePath kullanılıyor
-                    if (!string.IsNullOrEmpty(photo.ProfilePicturePath) && System.IO.File.Exists(photo.ProfilePicturePath))
-                    {
-                        try
-                        {
-                            System.IO.File.Delete(photo.ProfilePicturePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Could not delete photo file: {ProfilePicturePath}", photo.ProfilePicturePath);
-                        }
-                    }
-
-                    // Veritabanından kaydı sil
-                    db.Delete(photo);
-                }
-
-                _logger.LogInformation($"Database maintenance completed. Cleaned {oldPhotos.Count} old photos.");
+                // Temizlik işlemi DatabaseSyncService başlangıcında tek noktadan yönetiliyor.
+                // Aynı silme işlemini burada tekrar çalıştırmıyoruz.
+                _logger.LogInformation("Database maintenance skipped: startup cleanup is centralized in DatabaseSyncService.");
             }
             catch (Exception ex)
             {

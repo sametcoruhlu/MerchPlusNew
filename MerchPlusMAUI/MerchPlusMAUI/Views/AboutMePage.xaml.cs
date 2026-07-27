@@ -246,7 +246,8 @@ namespace MerchPlusMAUI.Views
                 }
 
                 // Sync photos
-                var photos = db.Table<MemberDisplayPhotos>().Where(p => !p.IsSentToServer != true).ToList();
+                var photos = db.Query<PendingDisplayPhotoRecord>(
+                    "SELECT rowid AS LocalRowId, * FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY rowid");
                 if (photos.Any())
                 {
                     await SyncPhotos(photos, db);
@@ -587,7 +588,7 @@ namespace MerchPlusMAUI.Views
             }
         }
 
-        private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
+        private async Task SyncPhotos(List<PendingDisplayPhotoRecord> photos, SQLiteConnection db)
         {
             try
             {
@@ -611,7 +612,7 @@ namespace MerchPlusMAUI.Views
                             continue; // Bu fotoğrafı atla, bir sonrakine geç
                         }
                         
-                        Console.WriteLine($"[AboutMePage] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                        Console.WriteLine($"[AboutMePage] Fotoğraf gönderiliyor - LocalRowId: {photo.LocalRowId}, Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
                         
                         var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
                         var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
@@ -662,9 +663,9 @@ namespace MerchPlusMAUI.Views
                         if (isSuccess)
                         {
                             // Başarılı - IsSentToServer flag'ini güncelle (Id ile, CustomerProductId ile değil!)
-                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", 
-                                true, photo.Id);
-                            Console.WriteLine($"[AboutMePage] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi ve IsSentToServer=true yapıldı");
+                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE rowid=?", 
+                                true, photo.LocalRowId);
+                            Console.WriteLine($"[AboutMePage] ✅ Başarılı - Fotoğraf LocalRowId: {photo.LocalRowId} (Id: {photo.Id}) sunucuya gönderildi ve IsSentToServer=true yapıldı");
                         }
                         else
                         {
@@ -836,5 +837,10 @@ namespace MerchPlusMAUI.Views
     {
         public string Name { get; set; }
         public int CompletionPercentage { get; set; }
+    }
+
+    internal class PendingDisplayPhotoRecord : MemberDisplayPhotos
+    {
+        public long LocalRowId { get; set; }
     }
 } 

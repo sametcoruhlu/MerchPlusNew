@@ -625,25 +625,25 @@ namespace MerchPlusMAUI.Controls
 
                 // Sync photos (yeni projede ekstra) - toplu yerine batch halinde gönder
                 const int displayPhotoBatchSize = 20;
-                var pendingPhotoIds = db.Query<MemberDisplayPhotos>(
-                        "SELECT Id FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY Id")
-                    .Select(x => x.Id)
+                var pendingPhotoRowIds = db.Query<PendingDisplayPhotoRecord>(
+                        "SELECT rowid AS LocalRowId FROM entMemberDisplayPhotos WHERE IFNULL(IsSentToServer, 0) = 0 ORDER BY rowid")
+                    .Select(x => x.LocalRowId)
                     .ToList();
 
-                Console.WriteLine($"[CommonFooter] Gönderilmemiş fotoğraf sayısı: {pendingPhotoIds.Count}");
-                if (pendingPhotoIds.Any())
+                Console.WriteLine($"[CommonFooter] Gönderilmemiş fotoğraf sayısı: {pendingPhotoRowIds.Count}");
+                if (pendingPhotoRowIds.Any())
                 {
-                    int totalBatches = (int)Math.Ceiling(pendingPhotoIds.Count / (double)displayPhotoBatchSize);
+                    int totalBatches = (int)Math.Ceiling(pendingPhotoRowIds.Count / (double)displayPhotoBatchSize);
                     int processedCount = 0;
 
-                    for (int i = 0; i < pendingPhotoIds.Count; i += displayPhotoBatchSize)
+                    for (int i = 0; i < pendingPhotoRowIds.Count; i += displayPhotoBatchSize)
                     {
                         try
                         {
-                            var batchIds = pendingPhotoIds.Skip(i).Take(displayPhotoBatchSize).ToList();
-                            var idList = string.Join(",", batchIds);
-                            var photosBatch = db.Query<MemberDisplayPhotos>(
-                                $"SELECT * FROM entMemberDisplayPhotos WHERE Id IN ({idList}) ORDER BY Id");
+                            var batchRowIds = pendingPhotoRowIds.Skip(i).Take(displayPhotoBatchSize).ToList();
+                            var rowIdList = string.Join(",", batchRowIds);
+                            var photosBatch = db.Query<PendingDisplayPhotoRecord>(
+                                $"SELECT rowid AS LocalRowId, * FROM entMemberDisplayPhotos WHERE rowid IN ({rowIdList}) ORDER BY rowid");
 
                             if (photosBatch.Count == 0)
                                 continue;
@@ -894,7 +894,7 @@ namespace MerchPlusMAUI.Controls
             }
         }
 
-        private async Task SyncPhotos(List<MemberDisplayPhotos> photos, SQLiteConnection db)
+        private async Task SyncPhotos(List<PendingDisplayPhotoRecord> photos, SQLiteConnection db)
         {
             try
             {
@@ -918,7 +918,7 @@ namespace MerchPlusMAUI.Controls
                             continue; // Bu fotoğrafı atla, bir sonrakine geç
                         }
                         
-                        Console.WriteLine($"[CommonFooter] Fotoğraf gönderiliyor - Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
+                        Console.WriteLine($"[CommonFooter] Fotoğraf gönderiliyor - LocalRowId: {photo.LocalRowId}, Id: {photo.Id}, PromotionTypeId: {photo.PromotionTypeId}, CustomerProductId: {photo.CustomerProductId}, MemberRouteId: {photo.MemberRouteId}, DisplayPicturePath uzunluğu: {photo.DisplayPicturePath?.Length ?? 0}");
                         
                         var jsonString = System.Text.Json.JsonSerializer.Serialize(photo);
                         var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
@@ -969,8 +969,8 @@ namespace MerchPlusMAUI.Controls
                         if (isSuccess)
                         {
                             // Başarılı - IsSentToServer flag'ini güncelle (Id ile)
-                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE Id=?", true, photo.Id);
-                            Console.WriteLine($"[CommonFooter] ✅ Başarılı - Fotoğraf Id: {photo.Id} sunucuya gönderildi ve IsSentToServer=true yapıldı");
+                            db.Execute("UPDATE entMemberDisplayPhotos SET IsSentToServer=? WHERE rowid=?", true, photo.LocalRowId);
+                            Console.WriteLine($"[CommonFooter] ✅ Başarılı - Fotoğraf LocalRowId: {photo.LocalRowId} (Id: {photo.Id}) sunucuya gönderildi ve IsSentToServer=true yapıldı");
                         }
                         else
                         {
@@ -1141,5 +1141,10 @@ namespace MerchPlusMAUI.Controls
         {
             public int Id { get; set; }
         }
+    }
+
+    internal class PendingDisplayPhotoRecord : MemberDisplayPhotos
+    {
+        public long LocalRowId { get; set; }
     }
 } 

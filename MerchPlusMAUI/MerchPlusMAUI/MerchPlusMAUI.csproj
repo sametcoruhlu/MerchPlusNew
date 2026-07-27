@@ -57,8 +57,8 @@
 		<ApplicationId>com.companyname.merchplusmaui</ApplicationId>
 
 		<!-- Versions (Play Store: ApplicationVersion = versionCode artan tam sayı; ApplicationDisplayVersion = versionName) -->
-		<ApplicationDisplayVersion>1.4</ApplicationDisplayVersion>
-		<ApplicationVersion>12</ApplicationVersion>
+		<ApplicationDisplayVersion>1.6</ApplicationDisplayVersion>
+		<ApplicationVersion>14</ApplicationVersion>
 		
 		<!-- Package formatı: Release için AAB (Google Play Store), Debug için APK -->
 		<AndroidPackageFormat Condition="'$(Configuration)' == 'Release' AND $(TargetFramework.Contains('-android'))">aab</AndroidPackageFormat>
