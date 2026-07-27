@@ -1,0 +1,227 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\storeproductspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\storeproductspage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\storevitrinephotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\storevitrinephotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\storeentryphotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\storeentryphotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\storedisplayphotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\storedisplayphotopage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2299E9CC-7975-45D7-9215-A5365F8DFD89}|..\\entMerchPlus\\entMerchPlus.csproj|d:\\git\\merchplusnew\\entmerchplus\\entmemberdisplayphotos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2299E9CC-7975-45D7-9215-A5365F8DFD89}|..\\entMerchPlus\\entMerchPlus.csproj|d:\\git\\merchplusnew\\entmerchplus\\entmemberroutephoto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\services\\fieldvisibilityservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\services\\fieldvisibilityservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\merchdataentrypage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\merchdataentrypage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\merchdataentrypage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\merchdataentrypage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\homepage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\homepage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\productmultiselectionpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\productmultiselectionpage.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|d:\\git\\merchplusnew\\merchplusmaui\\merchplusmaui\\views\\productmultiselectionpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{62CEFC0F-2143-4AD7-8C11-DE33186B5188}|MerchPlusMAUI\\MerchPlusMAUI.csproj|solutionrelative:merchplusmaui\\views\\productmultiselectionpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:3:0:{57d563b6-44a5-47df-85be-f4199ad6b651}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "StoreProductsPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreProductsPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\StoreProductsPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreProductsPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\StoreProductsPage.xaml",
+              "ViewState": "AgIAACYBAAAAAAAAAAAkwDcBAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-04-02T19:13:07.524Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "StoreVitrinePhotoPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreVitrinePhotoPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\StoreVitrinePhotoPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreVitrinePhotoPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\StoreVitrinePhotoPage.xaml",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAACUAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-04-02T18:40:01.46Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "StoreDisplayPhotoPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreDisplayPhotoPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\StoreDisplayPhotoPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreDisplayPhotoPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\StoreDisplayPhotoPage.xaml",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-04-02T18:39:37.993Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "StoreEntryPhotoPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreEntryPhotoPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\StoreEntryPhotoPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\StoreEntryPhotoPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\StoreEntryPhotoPage.xaml",
+              "ViewState": "AgIAAH4AAAAAAAAAAAAAAA4AAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-04-02T18:37:14.628Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "entMemberDisplayPhotos.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMemberDisplayPhotos.cs",
+              "RelativeDocumentMoniker": "..\\entMerchPlus\\entMemberDisplayPhotos.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMemberDisplayPhotos.cs",
+              "RelativeToolTip": "..\\entMerchPlus\\entMemberDisplayPhotos.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA0AAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-26T21:44:52.195Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "entMemberRoutePhoto.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMemberRoutePhoto.cs",
+              "RelativeDocumentMoniker": "..\\entMerchPlus\\entMemberRoutePhoto.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\entMerchPlus\\entMemberRoutePhoto.cs",
+              "RelativeToolTip": "..\\entMerchPlus\\entMemberRoutePhoto.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAA3wFYAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-26T21:43:24.628Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FieldVisibilityService.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Services\\FieldVisibilityService.cs",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Services\\FieldVisibilityService.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Services\\FieldVisibilityService.cs",
+              "RelativeToolTip": "MerchPlusMAUI\\Services\\FieldVisibilityService.cs",
+              "ViewState": "AgIAAF0AAAAAAAAAAAAAAHgAAABgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-28T14:48:50.445Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "MerchDataEntryPage.xaml.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml.cs",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml.cs",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-28T14:07:48.696Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "MerchDataEntryPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\MerchDataEntryPage.xaml",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-02-28T14:07:45.297Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "HomePage.xaml.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\HomePage.xaml.cs",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\HomePage.xaml.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\HomePage.xaml.cs",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\HomePage.xaml.cs",
+              "ViewState": "AgIAAI4GAAAAAAAAAAAiwKAGAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-30T17:51:47.43Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ProductMultiSelectionPage.xaml.cs",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml.cs",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml.cs",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml.cs",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml.cs",
+              "ViewState": "AgIAADwAAAAAAAAAAAAgwEwAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-17T20:47:06.072Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ProductMultiSelectionPage.xaml",
+              "DocumentMoniker": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml",
+              "RelativeDocumentMoniker": "MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml",
+              "ToolTip": "D:\\GIT\\MerchPlusNew\\MerchPlusMAUI\\MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml",
+              "RelativeToolTip": "MerchPlusMAUI\\Views\\ProductMultiSelectionPage.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-01-17T20:46:51.214Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
