@@ -1,0 +1,349 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MerchPlusMAUI</name>
+    </assembly>
+    <members>
+        <member name="M:MerchPlusMAUI.App.StartServicesAsync">
+            <summary>
+            Arka plan servislerini başlatır
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Controls.CommonFooter.FixDateTimeFields(MerchPlusMAUI.Models.MemberRouteSyncData)">
+            <summary>
+            Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+            Reflection kullanarak tüm DateTime property'lerini otomatik olarak kontrol eder
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Controls.CommonFooter.FixDateTimeFieldsForEntity``1(``0,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Bir entity'nin tüm DateTime ve DateTime? property'lerini kontrol eder ve null/default olanları düzeltir
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.InitializeUserAsync">
+            <summary>
+            Uygulama başladığında kullanıcı bilgilerini başlatır.
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.GetCurrentUserAsync">
+            <summary>
+            Mevcut oturum açmış kullanıcıyı döndürür
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.AuthenticateByDeviceIdAsync(System.String)">
+            <summary>
+            Cihaz ID'sine göre kullanıcıyı doğrular
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.LogoutAsync">
+            <summary>
+            Kullanıcı oturumunu kapatır
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.GetDeviceId">
+            <summary>
+            Cihaz benzersiz kimliğini alır
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.AuthenticationService.InitializeUserProfileAsync(entMerchPlus.entMember)">
+            <summary>
+            Kullanıcı profil bilgilerini tamamlar (profil resmi gibi)
+            </summary>
+        </member>
+        <member name="T:MerchPlusMAUI.Services.BackgroundTimerService">
+            <summary>
+            Arka planda periyodik işlemler yapan servis
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.BackgroundTimerService.PerformDatabaseMaintenance">
+            <summary>
+            Veritabanı bakım işlemlerini yapar
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DatabaseSyncService.FixDateTimeFields(MerchPlusMAUI.Services.MemberRouteSyncData)">
+            <summary>
+            Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+            Reflection kullanarak tüm DateTime property'lerini otomatik olarak kontrol eder
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DatabaseSyncService.FixDateTimeFieldsForEntity``1(``0,System.String,System.Nullable{System.Int32})">
+            <summary>
+            Bir entity'nin tüm DateTime ve DateTime? property'lerini kontrol eder ve null/default olanları düzeltir
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DatabaseSyncService.SyncPendingDataToServer">
+            <summary>
+            Server'a gönderilmemiş verileri senkronize eder
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DatabaseSyncService.SyncMemberRouteToServer(entMerchPlus.entMemberRoute,SQLite.SQLiteConnection)">
+            <summary>
+            Tek bir MemberRoute'u server'a senkronize eder
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DatabaseSyncService.MarkDataAsSentToServer(System.Int32,SQLite.SQLiteConnection)">
+            <summary>
+            Başarılı senkronizasyon sonrası flag'leri günceller
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.DemoDataGenerator.GenerateDemoData">
+            <summary>
+            Demo data generation is disabled - using only real service data
+            </summary>
+        </member>
+        <member name="T:MerchPlusMAUI.Services.DistanceType">
+            <summary>
+            The distance type to return the results in.
+            </summary>
+        </member>
+        <member name="T:MerchPlusMAUI.Services.Position">
+            <summary>
+            Specifies a Latitude / Longitude point.
+            </summary>
+        </member>
+        <member name="T:MerchPlusMAUI.Services.HaversineUtility">
+            <summary>
+            Utility class for calculating distances between GPS coordinates using Haversine formula
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.HaversineUtility.Distance(MerchPlusMAUI.Services.Position,MerchPlusMAUI.Services.Position,MerchPlusMAUI.Services.DistanceType)">
+            <summary>
+            Returns the distance in miles or kilometers of any two
+            latitude / longitude points.
+            </summary>
+            <param name="pos1">First position</param>
+            <param name="pos2">Second position</param>
+            <param name="type">Distance type (Miles or Kilometers)</param>
+            <returns>Distance between the two points</returns>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.HaversineUtility.toRadian(System.Double)">
+            <summary>
+            Convert to Radians.
+            </summary>
+            <param name="val">Value in degrees</param>
+            <returns>Value in radians</returns>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.HaversineUtility.IsWithinDistance(MerchPlusMAUI.Services.Position,MerchPlusMAUI.Services.Position,System.Double)">
+            <summary>
+            Check if the current position is within the specified distance from the target position
+            </summary>
+            <param name="currentPosition">Current GPS position</param>
+            <param name="targetPosition">Target GPS position</param>
+            <param name="maxDistanceMeters">Maximum allowed distance in meters</param>
+            <returns>True if within distance, false otherwise</returns>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.HaversineUtility.GetDistanceInMeters(MerchPlusMAUI.Services.Position,MerchPlusMAUI.Services.Position)">
+            <summary>
+            Get distance in meters between two positions
+            </summary>
+            <param name="pos1">First position</param>
+            <param name="pos2">Second position</param>
+            <returns>Distance in meters</returns>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.LocationService.StartLocationTracking">
+            <summary>
+            Konum izlemeyi başlatır
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.LocationService.StopLocationTracking">
+            <summary>
+            Konum izlemeyi durdurur
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.LocationService.LocationTrackingTask">
+            <summary>
+            Konum izleme görevi
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.NotificationService.MarkAsRead(System.Int32)">
+            <summary>
+            Bildirimi okundu olarak işaretler
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.UserProfileService.GetCurrentUser">
+            <summary>
+            Mevcut giriş yapmış kullanıcının profilini döndürür
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.UserProfileService.UpdateUserProfile(MerchPlusMAUI.Models.UserProfile)">
+            <summary>
+            Kullanıcı profil bilgilerini günceller
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.UserProfileService.UpdateProfileImage(System.String)">
+            <summary>
+            Kullanıcı profil resmini günceller
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Services.UserProfileService.RefreshFromCurrentMember">
+            <summary>
+            Refresh user profile from GlobalVariables.CurrentMember
+            </summary>
+        </member>
+        <member name="T:MerchPlusMAUI.Templates.BaseContentPage">
+            <summary>
+            Tüm sayfalar için temel sınıf.
+            Bu sınıf, her sayfada ortak olarak kullanılacak header'ı ekler.
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.AboutMePage.FixDateTimeFields(MerchPlusMAUI.Models.MemberRouteSyncData)">
+            <summary>
+            Sunucuya gönderilmeden önce DateTime alanlarını kontrol eder ve null olanları düzeltir
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.HomePage.LoadLastKnownLocation">
+            <summary>
+            Veritabanından son bilinen konum bilgisini yükler
+            LocationAgentService entMemberCoordinate kullanıyor, bu yüzden aynı entity'yi kullanıyoruz
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.HomePage.TestLocationManually">
+            <summary>
+            Manuel konum testi yapar
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.StoreProductsPage.ValidateExitShop">
+            <summary>
+            Mağazadan çıkış validasyonu yapar
+            </summary>
+            <returns>Çıkış yapılabilir mi?</returns>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.StoreProductsPage.CompleteExitShop">
+            <summary>
+            Mağazadan çıkış işlemini tamamlar - eski projeye göre geliştirilmiş
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.StoreProductsPage.NormalizeForSearch(System.String)">
+            <summary>
+            Türkçe karakterleri normalize ederek arama yapılabilir hale getirir
+            </summary>
+        </member>
+        <member name="M:MerchPlusMAUI.Views.StoresPage.CheckStoreDistanceAndProceed(MerchPlusMAUI.Views.StoreViewModel)">
+            <summary>
+            Mağaza uzaklık kontrolü yapar ve gerekirse giriş işlemini başlatır
+            </summary>
+            <param name="selectedStore">Seçilen mağaza</param>
+            <returns>İşleme devam edilebilir mi?</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Button.TextColorTo(Microsoft.Maui.Controls.Button,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_DatePicker.TextColorTo(Microsoft.Maui.Controls.DatePicker,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Editor.TextColorTo(Microsoft.Maui.Controls.Editor,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Entry.TextColorTo(Microsoft.Maui.Controls.Entry,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_InputView.TextColorTo(Microsoft.Maui.Controls.InputView,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Label.TextColorTo(Microsoft.Maui.Controls.Label,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_Picker.TextColorTo(Microsoft.Maui.Controls.Picker,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_RadioButton.TextColorTo(Microsoft.Maui.Controls.RadioButton,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_SearchBar.TextColorTo(Microsoft.Maui.Controls.SearchBar,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+        <member name="M:Microsoft.Maui.Controls.ColorAnimationExtensions_TimePicker.TextColorTo(Microsoft.Maui.Controls.TimePicker,Microsoft.Maui.Graphics.Color,System.UInt32,System.UInt32,Microsoft.Maui.Easing,System.Threading.CancellationToken)">
+            <summary>
+            Animates the TextColor of an <see cref = "T:Microsoft.Maui.ITextStyle"/> to the given color
+            </summary>
+            <param name = "element"></param>
+            <param name = "color">The target color to animate the <see cref = "P:Microsoft.Maui.ITextStyle.TextColor"/> to</param>
+            <param name = "rate">The time, in milliseconds, between the frames of the animation</param>
+            <param name = "length">The duration, in milliseconds, of the animation</param>
+            <param name = "easing">The easing function to be used in the animation</param>
+            <param name = "token"><see cref = "T:System.Threading.CancellationToken"/></param>
+            <returns>Value indicating if the animation completed successfully or not</returns>
+        </member>
+    </members>
+</doc>

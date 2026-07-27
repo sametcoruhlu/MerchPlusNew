@@ -1,0 +1,175 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = true
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.TargetFramework = net9.0-android
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = MerchPlusMAUI
+build_property.ProjectDir = D:\GIT\MerchPlusNew\MerchPlusMAUI\MerchPlusMAUI\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/App.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.App.xaml
+build_metadata.AdditionalFiles.TargetPath = App.xaml
+build_metadata.AdditionalFiles.RelativePath = App.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/AppShell.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.AppShell.xaml
+build_metadata.AdditionalFiles.TargetPath = AppShell.xaml
+build_metadata.AdditionalFiles.RelativePath = AppShell.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Controls/CommonFooter.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Controls.CommonFooter.xaml
+build_metadata.AdditionalFiles.TargetPath = Controls\CommonFooter.xaml
+build_metadata.AdditionalFiles.RelativePath = Controls\CommonFooter.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Controls/CommonHeader.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Controls.CommonHeader.xaml
+build_metadata.AdditionalFiles.TargetPath = Controls\CommonHeader.xaml
+build_metadata.AdditionalFiles.RelativePath = Controls\CommonHeader.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Controls/FloatingBackButton.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Controls.FloatingBackButton.xaml
+build_metadata.AdditionalFiles.TargetPath = Controls\FloatingBackButton.xaml
+build_metadata.AdditionalFiles.RelativePath = Controls\FloatingBackButton.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Resources/Styles/AppIcon.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Resources.Styles.AppIcon.xaml
+build_metadata.AdditionalFiles.TargetPath = Resources\Styles\AppIcon.xaml
+build_metadata.AdditionalFiles.RelativePath = Resources\Styles\AppIcon.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Resources/Styles/Colors.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Resources.Styles.Colors.xaml
+build_metadata.AdditionalFiles.TargetPath = Resources\Styles\Colors.xaml
+build_metadata.AdditionalFiles.RelativePath = Resources\Styles\Colors.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Resources/Styles/Styles.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Resources.Styles.Styles.xaml
+build_metadata.AdditionalFiles.TargetPath = Resources\Styles\Styles.xaml
+build_metadata.AdditionalFiles.RelativePath = Resources\Styles\Styles.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/AboutMePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.AboutMePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\AboutMePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\AboutMePage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/BlockingOverlayPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.BlockingOverlayPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\BlockingOverlayPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\BlockingOverlayPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/ErrorPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.ErrorPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\ErrorPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\ErrorPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/ExpirationDatePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.ExpirationDatePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\ExpirationDatePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\ExpirationDatePage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/HomePage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.HomePage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\HomePage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\HomePage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/LocationsPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.LocationsPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\LocationsPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\LocationsPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/MerchDataEntryPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.MerchDataEntryPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\MerchDataEntryPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\MerchDataEntryPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/NotificationsPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.NotificationsPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\NotificationsPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\NotificationsPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/ProductMultiSelectionPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.ProductMultiSelectionPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\ProductMultiSelectionPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\ProductMultiSelectionPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/SalesOrderPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.SalesOrderPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\SalesOrderPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\SalesOrderPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/SettingsPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.SettingsPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\SettingsPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\SettingsPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/SplashScreen.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.SplashScreen.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\SplashScreen.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\SplashScreen.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/StoreDisplayPhotoPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.StoreDisplayPhotoPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\StoreDisplayPhotoPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\StoreDisplayPhotoPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/StoreEntryPhotoPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.StoreEntryPhotoPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\StoreEntryPhotoPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\StoreEntryPhotoPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/StoreProductsPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.StoreProductsPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\StoreProductsPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\StoreProductsPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/StoresPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.StoresPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\StoresPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\StoresPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/StoreVitrinePhotoPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.StoreVitrinePhotoPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\StoreVitrinePhotoPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\StoreVitrinePhotoPage.xaml
+
+[D:/GIT/MerchPlusNew/MerchPlusMAUI/MerchPlusMAUI/Views/VisitPage.xaml]
+build_metadata.AdditionalFiles.GenKind = Xaml
+build_metadata.AdditionalFiles.ManifestResourceName = MerchPlusMAUI.Views.VisitPage.xaml
+build_metadata.AdditionalFiles.TargetPath = Views\VisitPage.xaml
+build_metadata.AdditionalFiles.RelativePath = Views\VisitPage.xaml

@@ -1,0 +1,4 @@
+D:\GIT\MerchPlusNew\MerchPlusMAUI\MerchPlusMAUI\bin\Release\net8.0-android\publish\com.companyname.merchplusmaui-Signed.aab
+D:\GIT\MerchPlusNew\MerchPlusMAUI\MerchPlusMAUI\bin\Release\net8.0-android\publish\com.companyname.merchplusmaui.aab
+D:\GIT\MerchPlusNew\MerchPlusMAUI\MerchPlusMAUI\bin\Release\net8.0-android\publish\com.companyname.merchplusmaui-Signed.apk
+D:\GIT\MerchPlusNew\MerchPlusMAUI\MerchPlusMAUI\bin\Release\net8.0-android\publish\_Microsoft.Android.Resource.Designer.dll
